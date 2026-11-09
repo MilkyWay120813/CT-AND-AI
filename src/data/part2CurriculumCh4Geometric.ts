@@ -1,0 +1,1001 @@
+import { Part1ChapterCurriculum } from '../types/part1Curriculum';
+
+export const PART2_CHAPTER_4_GEOMETRIC_THEMES: Part1ChapterCurriculum = {
+  chapterId: 'ch11-geometric-themes',
+  chapterIndex: 4,
+  chapterBadgeLabel: 'Ganita Prakash Part II · Chapter 4',
+  title: 'Exploring Some Geometric Themes',
+  heroRibbonText: 'Ganita Prakash Class 8 · Part II Master Curriculum',
+  heroSubtitle:
+    'Discover self-similar fractals in nature and Indian temple śikharas (Sierpinski Carpet 8ⁿ, Gasket 3ⁿ, Koch Snowflake 3·4ⁿ), unfold 3D polyhedron nets to find the Hungry Ant’s 40 cm shortest path, and master Front/Top/Side orthographic projections.',
+  pdfCode: 'Part II · Ch 4',
+  pdfUrl: '/assets/aistudio/4.-EXPLORING-SOME-GEOMETRIC-THEMES_7ce5eee5.pdf',
+  heroBgGradient: 'from-[#1E1B4B] via-[#312E81] to-[#0F172A]',
+  accentColor: '#818CF8',
+  challengeBannerTitle: 'Are you ready for the Fractal Architect & 3D Projection Challenge?',
+  challengeBannerSubtitle:
+    'Generate self-similar fractals, unfold 3D cuboid nets for the Hungry Ant, solve orthographic shadow puzzles, and complete the 20-Question Randomized Assessment.',
+  modules: [
+    {
+      id: 'p2-mod-4-1',
+      moduleCode: 'Module 4.1',
+      shortNumber: '4.1',
+      title: 'Self-Similarity in Nature & Temple Architecture (Śikharas)',
+      cardHeadline: 'Fractals in Nature & Temple Śikharas',
+      cardTeaser:
+        'Explore self-similarity across scales—from fern fronds, Romanesco broccoli, and lightning bolts to the 84 mini-spires (uruśṛṅgas) of the Kandariya Mahadev Temple in Khajuraho.',
+      artworkTheme: 'cosmic',
+      videoCue: {
+        title: '3-Minute Video on Self-Similarity & Kandariya Mahadev Temple Fractals',
+        duration: '3:00',
+        durationSeconds: 180,
+        summary:
+          'Discover how repeating a single geometric motif at smaller and smaller scales builds both natural fractals and the soaring temple towers of medieval India.',
+        readingParagraphs: [
+          'A shape is called self-similar (a fractal) when zooming in on a small piece reveals a miniature copy of the whole shape. In nature, fern leaves, coastlines, river deltas, snowflakes, and clouds all grow by recursive self-similarity.',
+          'Centuries before modern fractal geometry, Indian temple architects designed the Kandariya Mahadev Temple (Khajuraho, c. 1030 CE) and Rajarajeshwara Temple using recursive śikhara towers: the central tower is surrounded by 84 smaller replica towers (uruśṛṅgas) at multiple scales!',
+        ],
+        keyTakeaways: [
+          'Self-similarity means a part of a geometric structure resembles the whole across multiple scales.',
+          'Recursive rules generate complex, lifelike structures from a simple starting seed (Step 0).',
+          'At each recursive step n, geometric counts follow exponential power laws rⁿ.',
+        ],
+        workedExample: {
+          problem: 'A fractal tree starts with 1 main trunk at Step 0. At every subsequent step, each existing branch splits into 3 smaller branches. How many new tip branches are created at Step 4, and what is the total number of branches from Step 0 to Step 4?',
+          steps: [
+            'At Step n, the number of branches is 3ⁿ: Step 0 = 1, Step 1 = 3, Step 2 = 9, Step 3 = 27, Step 4 = 81.',
+            'Total branches across Steps 0 to 4 = 1 + 3 + 9 + 27 + 81 = 121 branches.',
+          ],
+          answer: '81 tip branches at Step 4 · 121 total branches',
+        },
+        scenes: [
+          {
+            sceneNumber: 1,
+            timeRange: '0:00 – 1:00',
+            title: 'Zooming into Nature: Ferns, Coastlines & Snowflakes',
+            narration:
+              'Look closely at a single leaflet of a fern frond: it is an exact miniature replica of the entire fern! This property is called self-similarity.',
+            boardFormula: 'Self-Similarity: Part ≅ Scaled Whole Across Levels',
+            visualCaption: 'Recursive zoom into a fern frond and branching tree canopy',
+          },
+          {
+            sceneNumber: 2,
+            timeRange: '1:00 – 2:00',
+            title: 'Kandariya Mahadev Temple: 84 Recursive Uruśṛṅga Spires',
+            narration:
+              'At Khajuraho, the central śikhara rises like a mountain peak flanked by 84 smaller replica spires arranged in self-similar tiers.',
+            boardFormula: 'Step 0 Seed → Step 1 Replicas → Step 2 Miniature Replicas',
+            visualCaption: 'Architectural elevation of Kandariya Mahadev śikhara highlighting nested spires',
+          },
+          {
+            sceneNumber: 3,
+            timeRange: '2:00 – 3:00',
+            title: 'From Iterative Rules to Exponential Growth rⁿ',
+            narration:
+              'Whenever each element spawns r smaller copies at every step, Step n contains exactly rⁿ self-similar pieces!',
+            boardFormula: 'Count at Step n: N(n) = rⁿ',
+            visualCaption: 'Recursive branching tree showing 1 → 3 → 9 → 27 → 81 branches',
+          },
+        ],
+      },
+      simulation: {
+        title: 'Recursive Branching & Śikhara Scale Explorer',
+        description:
+          'Adjust the branching multiplier r and recursion depth n to see how self-similar structures multiply.',
+        interactionType: 'paper-folder',
+        defaultControlA: 3,
+        defaultControlB: 4,
+        controlALabel: 'Branches Spawned per Node (r)',
+        controlAMin: 2,
+        controlAMax: 9,
+        controlBLabel: 'Recursion Step (n)',
+        controlBMin: 1,
+        controlBMax: 6,
+        formulaHighlight: 'Step n Pieces = rⁿ · Total Cumulative Pieces = 1 + r + r² + … + rⁿ',
+      },
+      game: {
+        title: 'Fractal Pattern Spotter',
+        subtitle: 'Compute recursive counts across self-similar steps!',
+        rules: 'Identify the multiplier r at Step 1 and raise it to power n.',
+        challenges: [
+          {
+            prompt: 'A fractal motif replaces 1 square with 5 smaller squares (a cross pattern) at each step. How many small squares exist at Step 3?',
+            clue: 'Calculate 5³.',
+            options: ['125 squares', '15 squares', '25 squares', '625 squares'],
+            correctIndex: 0,
+            explanation: 'At Step 3, there are 5³ = 5 × 5 × 5 = 125 squares.',
+          },
+          {
+            prompt: 'What geometric property defines a fractal?',
+            clue: 'Compare a zoomed-in sub-part to the entire figure.',
+            options: [
+              'Self-similarity across different scales',
+              'Having only right angles',
+              'Zero perimeter',
+              'Having no symmetry',
+            ],
+            correctIndex: 0,
+            explanation: 'Fractals exhibit self-similarity: smaller parts mirror the whole structure.',
+          },
+          {
+            prompt: 'If a recursive tree splits each branch into 2 branches at every step (starting from 1 trunk at Step 0), how many total branches exist from Step 0 through Step 4 combined?',
+            clue: '1 + 2 + 4 + 8 + 16.',
+            options: ['31 branches', '16 branches', '32 branches', '15 branches'],
+            correctIndex: 0,
+            explanation: '1 + 2 + 4 + 8 + 16 = 31 branches.',
+          },
+        ],
+      },
+    },
+    {
+      id: 'p2-mod-4-2',
+      moduleCode: 'Module 4.2',
+      shortNumber: '4.2',
+      title: 'The Sierpinski Carpet & Sierpinski Gasket (Triangle)',
+      cardHeadline: 'Sierpinski Carpet (8ⁿ) & Gasket (3ⁿ)',
+      cardTeaser:
+        'Punch out center squares to create the Sierpinski Carpet (8ⁿ remaining squares and 1 + 8 + … + 8ⁿ⁻¹ holes) and upward triangles for the Sierpinski Gasket (3ⁿ).',
+      artworkTheme: 'odd-grid',
+      videoCue: {
+        title: '3-Minute Video on Counting Squares, Triangles & Holes in Sierpinski Fractals',
+        duration: '3:00',
+        durationSeconds: 180,
+        summary:
+          'Track the exact number of solid pieces and punched-out holes at Step n of the Sierpinski Carpet and Sierpinski Triangle.',
+        readingParagraphs: [
+          'To construct the Sierpinski Carpet, start with 1 solid square at Step 0. In Step 1, divide it into a 3×3 grid of 9 equal sub-squares and remove the center 1—leaving 8 solid squares and 1 hole. In Step 2, repeat this inside each of the 8 squares, leaving 8² = 64 solid squares and adding 8 new holes (total 1 + 8 = 9 holes).',
+          'To construct the Sierpinski Gasket (Triangle), start with 1 equilateral triangle at Step 0. Connect the midpoints of its 3 sides to form 4 smaller triangles and remove the middle inverted one—leaving 3 upward triangles at Step 1, 3² = 9 at Step 2, and 3ⁿ at Step n!',
+        ],
+        keyTakeaways: [
+          'Sierpinski Carpet at Step n: Remaining solid squares = 8ⁿ; Total holes = 1 + 8 + 8² + … + 8ⁿ⁻¹.',
+          'Sierpinski Gasket at Step n: Remaining upward triangles = 3ⁿ; Total holes = 1 + 3 + 3² + … + 3ⁿ⁻¹.',
+          'At each step of the Sierpinski Carpet, the remaining shaded area is multiplied by 8/9: Area(n) = (8/9)ⁿ.',
+        ],
+        workedExample: {
+          problem: 'In the Sierpinski Carpet, find (a) the number of remaining solid squares at Step 3, and (b) the total number of square holes punched out up to Step 3.',
+          steps: [
+            'Remaining solid squares at Step 3: R₃ = 8³ = 8 × 64 = 512 squares.',
+            'Holes punched out: 1 (at Step 1) + 8 (at Step 2) + 64 (at Step 3) = 73 total holes.',
+          ],
+          answer: '512 remaining squares · 73 total holes',
+        },
+        scenes: [
+          {
+            sceneNumber: 1,
+            timeRange: '0:00 – 1:00',
+            title: 'Building the Sierpinski Carpet: 1 → 8 → 64 → 512 Squares',
+            narration:
+              'Every surviving square is sliced into 9 sub-squares and loses its center, multiplying the number of surviving squares by 8 at each step!',
+            boardFormula: 'R(n) = 8ⁿ · Area(n) = (8/9)ⁿ',
+            visualCaption: '3×3 recursive grid punching out center holes across Steps 0, 1, 2, and 3',
+          },
+          {
+            sceneNumber: 2,
+            timeRange: '1:00 – 2:00',
+            title: 'Counting Cumulative Holes: 1 + 8 + 64 + … + 8ⁿ⁻¹',
+            narration:
+              'Each surviving square from Step n−1 gets exactly 1 hole punched out in Step n, so Step n adds 8ⁿ⁻¹ brand-new holes.',
+            boardFormula: 'Total Holes H(n) = 1 + 8 + 8² + … + 8ⁿ⁻¹',
+            visualCaption: 'Colour-coded holes: 1 gold (Step 1) + 8 teal (Step 2) + 64 coral (Step 3) = 73',
+          },
+          {
+            sceneNumber: 3,
+            timeRange: '2:00 – 3:00',
+            title: 'The Sierpinski Triangle (Gasket): 3ⁿ Upward Triangles',
+            narration:
+              'Removing the central inverted triangle from each upward triangle leaves 3ⁿ upward triangles and (3/4)ⁿ of the original area.',
+            boardFormula: 'Triangles T(n) = 3ⁿ · Area(n) = (3/4)ⁿ',
+            visualCaption: 'Equilateral triangle subdividing into 3, 9, 27, and 81 upward triangles',
+          },
+        ],
+      },
+      simulation: {
+        title: 'Sierpinski Carpet & Gasket Step Generator',
+        description:
+          'Select fractal type (8 for Carpet, 3 for Gasket) and Step n to inspect remaining pieces and cumulative holes.',
+        interactionType: 'odd-l-grid',
+        defaultControlA: 8,
+        defaultControlB: 3,
+        controlALabel: 'Sub-Pieces per Step (8 = Carpet, 3 = Gasket)',
+        controlAMin: 3,
+        controlAMax: 8,
+        controlBLabel: 'Fractal Step (n)',
+        controlBMin: 1,
+        controlBMax: 5,
+        formulaHighlight: 'Carpet: Rₙ = 8ⁿ, Hₙ = (8ⁿ−1)/7 · Gasket: Tₙ = 3ⁿ, Hₙ = (3ⁿ−1)/2',
+      },
+      game: {
+        title: 'Sierpinski Counter Dash',
+        subtitle: 'Calculate exact solid pieces, holes, and fractional areas at Step n!',
+        rules: 'Remember that Step 1 has 1 hole, Step 2 adds r holes, and Step 3 adds r² holes.',
+        challenges: [
+          {
+            prompt: 'In the Sierpinski Gasket (Triangle), how many upward-pointing shaded triangles remain at Step 4?',
+            clue: 'Calculate 3⁴.',
+            options: ['81 triangles', '27 triangles', '64 triangles', '12 triangles'],
+            correctIndex: 0,
+            explanation: 'At Step n, there are 3ⁿ upward triangles, so 3⁴ = 81.',
+          },
+          {
+            prompt: 'In the Sierpinski Gasket, what is the TOTAL number of inverted triangular holes punched out by Step 3?',
+            clue: '1 (Step 1) + 3 (Step 2) + 9 (Step 3).',
+            options: ['13 holes', '9 holes', '27 holes', '14 holes'],
+            correctIndex: 0,
+            explanation: 'Total holes = 1 + 3 + 9 = 13 holes.',
+          },
+          {
+            prompt: 'What fraction of the original square’s area remains shaded in the Sierpinski Carpet at Step 2?',
+            clue: '64 small squares out of 9² = 81 total sub-squares.',
+            options: ['64/81', '8/9', '16/81', '73/81'],
+            correctIndex: 0,
+            explanation: 'At each step, 8/9 of the area remains, so at Step 2 the shaded fraction is (8/9)² = 64/81.',
+          },
+        ],
+      },
+    },
+    {
+      id: 'p2-mod-4-3',
+      moduleCode: 'Module 4.3',
+      shortNumber: '4.3',
+      title: 'The Koch Snowflake: Infinite Perimeter in Finite Area',
+      cardHeadline: 'Koch Snowflake (3 × 4ⁿ Sides)',
+      cardTeaser:
+        'Sprout an equilateral bump on the middle third of every segment to turn a 3-sided triangle into a snowflake with 3 × 4ⁿ sides and perimeter P₀ × (4/3)ⁿ.',
+      artworkTheme: 'quad-tree',
+      videoCue: {
+        title: '3-Minute Video on the Koch Snowflake’s 3 × 4ⁿ Sides & (4/3)ⁿ Perimeter',
+        duration: '3:00',
+        durationSeconds: 180,
+        summary:
+          'See how replacing the middle third of each segment with two sides of an equilateral triangle multiplies the side count by 4 and the perimeter by 4/3 at every step!',
+        readingParagraphs: [
+          'Start with an equilateral triangle of 3 sides and perimeter P₀ at Step 0. In Step 1, divide each side into 3 equal parts and replace the middle third with 2 outward segments—turning each side into 4 segments of length (1/3)s. Thus Step 1 has 3 × 4 = 12 sides!',
+          'At Step n, the Koch Snowflake has Sₙ = 3 × 4ⁿ sides, each of length (1/3)ⁿ of the original side. Therefore, the total perimeter at Step n is Pₙ = P₀ × (4/3)ⁿ—which grows without bound as n → ∞ even though the snowflake fits inside a small circle!',
+        ],
+        keyTakeaways: [
+          'Number of sides at Step n: Sₙ = 3 × 4ⁿ (3, 12, 48, 192, 768, …).',
+          'Length of each small segment at Step n: Lₙ = s₀ × (1/3)ⁿ.',
+          'Total Perimeter at Step n: Pₙ = P₀ × (4/3)ⁿ.',
+        ],
+        workedExample: {
+          problem: 'An equilateral triangle at Step 0 has side length 9 cm (so perimeter P₀ = 27 cm). Find the number of sides, segment length, and total perimeter of the Koch Snowflake at Step 2.',
+          steps: [
+            'Number of sides at Step 2: S₂ = 3 × 4² = 3 × 16 = 48 sides.',
+            'Length of each segment at Step 2: L₂ = 9 × (1/3)² = 9 ÷ 9 = 1 cm.',
+            'Total Perimeter at Step 2: P₂ = 48 × 1 cm = 48 cm (which equals 27 × (4/3)² = 48 cm).',
+          ],
+          answer: '48 sides · Segment length = 1 cm · Perimeter = 48 cm',
+        },
+        scenes: [
+          {
+            sceneNumber: 1,
+            timeRange: '0:00 – 1:00',
+            title: 'The Middle-Third Rule: 1 Segment Becomes 4 Segments',
+            narration:
+              'Divide each line segment into thirds and pop out an equilateral peak in the middle: 3 thirds become 4 thirds in length!',
+            boardFormula: '1 Segment → 4 Segments of Length (1/3)L',
+            visualCaption: 'Equilateral triangle sprouting outward peaks into a 6-pointed Star of David at Step 1',
+          },
+          {
+            sceneNumber: 2,
+            timeRange: '1:00 – 2:00',
+            title: 'Counting Sides Across Steps: Sₙ = 3 × 4ⁿ',
+            narration:
+              'Starting from 3 sides at Step 0, the side count quadruples at each step: 3, 12, 48, 192, 768!',
+            boardFormula: 'S₀ = 3,  S₁ = 12,  S₂ = 48,  S₃ = 192,  Sₙ = 3 × 4ⁿ',
+            visualCaption: 'Koch Snowflake boundary crinkling into finer and finer crystalline peaks',
+          },
+          {
+            sceneNumber: 3,
+            timeRange: '2:00 – 3:00',
+            title: 'The Coastline Paradox: Infinite Perimeter Inside a Finite Box',
+            narration:
+              'Because 4/3 > 1, multiplying the perimeter by 4/3 at every step makes the perimeter grow toward infinity while the area stays finite!',
+            boardFormula: 'Perimeter P(n) = P₀ × (4/3)ⁿ',
+            visualCaption: 'Koch Snowflake enclosed inside a fixed circle while its perimeter meter climbs exponentially',
+          },
+        ],
+      },
+      simulation: {
+        title: 'Koch Snowflake Perimeter & Segment Scaling Lab',
+        description:
+          'Adjust initial side length s₀ and recursion step n to inspect side count 3·4ⁿ and perimeter P₀·(4/3)ⁿ.',
+        interactionType: 'universe-zoom',
+        defaultControlA: 9,
+        defaultControlB: 3,
+        controlALabel: 'Step 0 Triangle Side Length s₀ (cm)',
+        controlAMin: 3,
+        controlAMax: 27,
+        controlBLabel: 'Koch Recursion Step (n)',
+        controlBMin: 0,
+        controlBMax: 5,
+        formulaHighlight: 'Sides Sₙ = 3 × 4ⁿ · Perimeter Pₙ = 3s₀ × (4/3)ⁿ',
+      },
+      game: {
+        title: 'Koch Snowflake Architect',
+        subtitle: 'Compute snowflake sides, segment lengths, and perimeters!',
+        rules: 'Multiply sides by 4 and perimeter by 4/3 at each step.',
+        challenges: [
+          {
+            prompt: 'How many sides does the Koch Snowflake have at Step 3?',
+            clue: '3 × 4³ = 3 × 64.',
+            options: ['192 sides', '48 sides', '64 sides', '144 sides'],
+            correctIndex: 0,
+            explanation: 'S₃ = 3 × 4³ = 3 × 64 = 192 sides.',
+          },
+          {
+            prompt: 'If Step 0 is an equilateral triangle of perimeter 27 cm, what is the perimeter of the Koch Snowflake at Step 1?',
+            clue: 'Multiply 27 cm by 4/3.',
+            options: ['36 cm', '30 cm', '48 cm', '81 cm'],
+            correctIndex: 0,
+            explanation: 'P₁ = 27 × (4/3) = 36 cm.',
+          },
+          {
+            prompt: 'At each step of the Koch Snowflake, the length of each individual line segment is multiplied by:',
+            clue: 'Each segment is divided into 3 equal parts.',
+            options: ['1/3', '4/3', '1/4', '1/2'],
+            correctIndex: 0,
+            explanation: 'Each segment is replaced by 4 segments each of 1/3 the previous length.',
+          },
+        ],
+      },
+    },
+    {
+      id: 'p2-mod-4-4',
+      moduleCode: 'Module 4.4',
+      shortNumber: '4.4',
+      title: 'Visualising Solids & The 11 Nets of a Cube',
+      cardHeadline: 'Polyhedron Nets & The 11 Nets of a Cube',
+      cardTeaser:
+        'Cut along edges of 3D polyhedra (cubes, prisms, pyramids, octahedra) to unfold flat 2D nets, and distinguish valid vs. overlapping hexomino cube nets.',
+      artworkTheme: 'cubes',
+      videoCue: {
+        title: '3-Minute Video on Unfolding 3D Polyhedra & The 11 Hexomino Cube Nets',
+        duration: '3:00',
+        durationSeconds: 180,
+        summary:
+          'Learn how a 6-faced cube unfolds into exactly 11 distinct flat nets, and how to predict which faces become opposite when a net is folded up!',
+        readingParagraphs: [
+          'A net is a 2D pattern of polygons joined edge-to-edge that folds along its creases to form a closed 3D polyhedron without any overlapping faces. While there are 35 ways to join 6 squares edge-to-edge (hexominoes), exactly 11 of them fold into a valid cube!',
+          'Rule of Alternating Faces on a Net: Whenever 3 or 4 squares lie in a straight row on a cube net, alternating squares (every second square, skipping one in between) ALWAYS fold to become OPPOSITE faces on the 3D cube!',
+        ],
+        keyTakeaways: [
+          'A standard cube has 6 faces, 12 edges, 8 vertices (V − E + F = 8 − 12 + 6 = 2), and exactly 11 distinct flat nets.',
+          'A regular tetrahedron has 2 nets; a regular octahedron has 11 nets; a regular dodecahedron has 43,380 nets!',
+          'On a cube net, two squares separated by 1 square in a straight line always fold into opposite faces.',
+        ],
+        workedExample: {
+          problem: 'A cross-shaped cube net has squares labeled 1, 2, 3, 4 in a vertical column and squares 5 (left of 2) and 6 (right of 2). When folded into a cube, which face is opposite to Face 1, Face 2, and Face 5?',
+          steps: [
+            'In the vertical column [1, 2, 3, 4], alternating squares are opposite: Face 1 is opposite Face 3, and Face 2 is opposite Face 4.',
+            'In the horizontal row [5, 2, 6], alternating squares are opposite: Face 5 is opposite Face 6.',
+          ],
+          answer: '1 ↔ 3,  2 ↔ 4,  5 ↔ 6',
+        },
+        scenes: [
+          {
+            sceneNumber: 1,
+            timeRange: '0:00 – 1:00',
+            title: 'The 4 Families of the 11 Valid Cube Nets',
+            narration:
+              'The 11 cube nets group neatly by their longest central row: six "1-4-1" nets, three "2-3-1" nets, one "2-2-2" stair net, and one "3-3" net!',
+            boardFormula: '11 Cube Nets = 6 (1-4-1) + 3 (2-3-1) + 1 (2-2-2) + 1 (3-3)',
+            visualCaption: 'All 11 valid hexomino cube nets displayed and folding into 3D cubes',
+          },
+          {
+            sceneNumber: 2,
+            timeRange: '1:00 – 2:00',
+            title: 'The Skip-One Rule for Opposite Faces on a Net',
+            narration:
+              'In any row of squares on a net, skip one square to find its opposite face when folded 90° twice!',
+            boardFormula: 'Row [A, B, C]  ⇒  Face A is Opposite Face C',
+            visualCaption: 'Opposite faces lighting up in matching colours as the net hinges shut',
+          },
+          {
+            sceneNumber: 3,
+            timeRange: '2:00 – 3:00',
+            title: 'Nets of Pyramids, Prisms & Euler’s Formula F + V − E = 2',
+            narration:
+              'Every convex polyhedron satisfies Euler’s Formula: Faces + Vertices − Edges = 2!',
+            boardFormula: 'Euler’s Polyhedron Formula: F + V − E = 2',
+            visualCaption: 'Square pyramid (5 faces, 5 vertices, 8 edges) and triangular prism unfolding',
+          },
+        ],
+      },
+      simulation: {
+        title: '3D Polyhedron Net Folder & Euler Inspector',
+        description:
+          'Explore Faces (F), Vertices (V), and Edges (E = F + V − 2) across cubes, prisms, pyramids, and octahedra.',
+        interactionType: 'cube-3d-stacker',
+        defaultControlA: 6,
+        defaultControlB: 8,
+        controlALabel: 'Number of Faces (F)',
+        controlAMin: 4,
+        controlAMax: 20,
+        controlBLabel: 'Number of Vertices (V)',
+        controlBMin: 4,
+        controlBMax: 20,
+        formulaHighlight: 'Euler’s Formula: Edges E = F + V − 2 · Cube has 11 distinct nets',
+      },
+      game: {
+        title: 'Cube Net Detective',
+        subtitle: 'Spot valid cube nets, opposite faces, and Euler polyhedron counts!',
+        rules: 'Use the Skip-One rule for opposite faces and F + V − E = 2 for polyhedra.',
+        challenges: [
+          {
+            prompt: 'How many distinct flat nets (made of 6 connected squares) can fold into a closed 3D cube?',
+            clue: 'Count the valid hexomino nets from Ganita Prakash Ch 4.',
+            options: ['11 nets', '6 nets', '8 nets', '12 nets'],
+            correctIndex: 0,
+            explanation: 'There are exactly 11 distinct flat nets that fold into a cube.',
+          },
+          {
+            prompt: 'If 5 squares are arranged in a straight 1×5 strip (plus 1 square on the side), can it fold into a cube without overlapping?',
+            clue: '4 squares already wrap all the way around a cube (4 × 90° = 360°).',
+            options: [
+              'No — the 5th square in a straight line overlaps the 1st square',
+              'Yes — any 6 squares fold into a cube',
+              'Only if folded diagonally',
+              'Yes, it forms a tall cube',
+            ],
+            correctIndex: 0,
+            explanation: 'Four squares in a row form a complete 360° loop, so a 5th square in line overlaps the 1st.',
+          },
+          {
+            prompt: 'A convex polyhedron has 8 triangular faces and 6 vertices (a regular octahedron). How many edges E does it have?',
+            clue: 'Use F + V − E = 2 ⇒ 8 + 6 − E = 2.',
+            options: ['12 edges', '14 edges', '10 edges', '16 edges'],
+            correctIndex: 0,
+            explanation: 'By Euler’s formula, E = F + V − 2 = 8 + 6 − 2 = 12 edges.',
+          },
+        ],
+      },
+    },
+    {
+      id: 'p2-mod-4-5',
+      moduleCode: 'Module 4.5',
+      shortNumber: '4.5',
+      title: 'Shortest Surface Path on a Solid: The Hungry Ant & Laddu',
+      cardHeadline: 'The Hungry Ant & Laddu Shortest Path (40 cm)',
+      cardTeaser:
+        'Solve the classic Ganita Prakash puzzle: unfold the 30 × 12 × 12 cm cuboid box so the ant’s path across two walls becomes a 24-32-40 cm Baudhāyana hypotenuse!',
+      artworkTheme: 'carpenter',
+      videoCue: {
+        title: '3-Minute Video on Unfolding a Cuboid to Find the Ant’s 40 cm Shortest Path',
+        duration: '3:00',
+        durationSeconds: 180,
+        summary:
+          'Discover why unfolding the front and side walls of the 30 × 12 × 12 cm cuboid beats both walking along the edges (46 cm) and crossing the roof (42.43 cm)!',
+        readingParagraphs: [
+          'In Ganita Prakash Part II Chapter 4, a hungry ant sits on the left end wall of a 30 cm × 12 cm × 12 cm cuboid, 2 cm above the floor (10 cm below the roof). A sweet laddu sits on the opposite right end wall, 2 cm below the roof (10 cm above the floor). What is the shortest crawling path along the outer surface?',
+          'Because a straight line is the shortest distance in a flat plane, we unfold the 3D box into a flat 2D net! Route A (unfolding the top roof) gives a right triangle with legs 30 cm and (10 + 12 + 8) = 30 cm, so d = √(30² + 30²) ≈ 42.43 cm. Route B (unfolding the front wall and right wall) gives a right triangle with legs (12 + 12) = 24 cm and (30 + 2) = 32 cm, so d = √(24² + 32²) = √1600 = 40 cm!',
+        ],
+        keyTakeaways: [
+          'To find the shortest surface path between two points on a polyhedron, unfold the faces into a flat 2D net and draw a straight line.',
+          'Always compare all ways of unfolding the adjacent faces—different fold sequences create different right triangles!',
+          'On the 30 × 12 × 12 cm box, √(24² + 32²) = 40 cm beats √(30² + 30²) ≈ 42.43 cm.',
+        ],
+        workedExample: {
+          problem: 'An ant is at the bottom-front-left corner A of a cuboid of length 12 cm, breadth 9 cm, and height 8 cm. What is the shortest surface distance to the top-back-right corner B if the ant crawls across the front face and top face?',
+          steps: [
+            'Unfold the top face (12 × 9) flat above the front face (12 × 8) to form a 12 cm × (8 + 9) cm = 12 cm × 17 cm rectangle.',
+            'Alternatively, unfold the right face (9 × 8) beside the front face (12 × 8) to form a (12 + 9) × 8 = 21 cm × 8 cm rectangle, or unfold top + right to form 12 × 17 vs 15 × 9.',
+            'Comparing √(12² + 17²) = √433 ≈ 20.81 cm vs √((9+8)² + 12²) = 20.81 cm.',
+          ],
+          answer: '√433 ≈ 20.81 cm (by unfolding the two smaller dimensions 8 + 9 = 17 cm into one leg!)',
+        },
+        scenes: [
+          {
+            sceneNumber: 1,
+            timeRange: '0:00 – 1:00',
+            title: 'The 30 × 12 × 12 cm Box: Why Edge-Walking Takes 46 cm',
+            narration:
+              'Walking strictly parallel to the box edges takes 10 cm up + 30 cm across the roof + 2 cm down + 4 cm sideways = 46 cm.',
+            boardFormula: 'Edge Walk = 46 cm · Roof Unfold = √(30² + 30²) ≈ 42.43 cm',
+            visualCaption: '3D cuboid showing the ant on the left wall and laddu on the right wall',
+          },
+          {
+            sceneNumber: 2,
+            timeRange: '1:00 – 2:00',
+            title: 'The Winning Unfold: Front + Right Wall (24 cm by 32 cm)',
+            narration:
+              'Hinging the front wall and right wall flat creates a right triangle with legs 24 cm and 32 cm—a scaled 3-4-5 Baudhāyana triple!',
+            boardFormula: 'd = √(24² + 32²) = √(576 + 1,024) = √1,600 = 40 cm!',
+            visualCaption: 'Cuboid net unfolding flat to reveal the 24-32-40 cm right triangle',
+          },
+          {
+            sceneNumber: 3,
+            timeRange: '2:00 – 3:00',
+            title: 'General Rule for Corner-to-Corner Cuboid Paths',
+            narration:
+              'To minimize √((a + b)² + c²) on an a × b × c box, always group the TWO SMALLER dimensions together inside (a + b)²!',
+            boardFormula: 'Shortest Corner Path = √((a + b)² + c²) where a ≤ b ≤ c',
+            visualCaption: 'Comparison of the three unfolding routes on an a × b × c cuboid',
+          },
+        ],
+      },
+      simulation: {
+        title: 'Hungry Ant Cuboid Net Unfolder',
+        description:
+          'Adjust the unfolded horizontal leg ΔX and vertical leg ΔY on the flattened cuboid net to compute the straight-line hypotenuse.',
+        interactionType: 'diagonal-splitter',
+        defaultControlA: 24,
+        defaultControlB: 32,
+        controlALabel: 'Unfolded Net Horizontal Span ΔX (cm)',
+        controlAMin: 6,
+        controlAMax: 40,
+        controlBLabel: 'Unfolded Net Vertical Span ΔY (cm)',
+        controlBMin: 6,
+        controlBMax: 40,
+        formulaHighlight: 'Shortest Surface Path = √(ΔX² + ΔY²) on the flattened net',
+      },
+      game: {
+        title: 'Ant & Laddu Pathfinder',
+        subtitle: 'Unfold boxes and cylinders to find the shortest surface route!',
+        rules: 'Flatten the surface into a 2D net and apply a² + b² = c².',
+        challenges: [
+          {
+            prompt: 'In the Ganita Prakash 30 × 12 × 12 cm Hungry Ant puzzle, unfolding the front and right walls gives legs of 24 cm and 32 cm. What is the shortest path length?',
+            clue: '√(24² + 32²) = 8 × √(3² + 4²).',
+            options: ['40 cm', '42.43 cm', '46 cm', '36 cm'],
+            correctIndex: 0,
+            explanation: '√(576 + 1024) = √1600 = 40 cm.',
+          },
+          {
+            prompt: 'An ant crawls from the bottom-left corner to the opposite top-right corner across the surface of a cube of side 6 cm (crossing 2 faces). What is the length of its shortest path?',
+            clue: 'Unfold two adjacent 6 × 6 faces into a 12 cm × 6 cm rectangle.',
+            options: ['√180 = 6√5 cm', '12 cm', '18 cm', '6√2 cm'],
+            correctIndex: 0,
+            explanation: 'On the 12 cm × 6 cm unfolded rectangle, d = √(12² + 6²) = √(144 + 36) = √180 = 6√5 cm.',
+          },
+          {
+            prompt: 'An ant spirals once around a cylinder of circumference 12 cm and height 5 cm from bottom to top. What is the shortest path length?',
+            clue: 'Unroll the cylinder into a 12 cm × 5 cm rectangle!',
+            options: ['13 cm', '17 cm', '15 cm', '12.5 cm'],
+            correctIndex: 0,
+            explanation: 'Unrolling the curved surface gives a 12 cm × 5 cm rectangle with diagonal √(12² + 5²) = 13 cm.',
+          },
+        ],
+      },
+    },
+    {
+      id: 'p2-mod-4-6',
+      moduleCode: 'Module 4.6',
+      shortNumber: '4.6',
+      title: 'Shadows, Parallel Rays & Orthographic Projections (Front, Top, Side)',
+      cardHeadline: 'Orthographic Projections (Front, Top, Side Views)',
+      cardTeaser:
+        'Cast perpendicular parallel rays onto Vertical, Horizontal, and Profile planes to draw accurate Front, Top, and Side views of 3D objects.',
+      artworkTheme: 'parallelogram',
+      videoCue: {
+        title: '3-Minute Video on Parallel Shadows & Front / Top / Side Orthographic Views',
+        duration: '3:00',
+        durationSeconds: 180,
+        summary:
+          'Understand how parallel rays from the sun (as opposed to a close torch bulb) preserve exact dimensions on perpendicular projection planes.',
+        readingParagraphs: [
+          'A nearby point light source (like a candle or torch) casts diverging rays that enlarge shadows as the screen moves farther away. By contrast, sunlight arrives in virtually parallel rays: when parallel rays hit a screen at 90°, the shadow is called an orthographic projection!',
+          'Engineers and architects represent any 3D solid using three standard orthographic views: the Front View (projected onto a vertical wall behind the object), the Top View or Plan (projected straight down onto the floor), and the Side View (projected onto a perpendicular side wall).',
+        ],
+        keyTakeaways: [
+          'Parallel line segments on a 3D object always project to parallel line segments (or points) under parallel projection.',
+          'A segment of length L parallel to the screen projects to true length L; a segment perpendicular to the screen projects to a single point (length 0).',
+          'Front View shows Width × Height; Top View shows Width × Depth; Side View shows Depth × Height.',
+        ],
+        workedExample: {
+          problem: 'A right circular cylinder of diameter 8 cm and height 14 cm stands upright on a table. Describe its Front View, Side View, and Top View.',
+          steps: [
+            'Looking from the front or side horizontally, the upright cylinder projects to a rectangle of width 8 cm and height 14 cm.',
+            'Looking straight down from the top, the cylinder projects to a circle of diameter 8 cm (radius 4 cm).',
+          ],
+          answer: 'Front & Side Views: 8 cm × 14 cm Rectangle · Top View: Circle of diameter 8 cm',
+        },
+        scenes: [
+          {
+            sceneNumber: 1,
+            timeRange: '0:00 – 1:00',
+            title: 'Point Light Shadows vs. Parallel Orthographic Rays',
+            narration:
+              'Parallel rays perpendicular to the projection screen preserve exact widths and heights without magnification distortion.',
+            boardFormula: 'Parallel Rays ⊥ Screen  ⇒  True-Scale Orthographic Projection',
+            visualCaption: 'Comparison of diverging torch rays vs parallel sunbeams hitting a vertical screen',
+          },
+          {
+            sceneNumber: 2,
+            timeRange: '1:00 – 2:00',
+            title: 'The Three Projection Planes: Front, Top & Side',
+            narration:
+              'The Front View captures Width and Height; the Top View captures Width and Depth; the Side View captures Depth and Height.',
+            boardFormula: 'Front (W × H) · Top (W × D) · Side (D × H)',
+            visualCaption: '3D L-shaped block projecting onto three mutually perpendicular glass planes',
+          },
+          {
+            sceneNumber: 3,
+            timeRange: '2:00 – 3:00',
+            title: 'Foreshortening of Tilted Line Segments',
+            narration:
+              'As a stick of length L tilts away from the screen by angle θ, its projected shadow shrinks until it becomes a single dot at 90°!',
+            boardFormula: 'Parallel: L′ = L · Tilted: L′ < L · Perpendicular: L′ = 0',
+            visualCaption: 'Rod rotating from 0° to 90° with its shadow shrinking to a point',
+          },
+        ],
+      },
+      simulation: {
+        title: 'Orthographic Shadow & Foreshortening Projector',
+        description:
+          'Adjust segment length L and tilt angle θ to observe how its orthographic shadow length L′ changes.',
+        interactionType: 'parallel-ruler',
+        defaultControlA: 15,
+        defaultControlB: 0,
+        controlALabel: 'True 3D Segment Length L (cm)',
+        controlAMin: 5,
+        controlAMax: 25,
+        controlBLabel: 'Tilt Angle θ from Screen (degrees)',
+        controlBMin: 0,
+        controlBMax: 90,
+        formulaHighlight: 'Parallel (0°): L′ = L · Perpendicular (90°): L′ = 0 (A single point)',
+      },
+      game: {
+        title: 'Shadow Matcher',
+        subtitle: 'Match 3D solids to their Front, Top, and Side orthographic views!',
+        rules: 'Visualize looking straight at the object along perpendicular sightlines.',
+        challenges: [
+          {
+            prompt: 'A right circular cone stands upright on its flat circular base. What are its Top View and Front View?',
+            clue: 'Looking down sees the circular base and apex dot; looking from the front sees the triangular profile.',
+            options: [
+              'Top View: Circle (with center dot); Front View: Isosceles Triangle',
+              'Top View: Triangle; Front View: Circle',
+              'Top View: Square; Front View: Triangle',
+              'Both views are circles',
+            ],
+            correctIndex: 0,
+            explanation: 'From above, a vertical cone looks like a circle; from the front or side, it looks like an isosceles triangle.',
+          },
+          {
+            prompt: 'A straight rod of length 12 cm is held perpendicular (at 90°) to a vertical wall. What is its orthographic projection on the wall?',
+            clue: 'All points on the rod lie along the same perpendicular ray.',
+            options: [
+              'A single point (length 0 cm)',
+              'A 12 cm line segment',
+              'A 6 cm line segment',
+              'A circle',
+            ],
+            correctIndex: 0,
+            explanation: 'A line segment perpendicular to the projection plane projects to a single point.',
+          },
+          {
+            prompt: 'Which 3D solid has an identical Circle as its Front View, Top View, AND Side View?',
+            clue: 'It looks the same from every direction in 3D space.',
+            options: ['A Sphere', 'A Cylinder', 'A Cone', 'A Cube'],
+            correctIndex: 0,
+            explanation: 'A sphere projects to a circle of diameter 2r from every viewing direction.',
+          },
+        ],
+      },
+    },
+    {
+      id: 'p2-mod-4-7',
+      moduleCode: 'Module 4.7',
+      shortNumber: '4.7',
+      title: 'Isometric Grids & Reconstructing 3D Cube Stacks (Min/Max Cubes)',
+      cardHeadline: 'Isometric Grids & Min/Max Cube Stacks',
+      cardTeaser:
+        'Draw 3D unit-cube buildings on equilateral isometric dot grids and deduce the minimum and maximum possible unit cubes from Front, Top, and Side shadows.',
+      artworkTheme: 'congruence',
+      videoCue: {
+        title: '3-Minute Video on Isometric Dot Drawings & Min/Max Cube Shadow Puzzles',
+        duration: '3:00',
+        durationSeconds: 180,
+        summary:
+          'Master the heights-grid method to find the exact minimum and maximum number of unit cubes that can produce a given set of Front, Top, and Side views!',
+        readingParagraphs: [
+          'Isometric dot paper arranges dots in equilateral triangles so that the three spatial axes (length, breadth, vertical height) meet at 60°/120° angles. Unlike perspective drawings where distant edges shrink, isometric drawings preserve 1:1 unit lengths along all three axes!',
+          'When given the Top, Front, and Side views of a unit-cube building, write a height number in each square of the Top View base grid. Each row’s maximum must match the Side View height, and each column’s maximum must match the Front View height. Putting the tallest towers at the intersections gives the Minimum cube count, while filling every cell to min(RowMax, ColMax) gives the Maximum cube count!',
+        ],
+        keyTakeaways: [
+          'In the Top View height grid, every covered cell has height ≥ 1.',
+          'Maximum height in cell (r, c) is min(SideView[r], FrontView[c]).',
+          'Minimum cubes: place peak heights at shared row/column intersections and set remaining covered cells to 1.',
+        ],
+        workedExample: {
+          problem: 'A unit-cube structure covers all 4 squares of a 2×2 Top View grid. Its Front View has column heights (3, 2) and its Side View has row heights (3, 2). Find the MAXIMUM and MINIMUM number of unit cubes.',
+          steps: [
+            'Maximum Grid: each cell (r, c) takes min(RowMax, ColMax) → [min(3,3)=3, min(3,2)=2 ; min(2,3)=2, min(2,2)=2]. Sum = 3 + 2 + 2 + 2 = 9 cubes.',
+            'Minimum Grid: put 3 at top-left (satisfies row 1 and col 1) and 2 at bottom-right (satisfies row 2 and col 2), leaving 1s in the other two cells → [3, 1 ; 1, 2]. Sum = 3 + 1 + 1 + 2 = 7 cubes.',
+          ],
+          answer: 'Maximum = 9 cubes · Minimum = 7 cubes',
+        },
+        scenes: [
+          {
+            sceneNumber: 1,
+            timeRange: '0:00 – 1:00',
+            title: 'Drawing Unit Cubes on Equilateral Isometric Dot Paper',
+            narration:
+              'On isometric dot paper, vertical edges go straight up and horizontal edges follow the 30°/150° diagonals at true 1:1 scale.',
+            boardFormula: 'Isometric Axes: 120° Apart · All 3 Axes at 1:1 Unit Scale',
+            visualCaption: '3D unit cube stack emerging on an equilateral isometric dot grid',
+          },
+          {
+            sceneNumber: 2,
+            timeRange: '1:00 – 2:00',
+            title: 'Finding the Maximum Cube Count: min(RowMax, ColMax)',
+            narration:
+              'No column in row r and column c can exceed either the Side View height of row r or the Front View height of column c!',
+            boardFormula: 'h_max(r, c) = min(RowMax[r], ColMax[c])',
+            visualCaption: '2×2 Top-View grid filling with [3, 2; 2, 2] = 9 maximum cubes',
+          },
+          {
+            sceneNumber: 3,
+            timeRange: '2:00 – 3:00',
+            title: 'Finding the Minimum Cube Count: Diagonal Peak Sharing',
+            narration:
+              'A single tall tower at the intersection of a row and column satisfies BOTH shadows at once, letting hidden cells drop to 1!',
+            boardFormula: 'Min Grid [3, 1 ; 1, 2] = 3 + 1 + 1 + 2 = 7 Cubes',
+            visualCaption: ' minimal 7-cube structure casting the exact same Front, Side, and Top shadows',
+          },
+        ],
+      },
+      simulation: {
+        title: '3D Voxel Shadow Min/Max Reconstructor',
+        description:
+          'Adjust peak column height H₁ and secondary column height H₂ on a 2×2 base to compare Minimum and Maximum unit cube counts.',
+        interactionType: 'congruence-overlay',
+        defaultControlA: 3,
+        defaultControlB: 2,
+        controlALabel: 'Primary Tower Height H₁ (cubes)',
+        controlAMin: 1,
+        controlAMax: 8,
+        controlBLabel: 'Secondary Tower Height H₂ (cubes)',
+        controlBMin: 1,
+        controlBMax: 8,
+        formulaHighlight: ' On a 2×2 covered base with views (H₁, H₂): Min = H₁ + H₂ + 2 · Max = H₁ + 3H₂ (for H₁ ≥ H₂)',
+      },
+      game: {
+        title: 'Shadow Voxel Architect',
+        subtitle: 'Deduce minimum and maximum unit cubes from orthographic views!',
+        rules: 'Use a 2D height grid on the Top View to check row and column maximums.',
+        challenges: [
+          {
+            prompt: 'A 2×2 base is completely covered in the Top View. Both the Front View and Side View show heights of (4, 3). What is the MINIMUM number of unit cubes needed?',
+            clue: 'Place 4 and 3 on the diagonal, and 1 in the other two cells: 4 + 3 + 1 + 1.',
+            options: ['9 cubes', '13 cubes', '11 cubes', '7 cubes'],
+            correctIndex: 0,
+            explanation: 'Grid [4, 1 ; 1, 3] satisfies all views with 4 + 1 + 1 + 3 = 9 cubes.',
+          },
+          {
+            prompt: 'For the same 2×2 structure with Front View (4, 3) and Side View (4, 3), what is the MAXIMUM number of unit cubes possible?',
+            clue: 'Grid [min(4,4), min(4,3) ; min(3,4), min(3,3)] = [4, 3 ; 3, 3].',
+            options: ['13 cubes', '16 cubes', '12 cubes', '14 cubes'],
+            correctIndex: 0,
+            explanation: '4 + 3 + 3 + 3 = 13 cubes.',
+          },
+          {
+            prompt: 'A 3×3 base has all 9 squares covered in the Top View, and its Front and Side views show height 2 everywhere. What is the MINIMUM number of unit cubes needed?',
+            clue: 'Put height 2 along the 3 diagonal cells, and height 1 in the remaining 6 cells!',
+            options: ['12 cubes', '18 cubes', '9 cubes', '15 cubes'],
+            correctIndex: 0,
+            explanation: '3 diagonal cells of height 2 (6 cubes) + 6 cells of height 1 (6 cubes) = 12 cubes.',
+          },
+        ],
+      },
+    },
+    {
+      id: 'p2-mod-4-8',
+      moduleCode: 'Module 4.8',
+      shortNumber: '4.8',
+      title: 'Chapter 4 Capstone & 20-Question Randomized Assessment',
+      cardHeadline: 'Geometric Themes Capstone & 20-Q Exam',
+      cardTeaser:
+        'Unite fractals (8ⁿ, 3ⁿ, 3·4ⁿ), polyhedron nets, the Hungry Ant’s 40 cm shortest path, and orthographic shadow puzzles in the Capstone Studio and 20-Question Assessment.',
+      isWrapUpModule: true,
+      artworkTheme: 'master-boss',
+      videoCue: {
+        title: '3-Minute Chapter 4 Synthesis: Fractals, Nets, Shortest Paths & Projections',
+        duration: '3:00',
+        durationSeconds: 180,
+        summary:
+          'Review every formula and spatial technique in Chapter 4 before launching the Fractal & 3D Projection Capstone and 20-Question Randomized Exam.',
+        readingParagraphs: [
+          'In Chapter 4 (Exploring Some Geometric Themes), we connected recursive self-similarity in fractals (Sierpinski Carpet 8ⁿ, Sierpinski Gasket 3ⁿ, Koch Snowflake 3·4ⁿ) with 3D spatial reasoning: unfolding polyhedron nets (the 11 nets of a cube), finding the Hungry Ant’s 40 cm shortest path via Baudhāyana-Pythagoras on a flattened net, and reconstructing 3D structures from Front, Top, and Side orthographic views.',
+          'Explore the Capstone Sandbox and Tournament below, then click the Chapter Quiz tab for a freshly generated 20-Question Exam!',
+        ],
+        keyTakeaways: [
+          'Fractals at Step n: Carpet = 8ⁿ squares; Gasket = 3ⁿ triangles; Koch Snowflake = 3 × 4ⁿ sides, Perimeter = P₀(4/3)ⁿ.',
+          'Polyhedra & Nets: Cube has 11 nets; Euler’s formula F + V − E = 2; Shortest surface path = straight line on unfolded net.',
+          'Orthographic Views: Front (W×H), Top (W×D), Side (D×H); use the Top-View height grid for Min/Max unit cubes.',
+        ],
+        workedExample: {
+          problem: 'At Step 2, compare the number of remaining squares in the Sierpinski Carpet with the number of sides in the Koch Snowflake.',
+          steps: [
+            'Sierpinski Carpet at Step 2: R₂ = 8² = 64 squares.',
+            'Koch Snowflake at Step 2: S₂ = 3 × 4² = 3 × 16 = 48 sides.',
+            'Difference = 64 − 48 = 16.',
+          ],
+          answer: 'Carpet has 64 squares · Koch Snowflake has 48 sides',
+        },
+        scenes: [
+          {
+            sceneNumber: 1,
+            timeRange: '0:00 – 1:00',
+            title: 'Fractal Power Laws: 8ⁿ, 3ⁿ, and 3 × 4ⁿ',
+            narration:
+              'Every fractal step multiplies pieces exponentially: 8ⁿ in the Carpet, 3ⁿ in the Gasket, and 3 × 4ⁿ in the Koch Snowflake.',
+            boardFormula: 'Carpet: 8ⁿ · Gasket: 3ⁿ · Koch Sides: 3 × 4ⁿ',
+            visualCaption: 'Side-by-side comparison of Sierpinski Carpet, Gasket, and Koch Snowflake',
+          },
+          {
+            sceneNumber: 2,
+            timeRange: '1:00 – 2:00',
+            title: 'Unfolding 3D Space: Nets & The Hungry Ant’s 40 cm Route',
+            narration:
+              'Flattening a 3D surface into a 2D net turns multi-wall crawling paths into right-triangle hypotenuses!',
+            boardFormula: 'd = √(24² + 32²) = 40 cm < √(30² + 30²) ≈ 42.43 cm',
+            visualCaption: '30×12×12 cuboid unfolding to highlight the winning 40 cm diagonal',
+          },
+          {
+            sceneNumber: 3,
+            timeRange: '2:00 – 3:00',
+            title: 'Orthographic Views & 20-Question Mastery Exam',
+            narration:
+              'Combine Front, Top, and Side views in the height matrix and take the 20-Question Chapter 4 Assessment!',
+            boardFormula: 'Chapter 4 Mastery Seal Ready',
+            visualCaption: '3D Isometric Temple Spire & Golden Mastery Seal',
+          },
+        ],
+      },
+      simulation: {
+        title: 'Fractal Step Animator & Hungry Ant Net Studio (Big Simulation)',
+        isBigSimulation: true,
+        description:
+          'Capstone interactive laboratory combining recursive fractal step counters with 3D net unfolding and orthographic shadow reconstruction.',
+        interactionType: 'grand-capstone-sim',
+        defaultControlA: 24,
+        defaultControlB: 32,
+        controlALabel: 'Unfolded Net Leg A / Fractal Base',
+        controlAMin: 2,
+        controlAMax: 40,
+        controlBLabel: 'Unfolded Net Leg B / Step Count',
+        controlBMin: 1,
+        controlBMax: 40,
+        formulaHighlight: 'Carpet = 8ⁿ · Gasket = 3ⁿ · Koch = 3·4ⁿ · Ant Path = √(ΔX² + ΔY²)',
+      },
+      game: {
+        title: 'Fractal & 3D Spatial Architect Challenge (Big Game)',
+        isBigGame: true,
+        subtitle: 'Conquer fractals, cuboid nets, and orthographic shadow puzzles!',
+        rules: 'Complete all three spatial architecture stages to unlock the Chapter 4 Seal.',
+        challenges: [
+          {
+            prompt: 'Stage 1 (Sierpinski Carpet): How many total square holes have been punched out of the Sierpinski Carpet by the end of Step 3?',
+            clue: '1 (Step 1) + 8 (Step 2) + 64 (Step 3).',
+            options: ['73 holes', '64 holes', '512 holes', '81 holes'],
+            correctIndex: 0,
+            explanation: '1 + 8 + 64 = 73 holes.',
+          },
+          {
+            prompt: 'Stage 2 (Hungry Ant): On a 30 cm × 12 cm × 12 cm cuboid, why is unfolding the front + right wall (40 cm) shorter than unfolding the top roof (42.43 cm)?',
+            clue: 'Compare 24² + 32² = 1,600 with 30² + 30² = 1,800.',
+            options: [
+              'Because 24² + 32² = 1,600 is smaller than 30² + 30² = 1,800',
+              'Because the ant walks along the edges',
+              'Because the top roof is curved',
+              'They are actually equal',
+            ],
+            correctIndex: 0,
+            explanation: '√1600 = 40 cm < √1800 ≈ 42.43 cm.',
+          },
+          {
+            prompt: 'Stage 3 (Shadow Detective): A 2×2 base has all 4 cells covered in the Top View, with Front View (5, 2) and Side View (5, 2). What is the MINIMUM number of unit cubes?',
+            clue: 'Grid [5, 1 ; 1, 2] → 5 + 1 + 1 + 2.',
+            options: ['9 cubes', '11 cubes', '14 cubes', '7 cubes'],
+            correctIndex: 0,
+            explanation: 'Placing 5 and 2 on the diagonal and 1s in the other two cells gives 5 + 1 + 1 + 2 = 9 cubes.',
+          },
+        ],
+      },
+    },
+  ],
+  questionnaire: [
+    {
+      id: 'p2-ch4-gt-q1',
+      questionNumber: 1,
+      type: 'mcq',
+      prompt: 'In the Sierpinski Carpet fractal, how many remaining solid squares are there at Step 3?',
+      options: ['512', '64', '73', '243'],
+      correctIndex: 0,
+      explanation: 'At Step n, there are 8ⁿ remaining solid squares: 8³ = 512.',
+      moduleRef: 'Module 4.2',
+    },
+    {
+      id: 'p2-ch4-gt-q2',
+      questionNumber: 2,
+      type: 'mcq',
+      prompt: 'What is the total number of holes punched out in the Sierpinski Carpet up to Step 3?',
+      options: ['73 holes', '64 holes', '9 holes', '81 holes'],
+      correctIndex: 0,
+      explanation: 'H₃ = 1 + 8 + 64 = 73 holes.',
+      moduleRef: 'Module 4.2',
+    },
+    {
+      id: 'p2-ch4-gt-q3',
+      questionNumber: 3,
+      type: 'mcq',
+      prompt: 'In the Sierpinski Triangle (Gasket), how many upward-pointing shaded triangles remain at Step 4?',
+      options: ['81', '27', '64', '243'],
+      correctIndex: 0,
+      explanation: 'T₄ = 3⁴ = 81 upward triangles.',
+      moduleRef: 'Module 4.2',
+    },
+    {
+      id: 'p2-ch4-gt-q4',
+      questionNumber: 4,
+      type: 'mcq',
+      prompt: 'How many sides does the Koch Snowflake have at Step 3?',
+      options: ['192 sides', '48 sides', '64 sides', '768 sides'],
+      correctIndex: 0,
+      explanation: 'S₃ = 3 × 4³ = 3 × 64 = 192 sides.',
+      moduleRef: 'Module 4.3',
+    },
+    {
+      id: 'p2-ch4-gt-q5',
+      questionNumber: 5,
+      type: 'mcq',
+      prompt: 'At each step of the Koch Snowflake, the total perimeter is multiplied by:',
+      options: ['4/3', '3/4', '4', '1/3'],
+      correctIndex: 0,
+      explanation: 'Each segment becomes 4 segments of length 1/3, multiplying perimeter by 4/3.',
+      moduleRef: 'Module 4.3',
+    },
+    {
+      id: 'p2-ch4-gt-q6',
+      questionNumber: 6,
+      type: 'mcq',
+      prompt: 'How many distinct flat hexomino nets can fold into a standard 6-faced cube?',
+      options: ['11 nets', '6 nets', '8 nets', '12 nets'],
+      correctIndex: 0,
+      explanation: 'A cube has exactly 11 distinct flat nets.',
+      moduleRef: 'Module 4.4',
+    },
+    {
+      id: 'p2-ch4-gt-q7',
+      questionNumber: 7,
+      type: 'mcq',
+      prompt: 'In the textbook Hungry Ant puzzle on a 30 × 12 × 12 cm cuboid, what is the shortest surface distance from the ant to the laddu?',
+      options: ['40 cm', '42.43 cm', '46 cm', '38 cm'],
+      correctIndex: 0,
+      explanation: 'Unfolding the front and right walls gives legs 24 cm and 32 cm: √(24² + 32²) = 40 cm.',
+      moduleRef: 'Module 4.5',
+    },
+    {
+      id: 'p2-ch4-gt-q8',
+      questionNumber: 8,
+      type: 'mcq',
+      prompt: 'By Euler’s Polyhedron Formula (F + V − E = 2), if a polyhedron has 6 faces and 8 vertices, how many edges does it have?',
+      options: ['12 edges', '14 edges', '10 edges', '16 edges'],
+      correctIndex: 0,
+      explanation: 'E = F + V − 2 = 6 + 8 − 2 = 12 edges.',
+      moduleRef: 'Module 4.4',
+    },
+    {
+      id: 'p2-ch4-gt-q9',
+      questionNumber: 9,
+      type: 'mcq',
+      prompt: 'A line segment of length 15 cm is perpendicular (90°) to a projection screen. What is the length of its orthographic shadow on the screen?',
+      options: ['0 cm (a single point)', '15 cm', '7.5 cm', '30 cm'],
+      correctIndex: 0,
+      explanation: 'A segment perpendicular to the projection plane projects to a single point (length 0).',
+      moduleRef: 'Module 4.6',
+    },
+    {
+      id: 'p2-ch4-gt-q10',
+      questionNumber: 10,
+      type: 'mcq',
+      prompt: 'A 2×2 base has all 4 squares covered in the Top View, and both the Front View and Side View have heights (3, 2). What are the minimum and maximum possible unit cubes?',
+      options: ['Min = 7, Max = 9', 'Min = 6, Max = 10', 'Min = 7, Max = 10', 'Min = 8, Max = 9'],
+      correctIndex: 0,
+      explanation: 'Min grid [3,1; 1,2] = 7 cubes; Max grid [3,2; 2,2] = 9 cubes.',
+      moduleRef: 'Module 4.7',
+    },
+  ],
+};

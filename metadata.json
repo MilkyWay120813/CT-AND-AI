@@ -1,0 +1,6 @@
+{
+  "name": "Parabola Studio",
+  "description": "Interactive math homework helper combining step-by-step visual explanations, playful real-world analogies, and a live parameter graphing laboratory.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
