@@ -228,7 +228,9 @@ export const Part1ChapterHub: React.FC<Part1ChapterHubProps> = ({
     () => PREREQUISITE_BADGE_IDS.filter((id) => unlockedSet.has(id)).length,
     [unlockedSet]
   );
-  const isCellarKeyUnlocked = prereqUnlockedCount >= 114;
+  const isCellarKeyUnlocked =
+    PREREQUISITE_BADGE_IDS.length === 114 &&
+    prereqUnlockedCount === PREREQUISITE_BADGE_IDS.length;
 
   const part2Chapters = useMemo(
     () => allChapters.filter((ch) => ch.partLabel === 'Part II'),
@@ -1028,7 +1030,7 @@ export const Part1ChapterHub: React.FC<Part1ChapterHubProps> = ({
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
                 {activeCurriculum.modules.map((mod, idx) => {
                   const isHighlighted = mod.moduleCode === activeModule?.moduleCode;
                   const isVisited = Boolean(
@@ -1045,7 +1047,7 @@ export const Part1ChapterHub: React.FC<Part1ChapterHubProps> = ({
                     <article
                       key={mod.id}
                       onClick={() => handleOpenModuleSlideshow(mod, 0)}
-                      className="group relative rounded-2xl overflow-hidden bg-white flex flex-col justify-between cursor-pointer transition-all hover:-translate-y-1 hover:shadow-lg border border-stone-200/90 shadow-xs"
+                      className="group relative rounded-2xl overflow-hidden bg-white flex flex-col sm:flex-row min-h-[245px] justify-between cursor-pointer transition-all hover:-translate-y-1 hover:shadow-lg border border-stone-200/90 shadow-xs"
                     >
                       {/* Polite Side Indicator Bar on the left edge when active */}
                       {isHighlighted && (
@@ -1056,7 +1058,7 @@ export const Part1ChapterHub: React.FC<Part1ChapterHubProps> = ({
                       )}
 
                       <div>
-                        <div className="h-32 w-full relative overflow-hidden">
+                        <div className="h-44 sm:h-auto sm:w-[46%] sm:min-h-[245px] shrink-0 relative overflow-hidden">
                           <ModuleTitleArtwork
                             chapterId={activeCurriculum.chapterId}
                             moduleCode={mod.moduleCode}
@@ -1079,9 +1081,9 @@ export const Part1ChapterHub: React.FC<Part1ChapterHubProps> = ({
                           )}
                         </div>
 
-                        <div className="h-1 w-full bg-[#14B8A6]/70" />
+                        <div className="h-1 w-full sm:h-auto sm:w-1 sm:shrink-0 bg-[#14B8A6]/70" />
 
-                        <div className="p-5 space-y-2">
+                        <div className="p-5 sm:p-6 space-y-2 flex-1 min-w-0 flex flex-col justify-center">
                           <div className="flex items-center justify-between gap-2 text-xs font-bold text-[#0F766E]">
                             <span>{mod.moduleCode}</span>
                             <div className="flex items-center gap-1.5">
