@@ -1,11 +1,12 @@
 import dotenv from 'dotenv';
 import express from 'express';
+import http from 'http';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI, Type } from '@google/genai';
 
-dotenv.config();
+dotenv.config({ quiet: true });
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -434,14 +435,36 @@ Student Problem: ${problemText || 'Read the math problem from the attached homew
       // 2. Fallback to Gemini TTS if API key is configured
       if (process.env.GEMINI_API_KEY) {
         try {
-          const interaction = await getAiClient().interactions.create({
+          const ttsResponse = await getAiClient().models.generateContent({
             model: 'gemini-3.8-flash-lite-tts',
-            input: formatMathForSpeech(trimmedText),
-            response_format: { type: 'audio' },
+            contents: [
+              {
+                role: 'user',
+                parts: [
+                  {
+                    text: formatMathForSpeech(trimmedText),
+                  },
+                ],
+              },
+            ],
+            config: {
+              responseModalities: ['AUDIO'],
+              speechConfig: {
+                voiceConfig: {
+                  prebuiltVoiceConfig: {
+                    voiceName: voiceName === 'Puck' ? 'Puck' : 'Kore',
+                  },
+                },
+              },
+            },
           });
-          if (interaction.output_audio?.data) {
-            const mime = interaction.output_audio.mime_type || 'audio/wav';
-            const dataUrl = `data:${mime};base64,${interaction.output_audio.data}`;
+          const base64Audio =
+            ttsResponse.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+          if (base64Audio) {
+            const mime =
+              ttsResponse.candidates?.[0]?.content?.parts?.[0]?.inlineData?.mimeType ||
+              'audio/wav';
+            const dataUrl = `data:${mime};base64,${base64Audio}`;
             const payload = { audioDataUrl: dataUrl, audioChunks: [dataUrl] };
             voiceoverCache.set(cacheKey, payload);
             res.json({ ...payload, cached: false });
@@ -903,24 +926,18 @@ Requirements:
     res.status(200).json({ status: 'ok', port: PORT });
   });
 
+  const httpServer = http.createServer(app);
+
   if (process.env.NODE_ENV !== 'production') {
-    const vitePromise = createViteServer({
+    const vite = await createViteServer({
       server: {
         middlewareMode: true,
-        hmr: process.env.DISABLE_HMR !== 'true' ? undefined : false,
+        hmr: process.env.DISABLE_HMR === 'true' ? false : { server: httpServer },
         watch: process.env.DISABLE_HMR === 'true' ? null : {},
       },
       appType: 'spa',
     });
-
-    app.use(async (req, res, next) => {
-      try {
-        const vite = await vitePromise;
-        vite.middlewares(req, res, next);
-      } catch (err) {
-        next(err);
-      }
-    });
+    app.use(vite.middlewares);
   } else {
     const distPath = path.join(__dirname, 'dist');
     app.use(express.static(distPath));
@@ -930,30 +947,30 @@ Requirements:
   }
 
   const startListening = (retriesLeft = 5) => {
-    const server = app.listen(PORT, '0.0.0.0', () => {
+    httpServer.listen(PORT, '0.0.0.0', () => {
       console.log(`Parabola Studio server running on http://0.0.0.0:${PORT}`);
     });
 
-    server.on('error', (err: NodeJS.ErrnoException) => {
+    httpServer.once('error', (err: NodeJS.ErrnoException) => {
       if (err.code === 'EADDRINUSE' && retriesLeft > 0) {
         console.warn(`Port ${PORT} in use, retrying in 400ms... (${retriesLeft} retries left)`);
         setTimeout(() => {
-          server.close();
+          httpServer.close();
           startListening(retriesLeft - 1);
         }, 400);
       } else {
         console.error('Server failed to start:', err);
       }
     });
-
-    const shutdown = () => {
-      server.close(() => {
-        process.exit(0);
-      });
-    };
-    process.once('SIGINT', shutdown);
-    process.once('SIGTERM', shutdown);
   };
+
+  const shutdown = () => {
+    httpServer.close(() => {
+      process.exit(0);
+    });
+  };
+  process.once('SIGINT', shutdown);
+  process.once('SIGTERM', shutdown);
 
   startListening();
 }

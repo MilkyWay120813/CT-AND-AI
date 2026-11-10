@@ -197,7 +197,7 @@ export interface Part1ModuleItem {
 }
 
 export interface Part1ChapterCurriculum {
-  chapterId: ChapterId | 'ch8-master-quiz';
+  chapterId: ChapterId | 'ch8-master-quiz' | 'part2-ch8-master-quiz';
   chapterIndex: number; // 1 to 8
   chapterBadgeLabel: string; // e.g. "Ganita Prakash Part I · hegp101.pdf"
   title: string;

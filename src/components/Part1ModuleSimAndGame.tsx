@@ -1,13 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { Sliders, Trophy, HelpCircle, CheckCircle2, XCircle, RotateCcw, ArrowRight } from 'lucide-react';
+import { Sliders, Trophy, HelpCircle, CheckCircle2, XCircle, RotateCcw, ArrowRight, Award, Sparkles } from 'lucide-react';
 import { ModuleSimulationConfig, ModuleGameConfig } from '../types/part1Curriculum';
 import { formatMathText } from '../utils/formatMath';
+import { MasteryBadgeDefinition } from '../data/masteryBadges';
 
 interface Part1ModuleSimAndGameProps {
   moduleCode: string;
   simulation: ModuleSimulationConfig;
   game: ModuleGameConfig;
   mode: 'simulation' | 'game';
+  badge?: MasteryBadgeDefinition;
+  isBadgeUnlocked?: boolean;
+  onUnlockBadge?: (badgeId: string, rewardPoints: number) => void;
 }
 
 export const Part1ModuleSimAndGame: React.FC<Part1ModuleSimAndGameProps> = ({
@@ -15,6 +19,9 @@ export const Part1ModuleSimAndGame: React.FC<Part1ModuleSimAndGameProps> = ({
   simulation,
   game,
   mode,
+  badge,
+  isBadgeUnlocked = false,
+  onUnlockBadge,
 }) => {
   // Simulation state
   const [valA, setValA] = useState<number>(simulation.defaultControlA);
@@ -335,6 +342,9 @@ export const Part1ModuleSimAndGame: React.FC<Part1ModuleSimAndGameProps> = ({
     if (idx === currentRound.correctIndex) {
       setScore((s) => s + 100 + streak * 25);
       setStreak((st) => st + 1);
+      if (badge && !isBadgeUnlocked && onUnlockBadge) {
+        onUnlockBadge(badge.id, badge.pointsReward);
+      }
     } else {
       setStreak(0);
     }
@@ -385,6 +395,71 @@ export const Part1ModuleSimAndGame: React.FC<Part1ModuleSimAndGameProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Module Mastery Badge Banner (Final Slide of Module — 1 of 112 Module Badges) */}
+      {badge && (
+        <div
+          className={`flex flex-wrap items-center justify-between gap-4 rounded-2xl border-2 p-4 transition-all ${
+            isBadgeUnlocked
+              ? 'border-amber-400 bg-gradient-to-r from-[#0F3828] via-[#134E4A] to-[#0F3828] text-white shadow-md'
+              : 'border-teal-600/30 bg-[#F0FDFA] text-stone-900'
+          }`}
+        >
+          <div className="flex items-center gap-3.5">
+            <div
+              className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border-2 text-2xl shadow-sm ${
+                isBadgeUnlocked
+                  ? 'border-amber-300 bg-amber-400/20'
+                  : 'border-teal-500/40 bg-white'
+              }`}
+            >
+              {badge.emblemGlyph}
+            </div>
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <span
+                  className={`rounded px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                    isBadgeUnlocked
+                      ? 'bg-amber-400 text-stone-950'
+                      : 'bg-teal-700 text-white'
+                  }`}
+                >
+                  Module Mastery Badge #{badge.badgeNumber} of 115
+                </span>
+                <span
+                  className={`text-xs font-bold ${
+                    isBadgeUnlocked ? 'text-amber-300' : 'text-teal-700'
+                  }`}
+                >
+                  +{badge.pointsReward} Mastery Points
+                </span>
+              </div>
+              <div className="mt-1 text-base font-bold">
+                {badge.title}{' '}
+                <span className="text-xs font-normal opacity-80">
+                  ({badge.subtitle})
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            {isBadgeUnlocked ? (
+              <span className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-400/20 border border-emerald-300 px-3.5 py-2 text-xs font-bold text-emerald-200">
+                <CheckCircle2 className="h-4 w-4" /> Badge Acquired!
+              </span>
+            ) : (
+              <button
+                type="button"
+                onClick={() => onUnlockBadge && onUnlockBadge(badge.id, badge.pointsReward)}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-stone-950 px-4 py-2 text-xs font-bold transition shadow cursor-pointer"
+              >
+                <Award className="h-4 w-4" /> Claim Module Badge (+{badge.pointsReward} pts)
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Active Challenge Round Card */}
       <div className="rounded-3xl bg-[#0F3828] text-white p-6 md:p-8 space-y-6 border-2 border-[#2DD4BF]/30">
@@ -458,7 +533,7 @@ export const Part1ModuleSimAndGame: React.FC<Part1ModuleSimAndGameProps> = ({
                   isCorrect ? 'text-emerald-300' : 'text-rose-300'
                 }`}
               >
-                {isCorrect ? '✨ Spot On!' : 'Not quite — check the proof:'}
+                {isCorrect ? '✨ Spot On! Module Badge Unlocked!' : 'Not quite — check the proof:'}
               </div>
               <p className="text-sm text-emerald-100">
                 {formatMathText(currentRound.explanation)}

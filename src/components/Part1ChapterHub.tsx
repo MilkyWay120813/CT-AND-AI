@@ -12,19 +12,31 @@ import {
   LayoutGrid,
   ChevronLeft,
   ChevronRight,
+  Lock,
+  Key,
+  Award,
+  Skull,
 } from 'lucide-react';
 import { ChapterId, GanitaChapter, MathHomeworkSolution } from '../types/math';
 import { Part1ChapterCurriculum, Part1ModuleItem } from '../types/part1Curriculum';
 import {
   PART1_CURRICULUM_CHAPTERS,
   getPart1CurriculumById,
+  getPart2CurriculumById,
   buildPart2CurriculumFromChapter,
 } from '../data/part1CurriculumData';
 import { Part1VideoPlayer } from './Part1VideoPlayer';
 import { Part1ModuleSimAndGame } from './Part1ModuleSimAndGame';
+import { Part1ChapterQuiz } from './Part1ChapterQuiz';
 import { ModuleTitleArtwork } from './ModuleTitleArtwork';
 import { AnimatedChapterBanner } from './AnimatedChapterBanner';
 import { formatMathText } from '../utils/formatMath';
+import {
+  ALL_MASTERY_BADGES,
+  PREREQUISITE_BADGE_IDS,
+  getModuleBadgeId,
+  getQuizBadgeId,
+} from '../data/masteryBadges';
 
 interface Part1ChapterHubProps {
   allChapters: GanitaChapter[];
@@ -46,6 +58,10 @@ interface Part1ChapterHubProps {
   errorMsg: string | null;
   masteryPoints: number;
   onAddPoints: (pts: number) => void;
+  unlockedBadgeIds: string[];
+  onUnlockBadge: (badgeId: string, rewardPoints: number) => void;
+  onOpenTrophyRoom: () => void;
+  onOpenBossBattle: () => void;
 }
 
 type ModuleSlideId = 'text' | 'videos' | 'simulation' | 'game';
@@ -186,6 +202,12 @@ const CHAPTER_GIST_TRAILERS: Record<
     gistNarration:
       'Welcome to the gist of Area. Instead of memorizing disconnected formulas, you will see how any triangle, parallelogram, kite, or trapezium can be sliced and rearranged into a familiar rectangle. Click any module below to start exploring.',
   },
+  'part2-ch8-master-quiz': {
+    gistHeadline: 'The Gist: The Grand Part II Synthesis (30 Questions)',
+    gistCaption: 'Uniting percentages, Pythagoras, proportions, fractals, data, algebra, and area',
+    gistNarration:
+      'Welcome to the Part Two Grand Mastery Quiz. Complete this thirty-question randomized championship across all seven Part Two chapters to earn Grand Quiz Badge number one hundred and fourteen!',
+  },
 };
 
 export const Part1ChapterHub: React.FC<Part1ChapterHubProps> = ({
@@ -193,8 +215,20 @@ export const Part1ChapterHub: React.FC<Part1ChapterHubProps> = ({
   activeChapterId,
   onSelectChapterId,
   onOpenAllChaptersModal,
+  onAddPoints,
+  unlockedBadgeIds,
+  onUnlockBadge,
+  onOpenTrophyRoom,
+  onOpenBossBattle,
 }) => {
   const slideshowSectionRef = useRef<HTMLDivElement | null>(null);
+
+  const unlockedSet = useMemo(() => new Set(unlockedBadgeIds), [unlockedBadgeIds]);
+  const prereqUnlockedCount = useMemo(
+    () => PREREQUISITE_BADGE_IDS.filter((id) => unlockedSet.has(id)).length,
+    [unlockedSet]
+  );
+  const isCellarKeyUnlocked = prereqUnlockedCount >= 114;
 
   const part2Chapters = useMemo(
     () => allChapters.filter((ch) => ch.partLabel === 'Part II'),
@@ -202,7 +236,9 @@ export const Part1ChapterHub: React.FC<Part1ChapterHubProps> = ({
   );
 
   const isPart2Active = useMemo(
-    () => part2Chapters.some((ch) => ch.id === activeChapterId),
+    () =>
+      activeChapterId === 'part2-ch8-master-quiz' ||
+      part2Chapters.some((ch) => ch.id === activeChapterId),
     [part2Chapters, activeChapterId]
   );
 
@@ -211,6 +247,9 @@ export const Part1ChapterHub: React.FC<Part1ChapterHubProps> = ({
       activeChapterId as ChapterId | 'ch8-master-quiz'
     );
     if (part1Match) return part1Match;
+
+    const part2Direct = getPart2CurriculumById(activeChapterId);
+    if (part2Direct) return part2Direct;
 
     const part2Match = allChapters.find((ch) => ch.id === activeChapterId);
     if (part2Match) {
@@ -295,12 +334,30 @@ export const Part1ChapterHub: React.FC<Part1ChapterHubProps> = ({
         title: ch.title,
       }));
     }
-    return part2Chapters.map((ch) => ({
-      id: ch.id,
-      number: ch.chapterNumber,
-      title: ch.title,
-    }));
+    return [
+      ...part2Chapters.map((ch) => ({
+        id: ch.id,
+        number: ch.chapterNumber,
+        title: ch.title,
+      })),
+      {
+        id: 'part2-ch8-master-quiz',
+        number: 8,
+        title: 'Part II Mastery Quiz (30Q)',
+      },
+    ];
   }, [isPart2Active, part2Chapters]);
+
+  const activeModuleBadge = useMemo(() => {
+    if (!activeModule) return undefined;
+    const badgeId = getModuleBadgeId(activeCurriculum.chapterId, activeModule.moduleCode);
+    return ALL_MASTERY_BADGES.find((b) => b.id === badgeId);
+  }, [activeCurriculum.chapterId, activeModule]);
+
+  const activeQuizBadge = useMemo(() => {
+    const qId = getQuizBadgeId(activeCurriculum.chapterId);
+    return ALL_MASTERY_BADGES.find((b) => b.id === qId);
+  }, [activeCurriculum.chapterId]);
 
   // 25-Second Chapter Gist Intro Video (ONLY the high-level gist of the chapter, never the actual module lessons!)
   const chapterIntroVideoCue = useMemo(() => {
@@ -460,6 +517,110 @@ export const Part1ChapterHub: React.FC<Part1ChapterHubProps> = ({
             </div>
           </div>
         )}
+
+        {/* Polite Side Indicator of Currently Highlighted Module (Moved to the side!) */}
+        {activeCurriculum.modules.length > 0 && activeModule && (
+          <div className="pt-3 border-t border-stone-200 space-y-2">
+            <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-stone-500 px-1">
+              <span>Selected Module</span>
+              <span className="text-[#0F766E]">{activeModule.moduleCode}</span>
+            </div>
+            <div className="rounded-xl bg-[#F0FDFA] border border-[#99F6E4] px-3 py-2 text-xs font-bold text-[#115E59] flex items-center justify-between gap-2">
+              <span className="truncate">{formatMathText(activeModule.title)}</span>
+              {activeModuleBadge && unlockedSet.has(activeModuleBadge.id) && (
+                <span className="shrink-0 text-amber-600" title="Module Badge Unlocked">
+                  {activeModuleBadge.emblemGlyph}
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Dedicated Trophy Room & Chained 3D Cellar Boss Battle Buttons */}
+        <div className="pt-3 border-t border-stone-200 space-y-2.5">
+          <button
+            type="button"
+            onClick={onOpenTrophyRoom}
+            className="w-full flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-stone-900 border-2 border-amber-300 text-xs font-extrabold transition-all cursor-pointer shadow-xs"
+          >
+            <span className="inline-flex items-center gap-1.5">
+              <Trophy className="w-4 h-4 text-amber-600 shrink-0" />
+              <span>Trophy Room</span>
+            </span>
+            <span className="rounded-md bg-amber-400/30 px-2 py-0.5 text-[11px] font-extrabold text-amber-950 tabular-nums">
+              {unlockedBadgeIds.length}/115
+            </span>
+          </button>
+
+          {/* Chained 3D Cellar Boss Battle Button (Locked with Iron Chains until 114 Badges!) */}
+          <button
+            type="button"
+            onClick={() => {
+              if (isCellarKeyUnlocked) {
+                onOpenBossBattle();
+              } else {
+                onOpenTrophyRoom();
+              }
+            }}
+            className={`relative w-full overflow-hidden rounded-xl border-2 px-3.5 py-3 text-left transition-all cursor-pointer shadow-sm ${
+              isCellarKeyUnlocked
+                ? 'border-amber-400 bg-gradient-to-r from-[#2D1B06] via-[#1E1430] to-[#2D1B06] text-white hover:shadow-lg'
+                : 'border-stone-500 bg-stone-900 text-stone-200 hover:border-amber-400/70'
+            }`}
+          >
+            {/* Visual Iron Chains Overlay when < 114 badges */}
+            {!isCellarKeyUnlocked && (
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 240 60"
+                className="pointer-events-none absolute inset-0 h-full w-full opacity-35"
+                preserveAspectRatio="none"
+              >
+                <line
+                  x1="0"
+                  y1="0"
+                  x2="240"
+                  y2="60"
+                  stroke="#9CA3AF"
+                  strokeWidth="5"
+                  strokeDasharray="8 5"
+                />
+                <line
+                  x1="240"
+                  y1="0"
+                  x2="0"
+                  y2="60"
+                  stroke="#9CA3AF"
+                  strokeWidth="5"
+                  strokeDasharray="8 5"
+                />
+              </svg>
+            )}
+
+            <div className="relative z-10 flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                {isCellarKeyUnlocked ? (
+                  <Key className="w-4 h-4 text-amber-400 shrink-0 animate-pulse" />
+                ) : (
+                  <Lock className="w-4 h-4 text-rose-400 shrink-0" />
+                )}
+                <div className="min-w-0">
+                  <div className="text-xs font-extrabold truncate text-amber-300">
+                    {isCellarKeyUnlocked
+                      ? 'Enter 3D Cellar Boss!'
+                      : 'Chained 3D Cellar Boss'}
+                  </div>
+                  <div className="text-[10px] text-stone-300 truncate">
+                    {isCellarKeyUnlocked
+                      ? 'Key Unlocked! Fight for Badge #115'
+                      : `Cellar Key: ${prereqUnlockedCount}/114 Badges`}
+                  </div>
+                </div>
+              </div>
+              <Skull className="w-4 h-4 text-rose-400 shrink-0" />
+            </div>
+          </button>
+        </div>
 
         {/* NCERT Textbook PDF Link */}
         <div className="pt-3 border-t border-stone-200">
@@ -760,13 +921,18 @@ export const Part1ChapterHub: React.FC<Part1ChapterHubProps> = ({
                   />
                 )}
 
-                {/* SLIDE 4: THE GAME (Interactive Module Mini-Game) */}
+                {/* SLIDE 4: THE GAME (Interactive Module Mini-Game — Awards Module Mastery Badge!) */}
                 {activeSlide.id === 'game' && (
                   <Part1ModuleSimAndGame
                     moduleCode={activeModule.moduleCode}
                     simulation={activeModule.simulation}
                     game={activeModule.game}
                     mode="game"
+                    badge={activeModuleBadge}
+                    isBadgeUnlocked={Boolean(
+                      activeModuleBadge && unlockedSet.has(activeModuleBadge.id)
+                    )}
+                    onUnlockBadge={onUnlockBadge}
                   />
                 )}
               </div>
@@ -824,9 +990,33 @@ export const Part1ChapterHub: React.FC<Part1ChapterHubProps> = ({
                 </button>
               </div>
             </section>
+          ) : activeCurriculum.modules.length === 0 ? (
+            /* =================================================================
+               30-QUESTION GRAND MASTERY QUIZ VIEW (NO MODULES! DIRECT 30Q QUIZ)
+               Used by Part I Mastery Quiz (ch8-master-quiz) & Part II Mastery Quiz (part2-ch8-master-quiz)
+               ================================================================= */
+            <Part1ChapterQuiz
+              chapterId={
+                activeCurriculum.chapterId as
+                  | ChapterId
+                  | 'ch8-master-quiz'
+                  | 'part2-ch8-master-quiz'
+              }
+              chapterTitle={activeCurriculum.title}
+              baseQuestions={activeCurriculum.questionnaire}
+              quizBadge={activeQuizBadge}
+              isQuizBadgeUnlocked={Boolean(
+                activeQuizBadge && unlockedSet.has(activeQuizBadge.id)
+              )}
+              onUnlockBadge={onUnlockBadge}
+              onCompleteQuiz={(score) => {
+                onAddPoints(score * 10);
+              }}
+            />
           ) : (
             /* =================================================================
                CLEAN 8-MODULE SELECTION GRID (WHEN NO MODULE IS OPEN)
+               With polite side indicator instead of heavy full-card selected box!
                ================================================================= */
             <section className="space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-2 px-1">
@@ -834,27 +1024,37 @@ export const Part1ChapterHub: React.FC<Part1ChapterHubProps> = ({
                   Chapter {activeCurriculum.chapterIndex} Modules (1–8)
                 </h2>
                 <span className="text-xs sm:text-sm font-semibold text-stone-600">
-                  Click any module to open its 4-slide interactive slideshow (Videos · Text · Simulation · Game)
+                  Earn each module’s Mastery Badge on Slide 4 ("The Game")!
                 </span>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
                 {activeCurriculum.modules.map((mod, idx) => {
-                  const isHighlighted = mod.moduleCode === activeModule.moduleCode;
+                  const isHighlighted = mod.moduleCode === activeModule?.moduleCode;
                   const isVisited = Boolean(
                     visitedModules[`${activeCurriculum.chapterId}:${mod.moduleCode}`]
                   );
+                  const modBadgeId = getModuleBadgeId(
+                    activeCurriculum.chapterId,
+                    mod.moduleCode
+                  );
+                  const modBadge = ALL_MASTERY_BADGES.find((b) => b.id === modBadgeId);
+                  const hasBadge = unlockedSet.has(modBadgeId);
 
                   return (
                     <article
                       key={mod.id}
                       onClick={() => handleOpenModuleSlideshow(mod, 0)}
-                      className={`group rounded-2xl overflow-hidden bg-white flex flex-col justify-between cursor-pointer transition-all hover:-translate-y-1 hover:shadow-lg ${
-                        isHighlighted
-                          ? 'border-2 border-[#0D9488] ring-2 ring-[#2DD4BF]/30 shadow-md'
-                          : 'border border-stone-200/90 shadow-xs'
-                      }`}
+                      className="group relative rounded-2xl overflow-hidden bg-white flex flex-col justify-between cursor-pointer transition-all hover:-translate-y-1 hover:shadow-lg border border-stone-200/90 shadow-xs"
                     >
+                      {/* Polite Side Indicator Bar on the left edge when active */}
+                      {isHighlighted && (
+                        <div
+                          className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#0F766E] z-20"
+                          title="Active module in side rail"
+                        />
+                      )}
+
                       <div>
                         <div className="h-32 w-full relative overflow-hidden">
                           <ModuleTitleArtwork
@@ -863,22 +1063,38 @@ export const Part1ChapterHub: React.FC<Part1ChapterHubProps> = ({
                             moduleTitle={mod.title}
                             moduleIndex={idx}
                           />
+                          {/* Module Badge Pill in corner */}
+                          {modBadge && (
+                            <div
+                              className={`absolute top-2 right-2 z-10 rounded-lg px-2 py-0.5 text-[10px] font-bold flex items-center gap-1 shadow-sm ${
+                                hasBadge
+                                  ? 'bg-amber-400 text-stone-950'
+                                  : 'bg-black/65 text-white/90 backdrop-blur-xs'
+                              }`}
+                            >
+                              <span>{modBadge.emblemGlyph}</span>
+                              <span>#{modBadge.badgeNumber}</span>
+                              {hasBadge && <span>✓</span>}
+                            </div>
+                          )}
                         </div>
 
-                        <div
-                          className={`h-1.5 w-full ${
-                            isHighlighted ? 'bg-[#0F766E]' : 'bg-[#14B8A6]'
-                          }`}
-                        />
+                        <div className="h-1 w-full bg-[#14B8A6]/70" />
 
                         <div className="p-5 space-y-2">
                           <div className="flex items-center justify-between gap-2 text-xs font-bold text-[#0F766E]">
                             <span>{mod.moduleCode}</span>
-                            {isVisited && (
-                              <span className="text-emerald-700 font-semibold">
-                                ✓ Explored
-                              </span>
-                            )}
+                            <div className="flex items-center gap-1.5">
+                              {hasBadge ? (
+                                <span className="text-amber-700 font-bold">
+                                  🏆 Badge Earned
+                                </span>
+                              ) : isVisited ? (
+                                <span className="text-emerald-700 font-semibold">
+                                  ✓ Explored
+                                </span>
+                              ) : null}
+                            </div>
                           </div>
 
                           <h3 className="text-base sm:text-lg font-extrabold text-stone-950 leading-snug line-clamp-2">
@@ -892,7 +1108,7 @@ export const Part1ChapterHub: React.FC<Part1ChapterHubProps> = ({
 
                       <div className="px-5 pb-4 pt-2 border-t border-stone-100 flex items-center justify-between">
                         <span className="text-[11px] font-semibold text-stone-500">
-                          4 Slides: Video · Text · Sim · Game
+                          Slide 4 → Badge #{modBadge?.badgeNumber}
                         </span>
                         <span className="inline-flex items-center gap-1 text-xs font-extrabold text-[#0F766E] group-hover:translate-x-0.5 transition-transform">
                           <span>Open</span>

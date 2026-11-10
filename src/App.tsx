@@ -1,4 +1,5 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import { Trophy, Lock, Key, Award, Skull, Sparkles } from 'lucide-react';
 import { GANITA_CHAPTERS, getChapterById } from './data/presets';
 import {
   ChapterId,
@@ -9,6 +10,18 @@ import {
 import { DiagnosticQuestionnaire } from './components/DiagnosticQuestionnaire';
 import { Part1ChapterHub } from './components/Part1ChapterHub';
 import { GeniusBarDrawer } from './components/GeniusBarDrawer';
+import { TrophyRoomModal } from './components/TrophyRoomModal';
+import { CellarBossBattle3D } from './components/CellarBossBattle3D';
+import {
+  ALL_MASTERY_BADGES,
+  MASTERY_POINT_MILESTONES,
+  PREREQUISITE_BADGE_IDS,
+  BOSS_BADGE_ID,
+  MasteryBadgeDefinition,
+} from './data/masteryBadges';
+
+const BADGE_STORAGE_KEY = 'ganita_prakash_unlocked_badges_v1';
+const POINTS_STORAGE_KEY = 'ganita_prakash_mastery_points_v1';
 
 export default function App() {
   const [showQuestionnaire, setShowQuestionnaire] = useState<boolean>(true);
@@ -37,11 +50,82 @@ export default function App() {
   const [activeStepIndex, setActiveStepIndex] = useState<number>(0);
   const [isSolving, setIsSolving] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [masteryPoints, setMasteryPoints] = useState<number>(120);
+
+  const [masteryPoints, setMasteryPoints] = useState<number>(() => {
+    try {
+      const saved = localStorage.getItem(POINTS_STORAGE_KEY);
+      return saved ? Math.max(120, Number(saved)) : 120;
+    } catch {
+      return 120;
+    }
+  });
+
+  const [unlockedBadgeIds, setUnlockedBadgeIds] = useState<string[]>(() => {
+    try {
+      const raw = localStorage.getItem(BADGE_STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch {
+      // ignore storage errors
+    }
+    return [];
+  });
+
+  const [isTrophyRoomOpen, setIsTrophyRoomOpen] = useState<boolean>(false);
+  const [isBossBattleOpen, setIsBossBattleOpen] = useState<boolean>(false);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(BADGE_STORAGE_KEY, JSON.stringify(unlockedBadgeIds));
+    } catch {
+      // ignore storage errors
+    }
+  }, [unlockedBadgeIds]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(POINTS_STORAGE_KEY, String(masteryPoints));
+    } catch {
+      // ignore storage errors
+    }
+  }, [masteryPoints]);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [showQuestionnaire, activeChapterId]);
+
+  const unlockedSet = useMemo(() => new Set(unlockedBadgeIds), [unlockedBadgeIds]);
+
+  const prereqUnlockedCount = useMemo(
+    () => PREREQUISITE_BADGE_IDS.filter((id) => unlockedSet.has(id)).length,
+    [unlockedSet]
+  );
+
+  const isCellarKeyUnlocked = prereqUnlockedCount >= 114;
+  const isBossDefeated = unlockedSet.has(BOSS_BADGE_ID);
+
+  const handleUnlockBadge = useCallback((badgeId: string, rewardPoints: number) => {
+    setUnlockedBadgeIds((prev) => {
+      if (prev.includes(badgeId)) return prev;
+      setMasteryPoints((pts) => pts + rewardPoints);
+      return [...prev, badgeId];
+    });
+  }, []);
+
+  const handleUnlockAllPrerequisites = useCallback(() => {
+    setUnlockedBadgeIds((prev) => {
+      const merged = Array.from(new Set([...prev, ...PREREQUISITE_BADGE_IDS]));
+      return merged;
+    });
+    setMasteryPoints((pts) => Math.max(pts, 3600));
+  }, []);
+
+  const handleResetBadges = useCallback(() => {
+    setUnlockedBadgeIds([]);
+    setMasteryPoints(120);
+  }, []);
 
   const activeChapter: GanitaChapter = useMemo(
     () => getChapterById(diagnosticProfile.chapterId),
@@ -85,7 +169,7 @@ export default function App() {
   const handleSwitchChapterById = (chapterId: string) => {
     setActiveChapterId(chapterId);
     setShowQuestionnaire(false);
-    if (chapterId !== 'ch8-master-quiz') {
+    if (chapterId !== 'ch8-master-quiz' && chapterId !== 'part2-ch8-master-quiz') {
       const ch = getChapterById(chapterId as ChapterId);
       const firstSeg = ch.segments[0];
       setDiagnosticProfile((prev) => ({
@@ -98,6 +182,18 @@ export default function App() {
       setActiveStepIndex(0);
       setErrorMsg(null);
     }
+  };
+
+  const handleJumpToBadgeSource = (badge: MasteryBadgeDefinition) => {
+    if (badge.category === 'cellar-boss') {
+      if (isCellarKeyUnlocked) {
+        setIsBossBattleOpen(true);
+      } else {
+        setIsTrophyRoomOpen(true);
+      }
+      return;
+    }
+    handleSwitchChapterById(badge.chapterId);
   };
 
   const handleSelectSolution = (sol: MathHomeworkSolution) => {
@@ -202,6 +298,13 @@ export default function App() {
     }
   };
 
+  // Badges to showcase in Footer strip (unlocked badges first, then upcoming locked badges)
+  const footerShowcaseBadges = useMemo(() => {
+    const unlockedList = ALL_MASTERY_BADGES.filter((b) => unlockedSet.has(b.id));
+    const lockedList = ALL_MASTERY_BADGES.filter((b) => !unlockedSet.has(b.id));
+    return [...unlockedList.slice(-12), ...lockedList.slice(0, Math.max(0, 14 - unlockedList.slice(-12).length))];
+  }, [unlockedSet]);
+
   return (
     <div className="min-h-screen flex flex-col justify-start classroom-backdrop text-[#1C1917]">
       <main
@@ -214,6 +317,7 @@ export default function App() {
             initialProfile={diagnosticProfile}
             initialStage={questionnaireStage}
             onComplete={handleDiagnosticComplete}
+            onQuickSelectQuiz={(quizId) => handleSwitchChapterById(quizId)}
             onClose={() => setShowQuestionnaire(false)}
           />
         ) : (
@@ -232,21 +336,207 @@ export default function App() {
             errorMsg={errorMsg}
             masteryPoints={masteryPoints}
             onAddPoints={(pts) => setMasteryPoints((prev) => prev + pts)}
+            unlockedBadgeIds={unlockedBadgeIds}
+            onUnlockBadge={handleUnlockBadge}
+            onOpenTrophyRoom={() => setIsTrophyRoomOpen(true)}
+            onOpenBossBattle={() => setIsBossBattleOpen(true)}
           />
         )}
       </main>
 
-      {/* Clean Minimal Classroom Footer */}
-      <footer className="border-t border-stone-300 bg-[#FAF6EE] mt-auto">
-        <div className="max-w-[1400px] mx-auto px-6 sm:px-8 py-6 flex flex-col gap-3 text-xs sm:text-sm text-stone-600">
+      {/* =====================================================================
+          MASTERY BADGE & MILESTONE SHOWCASE FOOTER (115 Badges + Milestone Ranks + Chained Boss Button)
+         ===================================================================== */}
+      <footer className="border-t-2 border-stone-300 bg-[#FAF6EE] mt-auto">
+        <div className="max-w-[1400px] mx-auto px-6 sm:px-8 py-6 space-y-5 text-xs sm:text-sm text-stone-700">
+          {/* Row 1: Visual Mastery Badge & Milestone Ranks Bar */}
+          <div className="rounded-2xl border-2 border-[#0F766E]/25 bg-white p-4 sm:p-5 shadow-xs space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#0F3828] text-amber-300 shadow-xs">
+                  <Trophy className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-extrabold text-stone-900 text-sm sm:text-base">
+                      Mastery Badge Collection &amp; Milestone Ranks
+                    </span>
+                    <span className="rounded-full bg-[#0F766E] px-2.5 py-0.5 text-xs font-extrabold text-white tabular-nums">
+                      {unlockedBadgeIds.length} / 115 Badges
+                    </span>
+                    <span className="rounded-full bg-amber-100 border border-amber-300 px-2.5 py-0.5 text-xs font-extrabold text-amber-900 tabular-nums">
+                      {masteryPoints.toLocaleString()} Mastery Pts
+                    </span>
+                  </div>
+                  <p className="text-xs text-stone-500 mt-0.5">
+                    112 Module Badges (acquired on Slide 4 of each module) · 2 Grand 30-Question Quiz Badges (#113 &amp; #114) · 1 Chained 3D Cellar Final Boss Badge (#115)
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setIsTrophyRoomOpen(true)}
+                  className="inline-flex items-center gap-2 rounded-xl border-2 border-amber-400 bg-amber-400 hover:bg-amber-300 px-4 py-2.5 text-xs sm:text-sm font-extrabold text-stone-950 transition cursor-pointer shadow-xs"
+                >
+                  <Trophy className="w-4 h-4" />
+                  <span>Open Dedicated Trophy Room ({unlockedBadgeIds.length}/115)</span>
+                </button>
+
+                {/* Chained Cellar Boss Battle Button in Footer */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (isCellarKeyUnlocked) {
+                      setIsBossBattleOpen(true);
+                    } else {
+                      setIsTrophyRoomOpen(true);
+                    }
+                  }}
+                  className={`relative overflow-hidden inline-flex items-center gap-2.5 rounded-xl border-2 px-4 py-2.5 text-xs sm:text-sm font-extrabold transition cursor-pointer shadow-xs ${
+                    isCellarKeyUnlocked
+                      ? 'border-amber-400 bg-[#1B122B] text-amber-300 hover:bg-[#2A1C42]'
+                      : 'border-stone-500 bg-stone-900 text-stone-200 hover:border-amber-400'
+                  }`}
+                >
+                  {!isCellarKeyUnlocked && (
+                    <svg
+                      aria-hidden="true"
+                      viewBox="0 0 220 48"
+                      className="pointer-events-none absolute inset-0 h-full w-full opacity-35"
+                      preserveAspectRatio="none"
+                    >
+                      <line
+                        x1="0"
+                        y1="0"
+                        x2="220"
+                        y2="48"
+                        stroke="#9CA3AF"
+                        strokeWidth="4"
+                        strokeDasharray="7 4"
+                      />
+                      <line
+                        x1="220"
+                        y1="0"
+                        x2="0"
+                        y2="48"
+                        stroke="#9CA3AF"
+                        strokeWidth="4"
+                        strokeDasharray="7 4"
+                      />
+                    </svg>
+                  )}
+                  <span className="relative z-10 inline-flex items-center gap-2">
+                    {isCellarKeyUnlocked ? (
+                      <Key className="w-4 h-4 text-amber-400 animate-pulse" />
+                    ) : (
+                      <Lock className="w-4 h-4 text-rose-400" />
+                    )}
+                    <span>
+                      {isCellarKeyUnlocked
+                        ? 'Enter 3D Cellar Boss Battle (Key Unlocked!)'
+                        : `Chained 3D Cellar Boss (Key: ${prereqUnlockedCount}/114)`}
+                    </span>
+                    <Skull className="w-4 h-4 text-rose-400" />
+                  </span>
+                </button>
+              </div>
+            </div>
+
+            {/* Mastery Point Milestone Ranks Strip (Chalkboard Initiate, Algebra Ace, Quadratic Wizard, etc.) */}
+            <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-stone-100">
+              <span className="text-[11px] font-extrabold uppercase tracking-wider text-stone-500 mr-1">
+                Milestone Ranks:
+              </span>
+              {MASTERY_POINT_MILESTONES.map((rank) => {
+                const isReached = masteryPoints >= rank.minPoints;
+                return (
+                  <button
+                    key={rank.id}
+                    type="button"
+                    onClick={() => setIsTrophyRoomOpen(true)}
+                    title={`${rank.title} (${rank.minPoints} pts): ${rank.description}`}
+                    className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-bold transition cursor-pointer ${
+                      isReached
+                        ? 'border-[#0F766E] bg-[#F0FDFA] text-[#0F766E] shadow-2xs'
+                        : 'border-stone-200 bg-stone-100 text-stone-400 opacity-75'
+                    }`}
+                  >
+                    <span>{rank.glyph}</span>
+                    <span>{rank.title}</span>
+                    <span className="text-[10px] opacity-75">
+                      ({rank.minPoints}p {isReached ? '✓' : '🔒'})
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* 115 Mastery Badges Footer Strip */}
+            <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-stone-100">
+              <span className="text-[11px] font-extrabold uppercase tracking-wider text-stone-500 mr-1">
+                Mastery Badges ({unlockedBadgeIds.length}/115):
+              </span>
+              {footerShowcaseBadges.map((b) => {
+                const isUnlocked = unlockedSet.has(b.id);
+                return (
+                  <button
+                    key={b.id}
+                    type="button"
+                    onClick={() => handleJumpToBadgeSource(b)}
+                    title={`Badge #${b.badgeNumber}: ${b.title} — ${b.subtitle}`}
+                    className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-bold transition cursor-pointer ${
+                      isUnlocked
+                        ? 'border-amber-400 bg-amber-50 text-stone-900 shadow-2xs'
+                        : 'border-stone-200 bg-stone-50 text-stone-500 hover:border-stone-400'
+                    }`}
+                  >
+                    <span>{b.emblemGlyph}</span>
+                    <span className="font-mono text-[10px]">#{b.badgeNumber}</span>
+                    <span className="truncate max-w-[130px]">{b.title}</span>
+                    {isUnlocked ? (
+                      <span className="text-emerald-600 font-extrabold">✓</span>
+                    ) : (
+                      <Lock className="w-3 h-3 text-stone-400" />
+                    )}
+                  </button>
+                );
+              })}
+              <button
+                type="button"
+                onClick={() => setIsTrophyRoomOpen(true)}
+                className="text-xs font-extrabold text-[#0F766E] hover:underline ml-1 cursor-pointer"
+              >
+                View all 115 badges →
+              </button>
+            </div>
+          </div>
+
+          {/* Row 2: Chapter Quick Links */}
           <div className="flex flex-wrap items-center justify-between gap-2">
             <span className="font-bold text-[#0F766E]">
-              Ganita Prakash Class 8 Interactive Classroom · Part I (Ch 1–7, 56 Modules) &amp; Part II (Ch 1–7, 56 Modules)
+              Ganita Prakash Class 8 Interactive Classroom · Part I (56 Modules + 30Q Quiz) &amp; Part II (56 Modules + 30Q Quiz)
             </span>
-            <span className="font-mono tabular-nums text-stone-700 font-semibold">
-              Mastery Score: {masteryPoints} pts
-            </span>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => handleSwitchChapterById('ch8-master-quiz')}
+                className="text-xs font-bold text-amber-800 hover:underline cursor-pointer"
+              >
+                🏆 Part I 30Q Mastery Quiz
+              </button>
+              <span>·</span>
+              <button
+                type="button"
+                onClick={() => handleSwitchChapterById('part2-ch8-master-quiz')}
+                className="text-xs font-bold text-[#0F766E] hover:underline cursor-pointer"
+              >
+                🎖️ Part II 30Q Mastery Quiz
+              </button>
+            </div>
           </div>
+
           <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
             {GANITA_CHAPTERS.map((ch, idx) => {
               const isCurrent = ch.id === activeChapterId;
@@ -270,6 +560,26 @@ export default function App() {
           </div>
         </div>
       </footer>
+
+      {/* Dedicated Trophy Room Modal */}
+      <TrophyRoomModal
+        isOpen={isTrophyRoomOpen}
+        onClose={() => setIsTrophyRoomOpen(false)}
+        unlockedBadgeIds={unlockedBadgeIds}
+        masteryPoints={masteryPoints}
+        onUnlockAllPrerequisites={handleUnlockAllPrerequisites}
+        onResetBadges={handleResetBadges}
+        onOpenBossBattle={() => setIsBossBattleOpen(true)}
+        onJumpToBadgeSource={handleJumpToBadgeSource}
+      />
+
+      {/* 3D Underground Cellar Final Boss Battle Modal */}
+      <CellarBossBattle3D
+        isOpen={isBossBattleOpen}
+        onClose={() => setIsBossBattleOpen(false)}
+        onVictoryUnlockBossBadge={handleUnlockBadge}
+        isBossAlreadyDefeated={isBossDefeated}
+      />
 
       {/* Floating Circle Trigger + Slide-Over "Genius Bar" Q&A & Camera Scanner Side Tab (Hidden on Intro & Chapter Selection screens) */}
       {!showQuestionnaire && <GeniusBarDrawer />}

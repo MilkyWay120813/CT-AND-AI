@@ -10,6 +10,7 @@ import {
   FileText,
   GraduationCap,
   Compass,
+  Trophy,
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import {
@@ -25,6 +26,7 @@ interface DiagnosticQuestionnaireProps {
   initialProfile?: StudentDiagnosticProfile | null;
   initialStage?: 'welcome' | 'chapters' | 'segments';
   onComplete: (profile: StudentDiagnosticProfile) => void;
+  onQuickSelectQuiz?: (quizId: 'ch8-master-quiz' | 'part2-ch8-master-quiz') => void;
   onClose?: () => void;
 }
 
@@ -171,6 +173,7 @@ export const DiagnosticQuestionnaire: React.FC<DiagnosticQuestionnaireProps> = (
   initialProfile,
   initialStage = 'welcome',
   onComplete,
+  onQuickSelectQuiz,
   onClose,
 }) => {
   const [stage, setStage] = useState<'welcome' | 'chapters' | 'segments' | 'symptoms'>(
@@ -467,7 +470,12 @@ export const DiagnosticQuestionnaire: React.FC<DiagnosticQuestionnaireProps> = (
               </p>
             </div>
 
-            <div className="flex items-center gap-3 self-start md:self-center">
+            <div className="flex flex-col items-end gap-2 self-start md:self-center">
+              {/* Polite Side Selected Indicator (Moved politely to the side!) */}
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-black/30 border border-white/15 text-xs font-mono text-emerald-200">
+                <span className="h-2 w-2 rounded-full bg-[#4ADE80]" />
+                <span>Active on Side: {activeChapter.partLabel} Ch {activeChapter.chapterNumber} ({activeChapter.title})</span>
+              </div>
               <button
                 type="button"
                 onClick={() => setStage('symptoms')}
@@ -479,32 +487,55 @@ export const DiagnosticQuestionnaire: React.FC<DiagnosticQuestionnaireProps> = (
           </div>
 
           {/* Part I / Part II Filter Tabs */}
-          <div className="flex flex-wrap items-center gap-2.5 pt-2 border-t border-white/15">
-            <span className="text-xs font-mono text-emerald-200 mr-1">Filter Textbook Volume:</span>
-            {[
-              { id: 'all' as const, label: 'All 14 Chapters (Part I & II)' },
-              { id: 'Part I' as const, label: 'Part I Only (Chapters 1–7)' },
-              { id: 'Part II' as const, label: 'Part II Only (Chapters 1–7)' },
-            ].map((tab) => (
-              <motion.button
-                key={tab.id}
-                type="button"
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={() => setPartFilter(tab.id)}
-                className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-colors cursor-pointer ${
-                  partFilter === tab.id
-                    ? 'bg-[#FDE047] text-[#142E21] shadow-xs'
-                    : 'bg-black/25 text-white border border-white/20 hover:bg-white/10'
-                }`}
-              >
-                {tab.label}
-              </motion.button>
-            ))}
+          <div className="flex flex-wrap items-center justify-between gap-2.5 pt-2 border-t border-white/15">
+            <div className="flex flex-wrap items-center gap-2.5">
+              <span className="text-xs font-mono text-emerald-200 mr-1">Filter Textbook Volume:</span>
+              {[
+                { id: 'all' as const, label: 'All 14 Chapters (Part I & II)' },
+                { id: 'Part I' as const, label: 'Part I Only (Chapters 1–7 + 30Q Quiz)' },
+                { id: 'Part II' as const, label: 'Part II Only (Chapters 1–7 + 30Q Quiz)' },
+              ].map((tab) => (
+                <motion.button
+                  key={tab.id}
+                  type="button"
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => setPartFilter(tab.id)}
+                  className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-colors cursor-pointer ${
+                    partFilter === tab.id
+                      ? 'bg-[#FDE047] text-[#142E21] shadow-xs'
+                      : 'bg-black/25 text-white border border-white/20 hover:bg-white/10'
+                  }`}
+                >
+                  {tab.label}
+                </motion.button>
+              ))}
+            </div>
+
+            {onQuickSelectQuiz && (
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => onQuickSelectQuiz('ch8-master-quiz')}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-stone-950 text-xs font-bold transition cursor-pointer shadow-xs"
+                >
+                  <Trophy className="w-3.5 h-3.5" />
+                  <span>Part I Mastery Quiz (30Q · Badge #113)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onQuickSelectQuiz('part2-ch8-master-quiz')}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-sky-400 hover:bg-sky-300 text-stone-950 text-xs font-bold transition cursor-pointer shadow-xs"
+                >
+                  <Trophy className="w-3.5 h-3.5" />
+                  <span>Part II Mastery Quiz (30Q · Badge #114)</span>
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Clean 14-Chapter Classroom Desk Cards Grid with Staggered Curiosity Animations */}
+        {/* Clean 14-Chapter Classroom Desk Cards Grid with Polite Side Accent */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {visibleChapters.map((chapter, index) => {
             const isSelected = chapter.id === selectedChapterId;
@@ -519,12 +550,15 @@ export const DiagnosticQuestionnaire: React.FC<DiagnosticQuestionnaireProps> = (
                 }}
                 whileHover={{ y: -6, scale: 1.01 }}
                 onClick={() => handleChooseChapterCard(chapter)}
-                className={`desk-card rounded-2xl p-6 sm:p-7 flex flex-col justify-between gap-6 transition-colors cursor-pointer ${
-                  isSelected
-                    ? 'ring-2 ring-[#194530] border-[#194530]'
-                    : 'hover:border-[#8D5B34]'
-                }`}
+                className="desk-card relative rounded-2xl p-6 sm:p-7 flex flex-col justify-between gap-6 transition-colors cursor-pointer hover:border-[#8D5B34]"
               >
+                {/* Polite Side Tab when this chapter is active (No heavy full-card border ring!) */}
+                {isSelected && (
+                  <div
+                    className="absolute left-0 top-5 bottom-5 w-1.5 rounded-r-full bg-[#194530]"
+                    title="Currently active chapter"
+                  />
+                )}
                 <div className="space-y-4">
                   {/* Top Meta Row */}
                   <div className="flex items-center justify-between text-xs font-mono text-[#78716C]">
@@ -532,7 +566,7 @@ export const DiagnosticQuestionnaire: React.FC<DiagnosticQuestionnaireProps> = (
                       {chapter.partLabel} · Chapter {chapter.chapterNumber}
                     </span>
                     <span className="font-bold text-[#8D5B34]">
-                      3 Core Segments
+                      8 Modules · 8 Badges
                     </span>
                   </div>
 

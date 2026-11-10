@@ -19,7 +19,14 @@ export const PART1_CURRICULUM_CHAPTERS: Part1ChapterCurriculum[] = [
   ...PART1_CHAPTERS_4_TO_6,
   ...PART1_CHAPTERS_7_TO_8.map((ch) =>
     ch.chapterId === 'ch8-master-quiz'
-      ? { ...ch, questionnaire: allPart1Questions }
+      ? {
+          ...ch,
+          title: 'Part I Mastery Quiz (30 Questions)',
+          heroSubtitle:
+            'Complete all 30 dynamically generated Part I synthesis questions across Chapters 1–7 to unlock the Part I Grand Quiz Sovereign Badge (#113)!',
+          modules: [],
+          questionnaire: allPart1Questions,
+        }
       : ch
   ),
 ];
@@ -782,6 +789,32 @@ const PART2_CHAPTER_6_ALGEBRA_PLAY: Part1ChapterCurriculum = {
   questionnaire: [],
 };
 
+const allPart2Questions: ChapterAssessmentQuestion[] = [
+  ...PART2_CHAPTERS_1_TO_2.flatMap((c) => c.questionnaire),
+  ...PART2_CHAPTERS_3_TO_4.flatMap((c) => c.questionnaire),
+  ...PART2_CHAPTER_4_GEOMETRIC_THEMES.questionnaire,
+  ...PART2_CHAPTER_5.flatMap((c) => c.questionnaire),
+];
+
+const PART2_CHAPTER_8_MASTER_QUIZ: Part1ChapterCurriculum = {
+  chapterId: 'part2-ch8-master-quiz',
+  chapterIndex: 8,
+  chapterBadgeLabel: 'Ganita Prakash Part II · Grand Mastery Exam',
+  title: 'Part II Mastery Quiz (30 Questions)',
+  heroRibbonText: 'Ganita Prakash Part II · 30-Question Synthesis Assessment',
+  heroSubtitle:
+    'Complete all 30 dynamically generated Part II synthesis questions across Percentages, Baudhāyana-Pythagoras, Proportions-2, Fractals, Data & Lines, Algebra Play, and Area to unlock Badge #114!',
+  pdfCode: 'hegp2-quiz',
+  pdfUrl: 'https://ncert.nic.in/textbook.php?hegp2=0-7',
+  heroBgGradient: 'from-[#0F172A] via-[#1E293B] to-[#0F766E]',
+  accentColor: '#38BDF8',
+  challengeBannerTitle: 'Part II 30-Question Grand Mastery Quiz',
+  challengeBannerSubtitle:
+    'Earn the Part II Grand Quiz Sovereign Badge (#114) by completing this 30-question exam!',
+  modules: [],
+  questionnaire: allPart2Questions,
+};
+
 export const PART2_CURRICULUM_CHAPTERS: Part1ChapterCurriculum[] = [
   ...PART2_CHAPTERS_1_TO_2,
   PART2_CHAPTERS_3_TO_4[0], // Ch 3: Proportional Reasoning-2
@@ -789,15 +822,22 @@ export const PART2_CURRICULUM_CHAPTERS: Part1ChapterCurriculum[] = [
   ...PART2_CHAPTER_5, // Ch 5: Tales by Dots and Lines
   PART2_CHAPTER_6_ALGEBRA_PLAY, // Ch 6: Algebra Play (8 modules)
   PART2_CHAPTERS_3_TO_4[1], // Ch 7: Area
+  PART2_CHAPTER_8_MASTER_QUIZ, // Ch 8: Part II Mastery Quiz (30 Questions, 0 modules)
 ];
 
 export function getPart1CurriculumById(
-  id: ChapterId | 'ch8-master-quiz'
+  id: ChapterId | 'ch8-master-quiz' | 'part2-ch8-master-quiz'
 ): Part1ChapterCurriculum | undefined {
   return (
     PART1_CURRICULUM_CHAPTERS.find((c) => c.chapterId === id) ||
     PART2_CURRICULUM_CHAPTERS.find((c) => c.chapterId === id)
   );
+}
+
+export function getPart2CurriculumById(
+  id: string
+): Part1ChapterCurriculum | undefined {
+  return PART2_CURRICULUM_CHAPTERS.find((c) => c.chapterId === id);
 }
 
 /**

@@ -64,12 +64,12 @@ function makeQuestion(
 }
 
 function generateProceduralPoolForChapter(
-  chapterId: ChapterId | 'ch8-master-quiz',
+  chapterId: ChapterId | 'ch8-master-quiz' | 'part2-ch8-master-quiz' | 'cellar-boss',
   rng: () => number
 ): Omit<ChapterAssessmentQuestion, 'questionNumber'>[] {
   const pool: Omit<ChapterAssessmentQuestion, 'questionNumber'>[] = [];
 
-  if (chapterId === 'ch1-square-cube' || chapterId === 'ch8-master-quiz') {
+  if (chapterId === 'ch1-square-cube' || chapterId === 'ch8-master-quiz' || chapterId === 'cellar-boss') {
     const oddCount = randInt(rng, 11, 28);
     const oddLast = 2 * oddCount - 1;
     const oddSum = oddCount * oddCount;
@@ -155,7 +155,7 @@ function generateProceduralPoolForChapter(
     );
   }
 
-  if (chapterId === 'ch2-power-play' || chapterId === 'ch8-master-quiz') {
+  if (chapterId === 'ch2-power-play' || chapterId === 'ch8-master-quiz' || chapterId === 'cellar-boss') {
     const folds = randInt(rng, 6, 11);
     const layers = Math.pow(2, folds);
     pool.push(
@@ -226,7 +226,7 @@ function generateProceduralPoolForChapter(
     );
   }
 
-  if (chapterId === 'ch3-story-numbers' || chapterId === 'ch8-master-quiz') {
+  if (chapterId === 'ch3-story-numbers' || chapterId === 'ch8-master-quiz' || chapterId === 'cellar-boss') {
     const b2 = randInt(rng, 1, 4);
     const b1 = randInt(rng, 0, 4);
     const b0 = randInt(rng, 1, 4);
@@ -281,7 +281,7 @@ function generateProceduralPoolForChapter(
     );
   }
 
-  if (chapterId === 'ch4-quadrilaterals' || chapterId === 'ch8-master-quiz') {
+  if (chapterId === 'ch4-quadrilaterals' || chapterId === 'ch8-master-quiz' || chapterId === 'cellar-boss') {
     const a1 = randInt(rng, 65, 95);
     const a2 = randInt(rng, 80, 115);
     const a3 = randInt(rng, 70, 105);
@@ -345,7 +345,7 @@ function generateProceduralPoolForChapter(
     );
   }
 
-  if (chapterId === 'ch5-number-play' || chapterId === 'ch8-master-quiz') {
+  if (chapterId === 'ch5-number-play' || chapterId === 'ch8-master-quiz' || chapterId === 'cellar-boss') {
     const d1 = randInt(rng, 2, 8);
     const d2 = randInt(rng, 1, 7);
     const d3 = randInt(rng, 2, 8);
@@ -405,7 +405,7 @@ function generateProceduralPoolForChapter(
     );
   }
 
-  if (chapterId === 'ch6-we-distribute' || chapterId === 'ch8-master-quiz') {
+  if (chapterId === 'ch6-we-distribute' || chapterId === 'ch8-master-quiz' || chapterId === 'cellar-boss') {
     const offset = randInt(rng, 2, 9);
     const low = 100 - offset;
     const high = 100 + offset;
@@ -477,7 +477,7 @@ function generateProceduralPoolForChapter(
     );
   }
 
-  if (chapterId === 'ch7-proportional-1' || chapterId === 'ch8-master-quiz') {
+  if (chapterId === 'ch7-proportional-1' || chapterId === 'ch8-master-quiz' || chapterId === 'cellar-boss') {
     const rA = randInt(rng, 2, 5);
     const rB = randInt(rng, rA + 1, 9);
     const partVal = randInt(rng, 2, 9) * 100;
@@ -538,7 +538,7 @@ function generateProceduralPoolForChapter(
   }
 
   // Procedural questions for Part II chapters (Chapters 1 to 5 + 6 to 7)
-  if (chapterId === 'ch4-fractions-disguise') {
+  if (chapterId === 'ch4-fractions-disguise' || chapterId === 'part2-ch8-master-quiz' || chapterId === 'cellar-boss') {
     const basePrice = randInt(rng, 2, 9) * 200;
     const discPct = [10, 15, 20, 25][randInt(rng, 0, 3)];
     const salePrice = basePrice * (1 - discPct / 100);
@@ -627,7 +627,7 @@ function generateProceduralPoolForChapter(
     );
   }
 
-  if (chapterId === 'ch5-baudhayana-pythagoras') {
+  if (chapterId === 'ch5-baudhayana-pythagoras' || chapterId === 'part2-ch8-master-quiz' || chapterId === 'cellar-boss') {
     const pTriples = [
       [6, 8, 10],
       [9, 12, 15],
@@ -719,7 +719,7 @@ function generateProceduralPoolForChapter(
     );
   }
 
-  if (chapterId === 'ch6-proportional-reasoning') {
+  if (chapterId === 'ch6-proportional-reasoning' || chapterId === 'part2-ch8-master-quiz' || chapterId === 'cellar-boss') {
     const slicePct = [15, 20, 25, 30, 40][randInt(rng, 0, 4)];
     const centralAngle = (slicePct * 360) / 100;
     pool.push(
@@ -814,7 +814,7 @@ function generateProceduralPoolForChapter(
     );
   }
 
-  if (chapterId === 'ch11-geometric-themes') {
+  if (chapterId === 'ch11-geometric-themes' || chapterId === 'part2-ch8-master-quiz' || chapterId === 'cellar-boss') {
     const stepF = randInt(rng, 2, 4);
     const holes = Math.pow(8, stepF - 1);
     pool.push(
@@ -902,7 +902,7 @@ function generateProceduralPoolForChapter(
     );
   }
 
-  if (chapterId === 'ch12-dots-and-lines') {
+  if (chapterId === 'ch12-dots-and-lines' || chapterId === 'part2-ch8-master-quiz' || chapterId === 'cellar-boss') {
     const targetMean = randInt(rng, 20, 50);
     const d1 = randInt(rng, 2, 8);
     const d2 = randInt(rng, 3, 9);
@@ -996,7 +996,7 @@ function generateProceduralPoolForChapter(
     );
   }
 
-  if (chapterId === 'ch13-algebra-play') {
+  if (chapterId === 'ch13-algebra-play' || chapterId === 'part2-ch8-master-quiz' || chapterId === 'cellar-boss') {
     const pA = randInt(rng, 3, 12);
     const pB = randInt(rng, 4, 15);
     const pC = randInt(rng, 2, 11);
@@ -1017,7 +1017,7 @@ function generateProceduralPoolForChapter(
     );
   }
 
-  if (chapterId === 'ch14-area') {
+  if (chapterId === 'ch14-area' || chapterId === 'part2-ch8-master-quiz' || chapterId === 'cellar-boss') {
     const b1 = randInt(rng, 8, 16);
     const b2 = randInt(rng, 10, 20);
     const h = randInt(rng, 3, 8) * 2;
@@ -1114,8 +1114,13 @@ function generateProceduralPoolForChapter(
   return pool;
 }
 
-const TWENTY_QUESTION_CHAPTERS = new Set<string>([
+const THIRTY_QUESTION_CHAPTERS = new Set<string>([
   'ch8-master-quiz',
+  'part2-ch8-master-quiz',
+  'cellar-boss',
+]);
+
+const TWENTY_QUESTION_CHAPTERS = new Set<string>([
   'ch4-fractions-disguise',
   'ch5-baudhayana-pythagoras',
   'ch6-proportional-reasoning',
@@ -1125,7 +1130,7 @@ const TWENTY_QUESTION_CHAPTERS = new Set<string>([
 ]);
 
 export function generateDynamicChapterQuiz(
-  chapterId: ChapterId | 'ch8-master-quiz',
+  chapterId: ChapterId | 'ch8-master-quiz' | 'part2-ch8-master-quiz' | 'cellar-boss',
   staticPool: ChapterAssessmentQuestion[],
   seed: number,
   targetCount = 10
@@ -1144,9 +1149,15 @@ export function generateDynamicChapterQuiz(
   });
 
   const proceduralPool = generateProceduralPoolForChapter(chapterId, rng);
+  const extraProceduralPool = THIRTY_QUESTION_CHAPTERS.has(chapterId)
+    ? generateProceduralPoolForChapter(chapterId, seededRandom(seed * 104729 + 97)).map((q, idx) => ({
+        ...q,
+        id: `${q.id}-extra-${idx}`,
+      }))
+    : [];
 
   // Combine procedural questions and reshuffled static questions, then shuffle the order
-  const combined = [...proceduralPool, ...reshuffledStatic];
+  const combined = [...proceduralPool, ...reshuffledStatic, ...extraProceduralPool];
   for (let i = combined.length - 1; i > 0; i--) {
     const j = Math.floor(rng() * (i + 1));
     const temp = combined[i];
@@ -1154,9 +1165,21 @@ export function generateDynamicChapterQuiz(
     combined[j] = temp;
   }
 
-  const count = TWENTY_QUESTION_CHAPTERS.has(chapterId) ? 20 : targetCount;
+  const count = THIRTY_QUESTION_CHAPTERS.has(chapterId)
+    ? 30
+    : TWENTY_QUESTION_CHAPTERS.has(chapterId)
+      ? 20
+      : targetCount;
   return combined.slice(0, count).map((q, idx) => ({
     ...q,
     questionNumber: idx + 1,
   }));
+}
+
+export function generateBookWideBossQuestions(
+  staticPool: ChapterAssessmentQuestion[],
+  seed: number,
+  count = 30
+): ChapterAssessmentQuestion[] {
+  return generateDynamicChapterQuiz('cellar-boss', staticPool, seed, count).slice(0, count);
 }

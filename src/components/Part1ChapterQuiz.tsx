@@ -7,17 +7,22 @@ import {
   ArrowRight,
   Sparkles,
   ClipboardCheck,
+  Trophy,
 } from 'lucide-react';
 import { ChapterId } from '../types/math';
 import { ChapterAssessmentQuestion } from '../types/part1Curriculum';
 import { generateDynamicChapterQuiz } from '../utils/dynamicQuizGenerator';
 import { formatMathText } from '../utils/formatMath';
+import { MasteryBadgeDefinition } from '../data/masteryBadges';
 
 interface Part1ChapterQuizProps {
-  chapterId: ChapterId | 'ch8-master-quiz';
+  chapterId: ChapterId | 'ch8-master-quiz' | 'part2-ch8-master-quiz';
   chapterTitle: string;
   baseQuestions: ChapterAssessmentQuestion[];
   onCompleteQuiz?: (score: number, total: number) => void;
+  quizBadge?: MasteryBadgeDefinition;
+  isQuizBadgeUnlocked?: boolean;
+  onUnlockBadge?: (badgeId: string, rewardPoints: number) => void;
 }
 
 export const Part1ChapterQuiz: React.FC<Part1ChapterQuizProps> = ({
@@ -25,6 +30,9 @@ export const Part1ChapterQuiz: React.FC<Part1ChapterQuizProps> = ({
   chapterTitle,
   baseQuestions,
   onCompleteQuiz,
+  quizBadge,
+  isQuizBadgeUnlocked = false,
+  onUnlockBadge,
 }) => {
   // Seed starts with current timestamp + random offset so every open is fresh
   const [attemptSeed, setAttemptSeed] = useState<number>(() =>
@@ -84,6 +92,9 @@ export const Part1ChapterQuiz: React.FC<Part1ChapterQuizProps> = ({
 
   const handleFinishQuiz = () => {
     setQuizFinished(true);
+    if (quizBadge && !isQuizBadgeUnlocked && onUnlockBadge) {
+      onUnlockBadge(quizBadge.id, quizBadge.pointsReward);
+    }
     if (onCompleteQuiz) {
       onCompleteQuiz(scoreCount, questions.length);
     }
@@ -101,7 +112,7 @@ export const Part1ChapterQuiz: React.FC<Part1ChapterQuizProps> = ({
             </span>
           </div>
           <h3 className="text-2xl font-bold text-stone-900 mt-2">
-            {formatMathText(chapterTitle)} — Mastery Questionnaire
+            {formatMathText(chapterTitle)} — {questions.length}-Question Mastery Quiz
           </h3>
           <p className="text-sm text-stone-600 mt-0.5">
             Every attempt dynamically generates fresh procedural numbers, roots, ratios, and shuffled options so no two quizzes are alike.
@@ -120,14 +131,79 @@ export const Part1ChapterQuiz: React.FC<Part1ChapterQuizProps> = ({
 
           <button
             type="button"
+            onClick={handleFinishQuiz}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-amber-400 hover:bg-amber-300 text-stone-950 font-bold text-xs sm:text-sm shadow transition cursor-pointer"
+          >
+            <Trophy className="w-4 h-4" />
+            <span>Grade & Finish Quiz</span>
+          </button>
+
+          <button
+            type="button"
             onClick={handleGenerateNewQuiz}
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-[#14B8A6] hover:bg-[#0D9488] text-white font-bold text-xs sm:text-sm shadow transition cursor-pointer"
           >
             <Shuffle className="w-4 h-4" />
-            <span>New Quiz Set (Different Questions)</span>
+            <span>New Quiz Set</span>
           </button>
         </div>
       </div>
+
+      {/* Grand Mastery Quiz Badge Banner (for Badge #113 Part I & Badge #114 Part II) */}
+      {quizBadge && (
+        <div
+          className={`flex flex-wrap items-center justify-between gap-4 rounded-2xl border-2 p-4 transition-all ${
+            isQuizBadgeUnlocked
+              ? 'border-amber-400 bg-gradient-to-r from-[#0F3828] via-[#134E4A] to-[#0F3828] text-white shadow-md'
+              : 'border-amber-400/70 bg-amber-50 text-stone-900'
+          }`}
+        >
+          <div className="flex items-center gap-3.5">
+            <div
+              className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border-2 text-2xl shadow-sm ${
+                isQuizBadgeUnlocked
+                  ? 'border-amber-300 bg-amber-400/20'
+                  : 'border-amber-400 bg-white'
+              }`}
+            >
+              {quizBadge.emblemGlyph}
+            </div>
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="rounded bg-amber-400 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-stone-950">
+                  Grand Mastery Quiz Badge #{quizBadge.badgeNumber} of 115
+                </span>
+                <span
+                  className={`text-xs font-bold ${
+                    isQuizBadgeUnlocked ? 'text-amber-300' : 'text-teal-800'
+                  }`}
+                >
+                  +{quizBadge.pointsReward} Mastery Points
+                </span>
+              </div>
+              <div className="mt-1 text-base font-bold">
+                {quizBadge.title} — <span className="text-xs font-normal opacity-85">{quizBadge.subtitle}</span>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            {isQuizBadgeUnlocked ? (
+              <span className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-400/20 border border-emerald-300 px-3.5 py-2 text-xs font-bold text-emerald-200">
+                <CheckCircle2 className="h-4 w-4" /> Badge #{quizBadge.badgeNumber} Acquired!
+              </span>
+            ) : (
+              <button
+                type="button"
+                onClick={handleFinishQuiz}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-[#0F3828] hover:bg-[#134E4A] text-amber-300 border border-amber-400/50 px-4 py-2 text-xs font-bold transition shadow cursor-pointer"
+              >
+                <Award className="h-4 w-4" /> Complete & Claim Badge #{quizBadge.badgeNumber}
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Question Number Pills */}
       <div className="flex flex-wrap items-center gap-2">
@@ -173,6 +249,11 @@ export const Part1ChapterQuiz: React.FC<Part1ChapterQuizProps> = ({
             <h4 className="text-3xl font-bold">
               You Scored {scoreCount} out of {questions.length}!
             </h4>
+            {quizBadge && (
+              <div className="inline-flex items-center gap-2 rounded-xl bg-amber-400/20 border border-amber-300 px-4 py-1.5 text-sm font-bold text-amber-200">
+                {quizBadge.emblemGlyph} Unlocked Badge #{quizBadge.badgeNumber}: {quizBadge.title}!
+              </div>
+            )}
             <p className="text-emerald-100 max-w-xl mx-auto text-sm sm:text-base">
               Want to test your mastery again with a fresh set of numbers, equations, and questions? Click below to generate a brand-new dynamic quiz!
             </p>
