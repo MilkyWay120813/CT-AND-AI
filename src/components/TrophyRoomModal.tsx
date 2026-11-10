@@ -26,7 +26,6 @@ interface TrophyRoomModalProps {
   onClose: () => void;
   unlockedBadgeIds: string[];
   masteryPoints: number;
-  onUnlockAllPrerequisites: () => void;
   onResetBadges: () => void;
   onOpenBossBattle: () => void;
   onJumpToBadgeSource?: (badge: MasteryBadgeDefinition) => void;
@@ -37,7 +36,6 @@ export const TrophyRoomModal: React.FC<TrophyRoomModalProps> = ({
   onClose,
   unlockedBadgeIds,
   masteryPoints,
-  onUnlockAllPrerequisites,
   onResetBadges,
   onOpenBossBattle,
   onJumpToBadgeSource,
@@ -53,7 +51,9 @@ export const TrophyRoomModal: React.FC<TrophyRoomModalProps> = ({
     [unlockedSet]
   );
 
-  const isCellarKeyUnlocked = prereqUnlockedCount >= 114;
+  const isCellarKeyUnlocked =
+    PREREQUISITE_BADGE_IDS.length === 114 &&
+    prereqUnlockedCount === PREREQUISITE_BADGE_IDS.length;
   const isBossDefeated = unlockedSet.has(BOSS_BADGE_ID);
 
   const filteredBadges = useMemo(() => {
@@ -169,11 +169,11 @@ export const TrophyRoomModal: React.FC<TrophyRoomModalProps> = ({
                 {!isCellarKeyUnlocked ? (
                   <button
                     type="button"
-                    onClick={onUnlockAllPrerequisites}
+                    disabled
                     className="inline-flex items-center gap-2 rounded-xl border-2 border-[#FACC15] bg-[#FACC15]/20 px-4 py-2.5 text-xs font-bold text-[#FACC15] hover:bg-[#FACC15] hover:text-[#1C1917] transition-all cursor-pointer font-hand shadow-md"
                   >
                     <Key className="h-4 w-4" />
-                    Forge Cellar Key (Unlock All 114 Badges)
+                    Earn all 114 badges to unlock the Cellar Key
                   </button>
                 ) : (
                   <button
