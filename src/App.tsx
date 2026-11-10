@@ -103,7 +103,9 @@ export default function App() {
     [unlockedSet]
   );
 
-  const isCellarKeyUnlocked = prereqUnlockedCount >= 114;
+  const isCellarKeyUnlocked =
+    PREREQUISITE_BADGE_IDS.length === 114 &&
+    prereqUnlockedCount === PREREQUISITE_BADGE_IDS.length;
   const isBossDefeated = unlockedSet.has(BOSS_BADGE_ID);
 
   const handleUnlockBadge = useCallback((badgeId: string, rewardPoints: number) => {
@@ -112,14 +114,6 @@ export default function App() {
       setMasteryPoints((pts) => pts + rewardPoints);
       return [...prev, badgeId];
     });
-  }, []);
-
-  const handleUnlockAllPrerequisites = useCallback(() => {
-    setUnlockedBadgeIds((prev) => {
-      const merged = Array.from(new Set([...prev, ...PREREQUISITE_BADGE_IDS]));
-      return merged;
-    });
-    setMasteryPoints((pts) => Math.max(pts, 3600));
   }, []);
 
   const handleResetBadges = useCallback(() => {
@@ -339,7 +333,9 @@ export default function App() {
             unlockedBadgeIds={unlockedBadgeIds}
             onUnlockBadge={handleUnlockBadge}
             onOpenTrophyRoom={() => setIsTrophyRoomOpen(true)}
-            onOpenBossBattle={() => setIsBossBattleOpen(true)}
+            onOpenBossBattle={() => {
+              if (isCellarKeyUnlocked) setIsBossBattleOpen(true);
+            }}
           />
         )}
       </main>
@@ -513,51 +509,7 @@ export default function App() {
             </div>
           </div>
 
-          {/* Row 2: Chapter Quick Links */}
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <span className="font-bold text-[#0F766E]">
-              Ganita Prakash Class 8 Interactive Classroom · Part I (56 Modules + 30Q Quiz) &amp; Part II (56 Modules + 30Q Quiz)
-            </span>
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => handleSwitchChapterById('ch8-master-quiz')}
-                className="text-xs font-bold text-amber-800 hover:underline cursor-pointer"
-              >
-                🏆 Part I 30Q Mastery Quiz
-              </button>
-              <span>·</span>
-              <button
-                type="button"
-                onClick={() => handleSwitchChapterById('part2-ch8-master-quiz')}
-                className="text-xs font-bold text-[#0F766E] hover:underline cursor-pointer"
-              >
-                🎖️ Part II 30Q Mastery Quiz
-              </button>
-            </div>
-          </div>
 
-          <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
-            {GANITA_CHAPTERS.map((ch, idx) => {
-              const isCurrent = ch.id === activeChapterId;
-              return (
-                <React.Fragment key={ch.id}>
-                  {idx > 0 && <span aria-hidden="true">·</span>}
-                  <button
-                    type="button"
-                    onClick={() => handleSwitchChapterById(ch.id)}
-                    className={`transition-colors cursor-pointer ${
-                      isCurrent
-                        ? 'text-[#0F766E] font-bold underline underline-offset-4'
-                        : 'hover:text-stone-950 font-medium'
-                    }`}
-                  >
-                    {ch.partLabel} Ch {ch.chapterNumber}: {ch.title}
-                  </button>
-                </React.Fragment>
-              );
-            })}
-          </div>
         </div>
       </footer>
 
@@ -567,9 +519,10 @@ export default function App() {
         onClose={() => setIsTrophyRoomOpen(false)}
         unlockedBadgeIds={unlockedBadgeIds}
         masteryPoints={masteryPoints}
-        onUnlockAllPrerequisites={handleUnlockAllPrerequisites}
         onResetBadges={handleResetBadges}
-        onOpenBossBattle={() => setIsBossBattleOpen(true)}
+        onOpenBossBattle={() => {
+              if (isCellarKeyUnlocked) setIsBossBattleOpen(true);
+            }}
         onJumpToBadgeSource={handleJumpToBadgeSource}
       />
 
