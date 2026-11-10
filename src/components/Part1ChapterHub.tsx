@@ -1047,7 +1047,7 @@ export const Part1ChapterHub: React.FC<Part1ChapterHubProps> = ({
                     <article
                       key={mod.id}
                       onClick={() => handleOpenModuleSlideshow(mod, 0)}
-                      className="group relative rounded-2xl overflow-hidden bg-white flex flex-col sm:flex-row min-h-[245px] justify-between cursor-pointer transition-all hover:-translate-y-1 hover:shadow-lg border border-stone-200/90 shadow-xs"
+                      className="group relative rounded-2xl overflow-hidden bg-white flex flex-col min-h-[245px] cursor-pointer transition-all hover:-translate-y-1 hover:shadow-lg border border-stone-200/90 shadow-xs"
                     >
                       {/* Polite Side Indicator Bar on the left edge when active */}
                       {isHighlighted && (
@@ -1057,8 +1057,8 @@ export const Part1ChapterHub: React.FC<Part1ChapterHubProps> = ({
                         />
                       )}
 
-                      <div>
-                        <div className="h-44 sm:h-auto sm:w-[46%] sm:min-h-[245px] shrink-0 relative overflow-hidden">
+                      <div className="flex flex-col sm:flex-row flex-1 min-w-0">
+                        <div className="h-44 sm:h-auto w-full sm:w-[46%] sm:min-h-[245px] shrink-0 relative overflow-hidden">
                           <ModuleTitleArtwork
                             chapterId={activeCurriculum.chapterId}
                             moduleCode={mod.moduleCode}
