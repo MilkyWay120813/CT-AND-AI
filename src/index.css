@@ -198,3 +198,250 @@ input[type="range"].math-slider:focus-visible::-webkit-slider-thumb {
   animation: chapterFormulaFade 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+@keyframes bigScreenShake {
+  0%, 100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  10% {
+    transform: translate(-10px, -6px) rotate(-1.5deg);
+  }
+  20% {
+    transform: translate(12px, 8px) rotate(2deg);
+  }
+  30% {
+    transform: translate(-12px, 6px) rotate(-2deg);
+  }
+  40% {
+    transform: translate(10px, -8px) rotate(1.5deg);
+  }
+  50% {
+    transform: translate(-8px, 4px) rotate(-1deg);
+  }
+  60% {
+    transform: translate(8px, -4px) rotate(1deg);
+  }
+  70% {
+    transform: translate(-5px, 2px) rotate(-0.5deg);
+  }
+  80% {
+    transform: translate(5px, -2px) rotate(0.5deg);
+  }
+  90% {
+    transform: translate(-2px, 1px) rotate(0deg);
+  }
+}
+
+.big-screen-shake {
+  animation: bigScreenShake 0.75s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+@keyframes badgeRaySpin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.badge-ray-spin {
+  animation: badgeRaySpin 12s linear infinite;
+}
+
+/* Atmospheric Soft Floating Chapter Particles */
+@keyframes floatGentle {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg) scale(1);
+  }
+  33% {
+    transform: translateY(-16px) rotate(2deg) scale(1.03);
+  }
+  66% {
+    transform: translateY(-8px) rotate(-1.5deg) scale(0.98);
+  }
+}
+
+@keyframes floatDriftUp {
+  0% {
+    transform: translateY(110vh) translateX(-10px) rotate(0deg);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.25;
+  }
+  85% {
+    opacity: 0.25;
+  }
+  100% {
+    transform: translateY(-20vh) translateX(25px) rotate(15deg);
+    opacity: 0;
+  }
+}
+
+@keyframes softShimmerGlow {
+  0%, 100% {
+    opacity: 0.35;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.75;
+    transform: scale(1.08);
+  }
+}
+
+.float-gentle {
+  animation: floatGentle 9s ease-in-out infinite;
+}
+
+.float-drift-up {
+  animation: floatDriftUp 20s linear infinite;
+}
+
+.soft-shimmer {
+  animation: softShimmerGlow 5s ease-in-out infinite;
+}
+
+/* ============================================================================
+   MIDNIGHT CHALKBOARD THEME (Dark Mode with Authentic Classroom Slate Contrast)
+   ============================================================================ */
+html.midnight-chalkboard,
+body.midnight-chalkboard {
+  background-color: #0D1C15 !important;
+  color: #F3F4F6 !important;
+}
+
+body.midnight-chalkboard {
+  background-image:
+    radial-gradient(#1B382B 1px, transparent 1px),
+    radial-gradient(#152E23 1px, #0D1C15 1px) !important;
+  background-size: 28px 28px !important;
+}
+
+.midnight-chalkboard .classroom-backdrop {
+  background-color: #0D1C15 !important;
+  background-image:
+    radial-gradient(rgba(52, 211, 153, 0.12) 1px, transparent 1px),
+    radial-gradient(rgba(20, 50, 36, 0.4) 1px, #0D1C15 1px) !important;
+  background-size: 28px 28px !important;
+}
+
+/* Surfaces and Cards */
+.midnight-chalkboard .bg-white {
+  background-color: #14281E !important;
+  color: #F3F4F6 !important;
+  border-color: #274C3A !important;
+}
+
+.midnight-chalkboard .bg-[#FAF6EE],
+.midnight-chalkboard .bg-[#FAF6EE]\/60,
+.midnight-chalkboard .bg-[#FAF6EE]\/80,
+.midnight-chalkboard .bg-[#FFFDF7] {
+  background-color: #102219 !important;
+  color: #F3F4F6 !important;
+  border-color: #254636 !important;
+}
+
+.midnight-chalkboard .bg-stone-50,
+.midnight-chalkboard .bg-stone-100 {
+  background-color: #0E1D15 !important;
+  color: #E5E7EB !important;
+  border-color: #203A2D !important;
+}
+
+.midnight-chalkboard .bg-stone-200 {
+  background-color: #162F22 !important;
+  color: #F3F4F6 !important;
+  border-color: #2D5640 !important;
+}
+
+.midnight-chalkboard .desk-card {
+  background-color: #14281E !important;
+  border-color: #2C533F !important;
+  color: #F3F4F6 !important;
+  box-shadow: 0 6px 20px -6px rgba(0, 0, 0, 0.6) !important;
+}
+
+/* High Contrast Text Elements */
+.midnight-chalkboard .text-stone-900,
+.midnight-chalkboard .text-stone-800,
+.midnight-chalkboard .text-[#1C1917] {
+  color: #F9FAFB !important;
+}
+
+.midnight-chalkboard .text-stone-700 {
+  color: #E2E8F0 !important;
+}
+
+.midnight-chalkboard .text-stone-600,
+.midnight-chalkboard .text-stone-500 {
+  color: #CBD5E1 !important;
+}
+
+.midnight-chalkboard .text-[#0F766E],
+.midnight-chalkboard .text-[#115E59],
+.midnight-chalkboard .text-[#0D9488] {
+  color: #5EEAD4 !important;
+}
+
+.midnight-chalkboard .text-amber-950,
+.midnight-chalkboard .text-amber-900 {
+  color: #FDE047 !important;
+}
+
+.midnight-chalkboard .text-amber-800,
+.midnight-chalkboard .text-amber-700 {
+  color: #FBBF24 !important;
+}
+
+/* Borders */
+.midnight-chalkboard .border-stone-200,
+.midnight-chalkboard .border-stone-300 {
+  border-color: #2B503D !important;
+}
+
+.midnight-chalkboard .border-amber-200,
+.midnight-chalkboard .border-amber-300 {
+  border-color: #594519 !important;
+}
+
+/* Tinted cards & badges */
+.midnight-chalkboard .bg-[#F0FDFA] {
+  background-color: #0B241C !important;
+  color: #5EEAD4 !important;
+  border-color: #185240 !important;
+}
+
+.midnight-chalkboard .bg-[#FFFBEB],
+.midnight-chalkboard .bg-[#FEF3C7],
+.midnight-chalkboard .bg-amber-50 {
+  background-color: #232010 !important;
+  color: #FDE047 !important;
+  border-color: #524218 !important;
+}
+
+/* Inputs and interactive elements */
+.midnight-chalkboard input[type="text"],
+.midnight-chalkboard input[type="password"],
+.midnight-chalkboard select,
+.midnight-chalkboard textarea {
+  background-color: #0B1711 !important;
+  color: #F9FAFB !important;
+  border-color: #315C45 !important;
+}
+
+.midnight-chalkboard input[type="text"]::placeholder,
+.midnight-chalkboard input[type="password"]::placeholder {
+  color: #64748B !important;
+}
+
+.midnight-chalkboard .hover\:bg-stone-100:hover,
+.midnight-chalkboard .hover\:bg-stone-200:hover {
+  background-color: #1D3A2B !important;
+}
+
+/* Floating Mathematical Charms in Midnight Chalkboard */
+.midnight-chalkboard .float-gentle > div {
+  background-color: rgba(14, 34, 24, 0.92) !important;
+  box-shadow: 0 4px 18px -2px rgba(0, 0, 0, 0.7), 0 0 12px rgba(52, 211, 153, 0.2) !important;
+}
+

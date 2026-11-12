@@ -27,12 +27,13 @@ interface GeniusMessage {
   timestamp: string;
 }
 
-// Instantaneous (<10ms) pure math & greeting helper (100% independent of any chapter!)
+// Instantaneous (<10ms) pure math & greeting helper (100% Pure Mathematics)
 function tryInstantMathOrGreeting(rawQuestion: string): {
   answer: string;
   steps: string[];
   formula: string;
   example: string;
+  diagramSvg?: string;
 } | null {
   const q = rawQuestion.trim();
   const qLower = q.toLowerCase().replace(/[?!.]+$/, '').trim();
@@ -40,15 +41,163 @@ function tryInstantMathOrGreeting(rawQuestion: string): {
   if (/^(hi|hello|hey|good morning|good afternoon|good evening|namaste)$/.test(qLower)) {
     return {
       answer:
-        'Hello! Welcome to the Genius Bar. Ask me any question—or switch to the Camera Scanner tab above to snap a photo of a question—and I will solve it for you!',
-      steps: [],
+        'Hello! Welcome to the Genius Bar. Ask any pure mathematics question (arithmetic, algebra, geometry, powers, roots) or use the Camera Scanner above to scan your math homework!',
+      steps: [
+        'Examples: "Cube of 213", "Square root of 15625", "Prime factors of 213", "Area of trapezium".',
+      ],
       formula: '',
       example: '',
     };
   }
 
-  // Percentage calculations: e.g. "25% of 480"
-  const pctMatch = qLower.match(/^(\d+(?:\.\d+)?)\s*%\s*of\s*(\d+(?:\.\d+)?)$/);
+  // 1. Cube of N: e.g. "cube of 213", "213 cubed", "cube 213", "213^3", "213³"
+  const cubeMatch =
+    qLower.match(/^cube\s+of\s+([+-]?\d+(?:\.\d+)?)$/) ||
+    qLower.match(/^([+-]?\d+(?:\.\d+)?)\s*cubed$/) ||
+    qLower.match(/^cube\s+([+-]?\d+(?:\.\d+)?)$/) ||
+    qLower.match(/^([+-]?\d+(?:\.\d+)?)\s*\^\s*3$/) ||
+    qLower.match(/^([+-]?\d+(?:\.\d+)?)\s*³$/);
+
+  if (cubeMatch) {
+    const n = parseFloat(cubeMatch[1]);
+    const nSq = n * n;
+    const nCube = nSq * n;
+    const nFormatted = Number.isInteger(n) ? String(n) : n.toString();
+    const cubeFormatted = Number.isInteger(nCube) ? nCube.toLocaleString('en-US') : nCube.toString();
+    const sqFormatted = Number.isInteger(nSq) ? nSq.toLocaleString('en-US') : nSq.toString();
+
+    return {
+      answer: `The cube of ${nFormatted} is ${cubeFormatted} (${nFormatted}³ = ${cubeFormatted}).`,
+      steps: [
+        `Definition: The cube of a number n is obtained by multiplying it by itself twice: n³ = n × n × n.`,
+        `Step 1: Calculate the square of ${nFormatted}: ${nFormatted} × ${nFormatted} = ${sqFormatted}.`,
+        `Step 2: Multiply by ${nFormatted} once more: ${sqFormatted} × ${nFormatted} = ${cubeFormatted}.`,
+        `Result: ${nFormatted}³ = ${cubeFormatted}.`,
+      ],
+      formula: `n³ = n × n × n  ⇒  ${nFormatted}³ = ${cubeFormatted}`,
+      example: `In geometry, a 3D cube with edge length ${nFormatted} has a volume of V = s³ = ${cubeFormatted} cubic units.`,
+      diagramSvg: `<svg viewBox="0 0 400 240" xmlns="http://www.w3.org/2000/svg">
+        <rect width="400" height="240" rx="14" fill="#0F172A"/>
+        <polygon points="170,120 250,120 250,200 170,200" fill="rgba(45,212,191,0.2)" stroke="#2DD4BF" stroke-width="2.5"/>
+        <polygon points="170,120 250,120 290,75 210,75" fill="rgba(45,212,191,0.35)" stroke="#2DD4BF" stroke-width="2.5"/>
+        <polygon points="250,120 290,75 290,155 250,200" fill="rgba(45,212,191,0.15)" stroke="#2DD4BF" stroke-width="2.5"/>
+        <text x="180" y="215" fill="#5EEAD4" font-size="13" font-weight="bold" font-family="monospace">edge = ${nFormatted}</text>
+        <text x="120" y="42" fill="#FDE047" font-size="14" font-weight="bold" font-family="monospace">Volume = s³ = ${cubeFormatted}</text>
+      </svg>`,
+    };
+  }
+
+  // 2. Square of N: e.g. "square of 213", "213 squared", "square 213", "213^2", "213²"
+  const sqMatch =
+    qLower.match(/^square\s+of\s+([+-]?\d+(?:\.\d+)?)$/) ||
+    qLower.match(/^([+-]?\d+(?:\.\d+)?)\s*squared$/) ||
+    qLower.match(/^square\s+([+-]?\d+(?:\.\d+)?)$/) ||
+    qLower.match(/^([+-]?\d+(?:\.\d+)?)\s*\^\s*2$/) ||
+    qLower.match(/^([+-]?\d+(?:\.\d+)?)\s*²$/);
+
+  if (sqMatch) {
+    const n = parseFloat(sqMatch[1]);
+    const nSq = n * n;
+    const nFormatted = Number.isInteger(n) ? String(n) : n.toString();
+    const sqFormatted = Number.isInteger(nSq) ? nSq.toLocaleString('en-US') : nSq.toString();
+    return {
+      answer: `The square of ${nFormatted} is ${sqFormatted} (${nFormatted}² = ${sqFormatted}).`,
+      steps: [
+        `Definition: The square of a number n is obtained by multiplying it by itself: n² = n × n.`,
+        `Multiply: ${nFormatted} × ${nFormatted} = ${sqFormatted}.`,
+        `Result: ${nFormatted}² = ${sqFormatted}.`,
+      ],
+      formula: `n² = n × n  ⇒  ${nFormatted}² = ${sqFormatted}`,
+      example: `In geometry, a 2D square with side length ${nFormatted} has an area of A = s² = ${sqFormatted} square units.`,
+    };
+  }
+
+  // 3. Cube root of N: e.g. "cube root of 213", "cbrt 213"
+  const cbrtMatch =
+    qLower.match(/^(?:cube\s*root\s*(?:of)?|cbrt|∛)\s*([+-]?\d+(?:\.\d+)?)$/);
+  if (cbrtMatch) {
+    const n = parseFloat(cbrtMatch[1]);
+    const val = Math.cbrt(n);
+    const formatted = Number.isInteger(val) ? String(val) : Number(val.toFixed(6)).toString();
+    return {
+      answer: `The cube root of ${n} is ${formatted} (∛${n} ≈ ${formatted}).`,
+      steps: [
+        `Definition: The cube root of a number x is the value y such that y³ = x.`,
+        `Calculation: ∛${n} = ${formatted}.`,
+        `Verification: (${formatted})³ = ${(val * val * val).toFixed(4)}.`,
+      ],
+      formula: `∛x = y  ⇔  y³ = x`,
+      example: `For a cube with volume ${n}, the edge length is ∛${n} = ${formatted}.`,
+    };
+  }
+
+  // 4. Square root of N: e.g. "square root of 144", "sqrt 144", "√144"
+  const sqrtMatch =
+    qLower.match(/^(?:square\s*root\s*(?:of)?|sqrt|√)\s*(\d+(?:\.\d+)?)$/);
+  if (sqrtMatch) {
+    const n = parseFloat(sqrtMatch[1]);
+    const val = Math.sqrt(n);
+    const formatted = Number.isInteger(val) ? String(val) : Number(val.toFixed(6)).toString();
+    return {
+      answer: `The square root of ${n} is ${formatted} (√${n} = ${formatted}).`,
+      steps: [
+        `Definition: The principal square root of x is the non-negative number y such that y² = x.`,
+        `Calculation: √${n} = ${formatted}.`,
+        `Verification: ${formatted} × ${formatted} = ${(val * val).toFixed(4)}.`,
+      ],
+      formula: `√x = y  ⇔  y² = x`,
+      example: `For a square with area ${n}, the side length is √${n} = ${formatted}.`,
+    };
+  }
+
+  // 5. Factors / Prime Factorization of N: e.g. "factors of 213", "prime factors of 213"
+  const factorMatch = qLower.match(/^(?:prime\s+)?(?:factors|factorization|divisors)\s+of\s+(\d+)$/);
+  if (factorMatch) {
+    const n = parseInt(factorMatch[1], 10);
+    if (n > 0 && n <= 100000000) {
+      const divisors: number[] = [];
+      for (let i = 1; i * i <= n; i++) {
+        if (n % i === 0) {
+          divisors.push(i);
+          if (i * i !== n) divisors.push(n / i);
+        }
+      }
+      divisors.sort((a, b) => a - b);
+
+      let temp = n;
+      const primeFactors: number[] = [];
+      for (let d = 2; d * d <= temp; d++) {
+        while (temp % d === 0) {
+          primeFactors.push(d);
+          temp = Math.floor(temp / d);
+        }
+      }
+      if (temp > 1) primeFactors.push(temp);
+
+      const primeFreq: Record<number, number> = {};
+      primeFactors.forEach((p) => {
+        primeFreq[p] = (primeFreq[p] || 0) + 1;
+      });
+      const primeProductStr = Object.entries(primeFreq)
+        .map(([p, count]) => (count > 1 ? `${p}^${count}` : p))
+        .join(' × ') || String(n);
+
+      return {
+        answer: `The number ${n} has ${divisors.length} divisor${divisors.length === 1 ? '' : 's'}. Its prime factorization is: ${n} = ${primeProductStr}.`,
+        steps: [
+          `All divisors of ${n}: ${divisors.join(', ')}.`,
+          `Prime factors: ${Array.from(new Set(primeFactors)).join(', ') || String(n)}.`,
+          `Expressed as product of prime powers: ${n} = ${primeProductStr}.`,
+          divisors.length === 2 ? `${n} is a PRIME number.` : `${n} is a COMPOSITE number.`,
+        ],
+        formula: `Prime Factorization: ${n} = ${primeProductStr}`,
+        example: divisors.length > 2 ? `Notice that ${n} is divisible by ${divisors[1]} since ${divisors[1]} × ${n / divisors[1]} = ${n}.` : '',
+      };
+    }
+  }
+
+  // 6. Percentage calculations: e.g. "25% of 480"
+  const pctMatch = qLower.match(/^(\d+(?:\.\d+)?)\s*%\s*(?:of\s*)?(\d+(?:\.\d+)?)$/);
   if (pctMatch) {
     const p = parseFloat(pctMatch[1]);
     const total = parseFloat(pctMatch[2]);
@@ -64,7 +213,7 @@ function tryInstantMathOrGreeting(rawQuestion: string): {
     };
   }
 
-  // Pure numerical / algebraic arithmetic expressions
+  // 7. Pure numerical / algebraic arithmetic expressions
   const cleanedExpr = q
     .replace(/^(what is|whats|what's|calculate|solve|evaluate|find|compute|simplify)\s+/i, '')
     .replace(/\?+$/, '')
@@ -81,7 +230,7 @@ function tryInstantMathOrGreeting(rawQuestion: string): {
       const val = math.evaluate(cleanedExpr);
       if (typeof val === 'number' && Number.isFinite(val)) {
         const formattedVal = Number.isInteger(val)
-          ? String(val)
+          ? val.toLocaleString('en-US')
           : Number(val.toFixed(6)).toString();
         return {
           answer: `${cleanedExpr} = ${formattedVal}`,
@@ -126,7 +275,7 @@ export const GeniusBarDrawer: React.FC = () => {
     {
       id: 'welcome-msg',
       role: 'genius',
-      text: 'Welcome to the Genius Bar! Ask me any question and I will answer it for you.',
+      text: 'Welcome to the Genius Bar! Ask any pure mathematics question (e.g. "Cube of 213", "Square root of 15625", "Prime factors of 213") or switch to Camera Scanner to snap your math problem.',
       timestamp: 'Ready',
     },
   ]);
@@ -279,6 +428,7 @@ export const GeniusBarDrawer: React.FC = () => {
           steps: instant.steps,
           formula: instant.formula || undefined,
           example: instant.example || undefined,
+          diagramSvg: instant.diagramSvg || undefined,
           timestamp: nowLabel,
         };
         setMessages((prev) => [...prev, userMsg, instantMsg]);
@@ -718,14 +868,41 @@ export const GeniusBarDrawer: React.FC = () => {
                   <div ref={messagesEndRef} />
                 </div>
 
-                {/* Bottom Input Composer with Quick Camera Shortcut */}
+                {/* Bottom Input Composer with Quick Camera Shortcut & Pure Math Quick Chips */}
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();
                     handleAskTextQuestion();
                   }}
-                  className="p-4 bg-white border-t border-stone-200 shrink-0"
+                  className="p-4 bg-white border-t border-stone-200 shrink-0 space-y-2.5"
                 >
+                  {messages.length <= 1 && (
+                    <div className="flex flex-wrap items-center gap-1.5 pb-1">
+                      <span className="text-[11px] font-bold text-stone-600 uppercase tracking-wider mr-1">
+                        Try Pure Math:
+                      </span>
+                      {[
+                        'Cube of 213',
+                        'Square root of 15625',
+                        'Prime factors of 213',
+                        '25% of 480',
+                        'Area of trapezium',
+                      ].map((chip) => (
+                        <button
+                          key={chip}
+                          type="button"
+                          onClick={() => {
+                            setInputQuestion(chip);
+                            submitToGeniusBar({ questionText: chip });
+                          }}
+                          className="px-2.5 py-1 rounded-full bg-teal-50 hover:bg-teal-100 text-[#0F766E] border border-teal-200 text-xs font-bold transition-all cursor-pointer shadow-2xs"
+                        >
+                          {chip}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
@@ -739,7 +916,7 @@ export const GeniusBarDrawer: React.FC = () => {
                       type="text"
                       value={inputQuestion}
                       onChange={(e) => setInputQuestion(e.target.value)}
-                      placeholder="Ask any question..."
+                      placeholder="Ask any math question (e.g. 'Cube of 213', 'Why is 3⁻² = 1/9?')..."
                       className="flex-1 px-4 py-3 rounded-xl bg-stone-100 focus:bg-white border border-stone-300 focus:border-[#0F766E] focus:outline-none text-sm text-stone-900 placeholder:text-stone-500"
                     />
                     <button

@@ -11,6 +11,8 @@ interface AnimatedChapterBannerProps {
   ribbonText: string;
   moduleCount: number;
   selectedModuleCode: string | null;
+  chapters?: Array<{ id: string; number: number; title: string }>;
+  onSelectChapter?: (chapterId: string) => void;
 }
 
 interface ChapterVisualTheme {
@@ -204,12 +206,13 @@ export const AnimatedChapterBanner: React.FC<AnimatedChapterBannerProps> = ({
   ribbonText,
   moduleCount,
   selectedModuleCode,
+  chapters,
+  onSelectChapter,
 }) => {
   const [animKey, setAnimKey] = useState(0);
   const [activeFormulaIdx, setActiveFormulaIdx] = useState(0);
   const theme = getChapterVisualTheme(chapterId, title);
   const formattedTitle = formatMathText(title);
-  const titleWords = formattedTitle.split(' ');
 
   useEffect(() => {
     setAnimKey((prev) => prev + 1);
@@ -226,12 +229,12 @@ export const AnimatedChapterBanner: React.FC<AnimatedChapterBannerProps> = ({
   return (
     <div
       key={animKey}
-      className="relative rounded-3xl overflow-hidden border border-stone-300/80 shadow-lg text-white px-6 sm:px-9 py-7 transition-all duration-300"
+      className="relative rounded-3xl overflow-hidden border border-stone-300/80 shadow-lg text-white px-6 sm:px-9 py-7 sm:py-8 transition-all duration-300"
       style={{ background: theme.bgGradient }}
     >
       {/* Bespoke Chapter-Specific Animated SVG Mathematical Stage Backdrop */}
       <svg
-        className="absolute inset-0 w-full h-full pointer-events-none opacity-30"
+        className="absolute inset-0 w-full h-full pointer-events-none opacity-25"
         viewBox="0 0 960 240"
         preserveAspectRatio="xMidYMid slice"
         aria-hidden="true"
@@ -253,176 +256,88 @@ export const AnimatedChapterBanner: React.FC<AnimatedChapterBannerProps> = ({
           <line x1="760" y1="0" x2="760" y2="240" />
           <line x1="880" y1="0" x2="880" y2="240" />
         </g>
-
-        {/* Right-Side Chapter Signature Animated Emblem */}
-        {theme.animationStyle === 'tesseract-wave' && (
-          <g transform="translate(790, 120)" stroke={theme.accentHex} fill="none" strokeWidth="2">
-            <rect x="-58" y="-58" width="76" height="76" opacity="0.7">
-              <animateTransform
-                attributeName="transform"
-                type="rotate"
-                from="0 0 0"
-                to="360 0 0"
-                dur="28s"
-                repeatCount="indefinite"
-              />
-            </rect>
-            <rect x="-24" y="-24" width="76" height="76" stroke="#FEF08A" opacity="0.85" />
-            <line x1="-58" y1="-58" x2="-24" y2="-24" />
-            <line x1="18" y1="-58" x2="52" y2="-24" />
-            <line x1="-58" y1="18" x2="-24" y2="52" />
-            <line x1="18" y1="18" x2="52" y2="52" />
-          </g>
-        )}
-
-        {theme.animationStyle === 'exponential-cascade' && (
-          <g transform="translate(780, 120)" stroke={theme.accentHex} fill="none" strokeWidth="2">
-            <ellipse rx="110" ry="42" transform="rotate(-18)" opacity="0.6" />
-            <ellipse rx="110" ry="42" transform="rotate(42)" opacity="0.6" />
-            <ellipse rx="110" ry="42" transform="rotate(102)" opacity="0.6" />
-            <circle r="16" fill={theme.accentHex} opacity="0.45" />
-          </g>
-        )}
-
-        {theme.animationStyle === 'sulba-cord-squares' && (
-          <g transform="translate(760, 130)" stroke={theme.accentHex} fill="none" strokeWidth="2.2">
-            <polygon points="0,0 72,0 0,-54" fill="rgba(251,146,60,0.22)" />
-            <rect x="0" y="0" width="72" height="72" opacity="0.55" />
-            <rect x="-54" y="-54" width="54" height="54" opacity="0.55" />
-          </g>
-        )}
-
-        {theme.animationStyle === 'meru-xray-pyramid' && (
-          <g transform="translate(785, 125)" stroke={theme.accentHex} fill="rgba(251,191,36,0.12)" strokeWidth="2">
-            <rect x="-35" y="-68" width="70" height="32" rx="6" />
-            <rect x="-74" y="-30" width="70" height="32" rx="6" />
-            <rect x="4" y="-30" width="70" height="32" rx="6" />
-            <rect x="-112" y="8" width="70" height="32" rx="6" />
-            <rect x="-35" y="8" width="70" height="32" rx="6" />
-            <rect x="42" y="8" width="70" height="32" rx="6" />
-          </g>
-        )}
-
-        {theme.animationStyle !== 'tesseract-wave' &&
-          theme.animationStyle !== 'exponential-cascade' &&
-          theme.animationStyle !== 'sulba-cord-squares' &&
-          theme.animationStyle !== 'meru-xray-pyramid' && (
-            <g transform="translate(790, 120)" stroke={theme.accentHex} fill="none" strokeWidth="1.8">
-              <circle r="78" strokeDasharray="8 6" opacity="0.65">
-                <animateTransform
-                  attributeName="transform"
-                  type="rotate"
-                  from="0"
-                  to="360"
-                  dur="24s"
-                  repeatCount="indefinite"
-                />
-              </circle>
-              <circle r="52" opacity="0.45" />
-              <polygon points="0,-68 59,34 -59,34" opacity="0.5" />
-              <polygon points="0,68 59,-34 -59,-34" opacity="0.5" />
-            </g>
-          )}
       </svg>
 
-      {/* Foreground Content: Pure Chapter Identity & Kinetic Animated Chapter Name */}
-      <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-        <div className="space-y-3 max-w-3xl">
-          {/* Quiet Unboxed Editorial Kicker with Typographic Separators */}
-          <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm font-bold tracking-wide text-amber-200/95">
-            <Sparkles className="w-4 h-4 shrink-0" style={{ color: theme.accentHex }} />
+      {/* Foreground Content: Itza-Style Layout */}
+      <div className="relative z-10 flex flex-col lg:flex-row lg:items-end justify-between gap-6">
+        <div className="space-y-2.5 max-w-3xl">
+          {/* Top-Left Itza Translucent Pill Tag */}
+          <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs sm:text-sm font-semibold tracking-wide text-white bg-[#00B4A7]/35 border border-[#00B4A7]/60 backdrop-blur-md shadow-xs">
+            <Sparkles className="w-3.5 h-3.5 text-teal-200 shrink-0" />
             <span>{partLabel}</span>
-            <span aria-hidden="true">·</span>
-            <span>Chapter {chapterIndex}</span>
-            <span aria-hidden="true">·</span>
-            <span className="text-white/80">{formatMathText(ribbonText)}</span>
-            <span aria-hidden="true">·</span>
-            <span className="text-emerald-300">
-              {selectedModuleCode ? `Viewing ${selectedModuleCode}` : `${moduleCount} Interactive Modules`}
-            </span>
+            <span className="opacity-50">·</span>
+            <span>{formatMathText(ribbonText || 'NCERT Ganita Prakash')}</span>
+            <span className="opacity-50">·</span>
+            <span className="text-amber-200">Chapter {chapterIndex}</span>
+            {selectedModuleCode && (
+              <>
+                <span className="opacity-50">·</span>
+                <span className="text-emerald-300 font-bold">{selectedModuleCode}</span>
+              </>
+            )}
           </div>
 
-          {/* KINETIC ANIMATED CHAPTER NAME — Each word & letter animates with chapter-specific energy */}
+          {/* Large Clean Bold Title (Itza Typography) */}
           <h1
             aria-label={formattedTitle}
-            className="text-3xl sm:text-4xl lg:text-[42px] font-extrabold tracking-tight leading-[1.12] flex flex-wrap items-baseline gap-x-3 gap-y-1"
+            className="text-3xl sm:text-4xl lg:text-[44px] font-black tracking-tight leading-[1.12] text-white drop-shadow-sm pt-1"
           >
-            {titleWords.map((word, wIdx) => (
-              <span
-                key={`${chapterId}-w-${wIdx}`}
-                className="inline-flex items-baseline chapter-word-reveal"
-                style={{
-                  animationDelay: `${wIdx * 75}ms`,
-                }}
-              >
-                {word.split('').map((ch, cIdx) => (
-                  <span
-                    key={`${chapterId}-c-${wIdx}-${cIdx}`}
-                    className="inline-block transition-transform duration-200 hover:-translate-y-1.5 hover:scale-110"
-                    style={{
-                      color:
-                        wIdx === titleWords.length - 1
-                          ? theme.accentHex
-                          : '#FFFFFF',
-                      textShadow:
-                        wIdx === titleWords.length - 1
-                          ? `0 0 24px ${theme.glowHex}`
-                          : '0 2px 10px rgba(0,0,0,0.35)',
-                    }}
-                  >
-                    {ch}
-                  </span>
-                ))}
-              </span>
-            ))}
+            {formattedTitle}
           </h1>
 
-          {/* Animated Glowing Mathematical Underline Sweep */}
-          <div className="relative h-1.5 w-56 sm:w-72 rounded-full bg-white/15 overflow-hidden">
-            <div
-              className="h-full rounded-full chapter-underline-sweep"
-              style={{
-                background: `linear-gradient(90deg, transparent, ${theme.accentHex}, #FEF08A, transparent)`,
-              }}
-            />
-          </div>
-
           {/* Subtitle */}
-          <p className="text-xs sm:text-sm text-white/85 leading-relaxed max-w-2xl pt-0.5">
+          <p className="text-sm sm:text-base text-white/90 leading-relaxed max-w-2xl font-medium">
             {formatMathText(subtitle)}
           </p>
-        </div>
 
-        {/* Right-Side Live Orbiting Chapter Formula Showcase Card */}
-        <div className="lg:w-72 shrink-0 rounded-2xl bg-black/35 backdrop-blur-xs border border-white/15 p-4 space-y-2.5 self-start lg:self-center">
-          <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-white/70">
-            <span className="inline-flex items-center gap-1.5">
-              <Compass className="w-3.5 h-3.5" style={{ color: theme.accentHex }} />
-              <span>Chapter Law Spotlight</span>
+          {/* Compact Formula Pill */}
+          <div className="inline-flex items-center gap-2 pt-1 text-xs text-white/80">
+            <span className="font-mono text-amber-200 bg-black/30 border border-white/15 px-2.5 py-1 rounded-lg">
+              {theme.orbitFormulas[activeFormulaIdx]}
             </span>
-            <span className="font-mono tabular-nums text-white/60">
-              {activeFormulaIdx + 1}/{theme.orbitFormulas.length}
-            </span>
-          </div>
-
-          <div
-            key={activeFormulaIdx}
-            className="min-h-[48px] flex items-center justify-center px-3 py-2.5 rounded-xl bg-white/10 border border-white/10 font-mono text-sm sm:text-base font-bold text-center text-amber-200 chapter-formula-fade"
-          >
-            {theme.orbitFormulas[activeFormulaIdx]}
-          </div>
-
-          <div className="flex items-center justify-between text-[11px] text-white/75 pt-0.5">
-            <span className="inline-flex items-center gap-1">
-              <Layers className="w-3 h-3 text-teal-300" />
-              <span>25s Gist + {moduleCount} Labs</span>
-            </span>
-            <span className="inline-flex items-center gap-1">
-              <BookOpen className="w-3 h-3 text-amber-300" />
-              <span>NCERT Class 8</span>
+            <span className="text-white/60 text-[11px]">
+              ({moduleCount} Modules · 25s Gist)
             </span>
           </div>
         </div>
+
+        {/* Right Side: The Signature Itza Numbered Circle Bar (1 2 3 4 5 6 ...) */}
+        {chapters && chapters.length > 0 && (
+          <div className="flex flex-col items-start lg:items-end gap-2 shrink-0 pt-2 lg:pt-0">
+            <div className="text-[11px] font-extrabold uppercase tracking-wider text-white/70">
+              Chapters
+            </div>
+            <div
+              role="tablist"
+              aria-label="Chapter selector"
+              className="flex flex-wrap items-center gap-2 sm:gap-2.5 p-1.5 rounded-full bg-black/25 backdrop-blur-md border border-white/20 shadow-inner"
+            >
+              {chapters.map((ch) => {
+                const isActive = ch.id === chapterId;
+                return (
+                  <button
+                    key={ch.id}
+                    type="button"
+                    role="tab"
+                    aria-selected={isActive}
+                    onClick={() => onSelectChapter?.(ch.id)}
+                    title={`Chapter ${ch.number}: ${ch.title}`}
+                    className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-black text-sm sm:text-base transition-all duration-150 cursor-pointer ${
+                      isActive
+                        ? 'bg-[#FAF6EE] text-[#008779] shadow-lg ring-3 ring-white/80 scale-110 z-10'
+                        : 'bg-[#00B4A7] hover:bg-[#14B8A6] hover:scale-105 text-white shadow-xs border border-teal-300/30'
+                    }`}
+                  >
+                    {ch.number}
+                  </button>
+                );
+              })}
+            </div>
+            <div className="text-xs text-white/80 font-medium max-w-[280px] truncate text-left lg:text-right">
+              Active: <span className="font-bold text-amber-200">{formattedTitle}</span>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -96,7 +96,7 @@ export const TrophyRoomModal: React.FC<TrophyRoomModalProps> = ({
                 Mastery Score
               </div>
               <div className="text-lg font-bold text-[#38BDF8] font-chalk">
-                {masteryPoints.toLocaleString()} pts
+                {Math.min(4000, masteryPoints).toLocaleString()} / 4,000 EXP
               </div>
             </div>
             <button

@@ -1,5 +1,4 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { Trophy, Lock, Key, Award, Skull, Sparkles } from 'lucide-react';
 import { GANITA_CHAPTERS, getChapterById } from './data/presets';
 import {
   ChapterId,
@@ -13,17 +12,54 @@ import { GeniusBarDrawer } from './components/GeniusBarDrawer';
 import { TrophyRoomModal } from './components/TrophyRoomModal';
 import { CellarBossBattle3D } from './components/CellarBossBattle3D';
 import {
-  ALL_MASTERY_BADGES,
-  MASTERY_POINT_MILESTONES,
   PREREQUISITE_BADGE_IDS,
   BOSS_BADGE_ID,
   MasteryBadgeDefinition,
+  ALL_MASTERY_BADGES,
 } from './data/masteryBadges';
+import { BadgeAchievementModal } from './components/BadgeAchievementModal';
+import { ClassroomThemeSwitch } from './components/ClassroomThemeSwitch';
+import { ChapterFloatingElements } from './components/ChapterFloatingElements';
+import { StudentAccountProfile } from './types/account';
+import {
+  getLocalStudentAccount,
+  saveLocalStudentAccount,
+  syncProgressToServer,
+  getSavedPin,
+} from './utils/accountStorage';
 
 const BADGE_STORAGE_KEY = 'ganita_prakash_unlocked_badges_v1';
 const POINTS_STORAGE_KEY = 'ganita_prakash_mastery_points_v1';
+const CHAPTER_POINTS_KEY = 'ganita_prakash_chapter_points_v1';
+const THEME_STORAGE_KEY = 'ganita_theme_v1';
+
+export const MAX_MASTERY_POINTS = 4000;
 
 export default function App() {
+  const [theme, setTheme] = useState<'light' | 'midnight-chalkboard'>(() => {
+    try {
+      const saved = localStorage.getItem(THEME_STORAGE_KEY) || localStorage.getItem('ganita_theme');
+      if (saved === 'midnight-chalkboard' || saved === 'light') return saved;
+      return 'light';
+    } catch {
+      return 'light';
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(THEME_STORAGE_KEY, theme);
+      localStorage.setItem('ganita_theme', theme);
+    } catch {}
+    if (theme === 'midnight-chalkboard') {
+      document.documentElement.classList.add('midnight-chalkboard');
+      document.body.classList.add('midnight-chalkboard');
+    } else {
+      document.documentElement.classList.remove('midnight-chalkboard');
+      document.body.classList.remove('midnight-chalkboard');
+    }
+  }, [theme]);
+
   const [showQuestionnaire, setShowQuestionnaire] = useState<boolean>(true);
   const [questionnaireStage, setQuestionnaireStage] = useState<
     'welcome' | 'chapters' | 'segments'
@@ -51,10 +87,17 @@ export default function App() {
   const [isSolving, setIsSolving] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
+  // Hard ceiling of 4,000 EXP (fixes any 81,000 EXP farm)
   const [masteryPoints, setMasteryPoints] = useState<number>(() => {
     try {
       const saved = localStorage.getItem(POINTS_STORAGE_KEY);
-      return saved ? Math.max(120, Number(saved)) : 120;
+      if (saved) {
+        const val = Number(saved);
+        if (!isNaN(val)) {
+          return Math.min(MAX_MASTERY_POINTS, Math.max(0, val));
+        }
+      }
+      return 120;
     } catch {
       return 120;
     }
@@ -71,6 +114,33 @@ export default function App() {
       // ignore storage errors
     }
     return [];
+  });
+
+  // Big Achievement celebration & screen shake state
+  const [celebratingBadge, setCelebratingBadge] = useState<MasteryBadgeDefinition | null>(null);
+  const [isScreenShaking, setIsScreenShaking] = useState<boolean>(false);
+
+  const [chapterGamePoints, setChapterGamePoints] = useState<Record<string, number>>(() => {
+    try {
+      const raw = localStorage.getItem(CHAPTER_POINTS_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (typeof parsed === 'object' && parsed !== null) {
+          const clamped: Record<string, number> = {};
+          for (const [k, v] of Object.entries(parsed)) {
+            clamped[k] = Math.min(1000, Math.max(0, Number(v) || 0));
+          }
+          return clamped;
+        }
+      }
+    } catch {
+      // ignore storage errors
+    }
+    return {};
+  });
+
+  const [studentAccount, setStudentAccount] = useState<StudentAccountProfile | null>(() => {
+    return getLocalStudentAccount();
   });
 
   const [isTrophyRoomOpen, setIsTrophyRoomOpen] = useState<boolean>(false);
@@ -93,6 +163,14 @@ export default function App() {
   }, [masteryPoints]);
 
   useEffect(() => {
+    try {
+      localStorage.setItem(CHAPTER_POINTS_KEY, JSON.stringify(chapterGamePoints));
+    } catch {
+      // ignore storage errors
+    }
+  }, [chapterGamePoints]);
+
+  useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [showQuestionnaire, activeChapterId]);
 
@@ -108,17 +186,106 @@ export default function App() {
     prereqUnlockedCount === PREREQUISITE_BADGE_IDS.length;
   const isBossDefeated = unlockedSet.has(BOSS_BADGE_ID);
 
-  const handleUnlockBadge = useCallback((badgeId: string, rewardPoints: number) => {
-    setUnlockedBadgeIds((prev) => {
-      if (prev.includes(badgeId)) return prev;
-      setMasteryPoints((pts) => pts + rewardPoints);
-      return [...prev, badgeId];
-    });
-  }, []);
+  const handleUnlockBadge = useCallback(
+    (badgeId: string, rewardPoints: number) => {
+      const badgeDef = ALL_MASTERY_BADGES.find((b) => b.id === badgeId);
+
+      setUnlockedBadgeIds((prev) => {
+        if (prev.includes(badgeId)) return prev;
+        const nextBadges = [...prev, badgeId];
+        // Enforce hard cap of 4,000 EXP
+        const nextPts = Math.min(MAX_MASTERY_POINTS, masteryPoints + rewardPoints);
+        setMasteryPoints(nextPts);
+
+        // Screen shake and big celebration modal!
+        setIsScreenShaking(true);
+        setTimeout(() => setIsScreenShaking(false), 800);
+        if (badgeDef) {
+          setCelebratingBadge(badgeDef);
+        }
+
+        // Sync with account if logged in
+        if (studentAccount) {
+          const creds = getSavedPin();
+          if (creds) {
+            syncProgressToServer(
+              studentAccount.username,
+              creds.pin,
+              nextPts,
+              nextBadges,
+              chapterGamePoints
+            );
+          }
+        }
+        return nextBadges;
+      });
+    },
+    [masteryPoints, studentAccount, chapterGamePoints]
+  );
+
+  const handleAddChapterGamePoints = useCallback(
+    (chapterId: string, pts: number) => {
+      // Balanced EXP per game round (max 15 EXP per action, max 4000 total EXP)
+      const sanitizedPts = Math.min(15, Math.max(0, pts));
+      const nextTotal = Math.min(MAX_MASTERY_POINTS, masteryPoints + sanitizedPts);
+      setMasteryPoints(nextTotal);
+
+      setChapterGamePoints((prev) => {
+        const nextChapterPts = {
+          ...prev,
+          [chapterId]: Math.min(1000, (prev[chapterId] || 0) + sanitizedPts),
+        };
+
+        if (studentAccount) {
+          const creds = getSavedPin();
+          if (creds) {
+            syncProgressToServer(
+              studentAccount.username,
+              creds.pin,
+              nextTotal,
+              unlockedBadgeIds,
+              nextChapterPts
+            );
+          }
+        }
+        return nextChapterPts;
+      });
+    },
+    [masteryPoints, studentAccount, unlockedBadgeIds]
+  );
+
+  const handleAccountChange = useCallback(
+    (account: StudentAccountProfile | null) => {
+      setStudentAccount(account);
+      if (account) {
+        // Enforce hard cap of 4,000 EXP when loading account
+        const clampedPoints = Math.min(MAX_MASTERY_POINTS, Math.max(0, account.points || 0));
+        setMasteryPoints(clampedPoints);
+        if (account.unlockedBadgeIds && account.unlockedBadgeIds.length > 0) {
+          setUnlockedBadgeIds((prev) => {
+            const set = new Set([...prev, ...account.unlockedBadgeIds]);
+            return Array.from(set);
+          });
+        }
+        if (account.chapterGamePoints) {
+          const clampedChapterPts: Record<string, number> = {};
+          for (const [k, v] of Object.entries(account.chapterGamePoints)) {
+            clampedChapterPts[k] = Math.min(1000, Math.max(0, Number(v) || 0));
+          }
+          setChapterGamePoints((prev) => ({
+            ...prev,
+            ...clampedChapterPts,
+          }));
+        }
+      }
+    },
+    []
+  );
 
   const handleResetBadges = useCallback(() => {
     setUnlockedBadgeIds([]);
     setMasteryPoints(120);
+    setChapterGamePoints({});
   }, []);
 
   const activeChapter: GanitaChapter = useMemo(
@@ -280,7 +447,7 @@ export default function App() {
       }));
       setActiveSolution(solvedProblem);
       setActiveStepIndex(0);
-      setMasteryPoints((pts) => pts + 25);
+      setMasteryPoints((pts) => Math.min(MAX_MASTERY_POINTS, pts + 5));
     } catch (err: unknown) {
       const message =
         err instanceof Error
@@ -292,15 +459,24 @@ export default function App() {
     }
   };
 
-  // Badges to showcase in Footer strip (unlocked badges first, then upcoming locked badges)
-  const footerShowcaseBadges = useMemo(() => {
-    const unlockedList = ALL_MASTERY_BADGES.filter((b) => unlockedSet.has(b.id));
-    const lockedList = ALL_MASTERY_BADGES.filter((b) => !unlockedSet.has(b.id));
-    return [...unlockedList.slice(-12), ...lockedList.slice(0, Math.max(0, 14 - unlockedList.slice(-12).length))];
-  }, [unlockedSet]);
-
   return (
-    <div className="min-h-screen flex flex-col justify-start classroom-backdrop text-[#1C1917]">
+    <div
+      className={`min-h-screen flex flex-col justify-start classroom-backdrop text-[#1C1917] transition-transform ${
+        isScreenShaking ? 'big-screen-shake' : ''
+      }`}
+    >
+      {/* Soft Floating Mathematical Charms along screen margins for immersion */}
+      <ChapterFloatingElements chapterId={activeChapterId} />
+
+      {/* Classroom Light Switch in the corner ONLY when on Diagnostic Questionnaire */}
+      {showQuestionnaire && (
+        <ClassroomThemeSwitch
+          theme={theme}
+          onToggleTheme={() => setTheme((t) => (t === 'light' ? 'midnight-chalkboard' : 'light'))}
+          variant="fixed"
+        />
+      )}
+
       <main
         id="top"
         className="w-full max-w-[1400px] mx-auto px-4 sm:px-8 pt-6 pb-14 flex-1"
@@ -329,189 +505,24 @@ export default function App() {
             isSolving={isSolving}
             errorMsg={errorMsg}
             masteryPoints={masteryPoints}
-            onAddPoints={(pts) => setMasteryPoints((prev) => prev + pts)}
+            onAddPoints={(pts) => setMasteryPoints((prev) => Math.min(MAX_MASTERY_POINTS, prev + Math.min(15, pts)))}
             unlockedBadgeIds={unlockedBadgeIds}
             onUnlockBadge={handleUnlockBadge}
             onOpenTrophyRoom={() => setIsTrophyRoomOpen(true)}
             onOpenBossBattle={() => {
               if (isCellarKeyUnlocked) setIsBossBattleOpen(true);
             }}
+            chapterGamePoints={chapterGamePoints}
+            onAddChapterPoints={handleAddChapterGamePoints}
+            activeStudentAccount={studentAccount}
+            onAccountChange={handleAccountChange}
+            theme={theme}
+            onToggleTheme={() => setTheme((t) => (t === 'light' ? 'midnight-chalkboard' : 'light'))}
           />
         )}
       </main>
 
-      {/* =====================================================================
-          MASTERY BADGE & MILESTONE SHOWCASE FOOTER (115 Badges + Milestone Ranks + Chained Boss Button)
-         ===================================================================== */}
-      <footer className="border-t-2 border-stone-300 bg-[#FAF6EE] mt-auto">
-        <div className="max-w-[1400px] mx-auto px-6 sm:px-8 py-6 space-y-5 text-xs sm:text-sm text-stone-700">
-          {/* Row 1: Visual Mastery Badge & Milestone Ranks Bar */}
-          <div className="rounded-2xl border-2 border-[#0F766E]/25 bg-white p-4 sm:p-5 shadow-xs space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#0F3828] text-amber-300 shadow-xs">
-                  <Trophy className="w-5 h-5" />
-                </div>
-                <div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-extrabold text-stone-900 text-sm sm:text-base">
-                      Mastery Badge Collection &amp; Milestone Ranks
-                    </span>
-                    <span className="rounded-full bg-[#0F766E] px-2.5 py-0.5 text-xs font-extrabold text-white tabular-nums">
-                      {unlockedBadgeIds.length} / 115 Badges
-                    </span>
-                    <span className="rounded-full bg-amber-100 border border-amber-300 px-2.5 py-0.5 text-xs font-extrabold text-amber-900 tabular-nums">
-                      {masteryPoints.toLocaleString()} Mastery Pts
-                    </span>
-                  </div>
-                  <p className="text-xs text-stone-500 mt-0.5">
-                    112 Module Badges (acquired on Slide 4 of each module) · 2 Grand 30-Question Quiz Badges (#113 &amp; #114) · 1 Chained 3D Cellar Final Boss Badge (#115)
-                  </p>
-                </div>
-              </div>
 
-              <div className="flex flex-wrap items-center gap-2.5">
-                <button
-                  type="button"
-                  onClick={() => setIsTrophyRoomOpen(true)}
-                  className="inline-flex items-center gap-2 rounded-xl border-2 border-amber-400 bg-amber-400 hover:bg-amber-300 px-4 py-2.5 text-xs sm:text-sm font-extrabold text-stone-950 transition cursor-pointer shadow-xs"
-                >
-                  <Trophy className="w-4 h-4" />
-                  <span>Open Dedicated Trophy Room ({unlockedBadgeIds.length}/115)</span>
-                </button>
-
-                {/* Chained Cellar Boss Battle Button in Footer */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (isCellarKeyUnlocked) {
-                      setIsBossBattleOpen(true);
-                    } else {
-                      setIsTrophyRoomOpen(true);
-                    }
-                  }}
-                  className={`relative overflow-hidden inline-flex items-center gap-2.5 rounded-xl border-2 px-4 py-2.5 text-xs sm:text-sm font-extrabold transition cursor-pointer shadow-xs ${
-                    isCellarKeyUnlocked
-                      ? 'border-amber-400 bg-[#1B122B] text-amber-300 hover:bg-[#2A1C42]'
-                      : 'border-stone-500 bg-stone-900 text-stone-200 hover:border-amber-400'
-                  }`}
-                >
-                  {!isCellarKeyUnlocked && (
-                    <svg
-                      aria-hidden="true"
-                      viewBox="0 0 220 48"
-                      className="pointer-events-none absolute inset-0 h-full w-full opacity-35"
-                      preserveAspectRatio="none"
-                    >
-                      <line
-                        x1="0"
-                        y1="0"
-                        x2="220"
-                        y2="48"
-                        stroke="#9CA3AF"
-                        strokeWidth="4"
-                        strokeDasharray="7 4"
-                      />
-                      <line
-                        x1="220"
-                        y1="0"
-                        x2="0"
-                        y2="48"
-                        stroke="#9CA3AF"
-                        strokeWidth="4"
-                        strokeDasharray="7 4"
-                      />
-                    </svg>
-                  )}
-                  <span className="relative z-10 inline-flex items-center gap-2">
-                    {isCellarKeyUnlocked ? (
-                      <Key className="w-4 h-4 text-amber-400 animate-pulse" />
-                    ) : (
-                      <Lock className="w-4 h-4 text-rose-400" />
-                    )}
-                    <span>
-                      {isCellarKeyUnlocked
-                        ? 'Enter 3D Cellar Boss Battle (Key Unlocked!)'
-                        : `Chained 3D Cellar Boss (Key: ${prereqUnlockedCount}/114)`}
-                    </span>
-                    <Skull className="w-4 h-4 text-rose-400" />
-                  </span>
-                </button>
-              </div>
-            </div>
-
-            {/* Mastery Point Milestone Ranks Strip (Chalkboard Initiate, Algebra Ace, Quadratic Wizard, etc.) */}
-            <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-stone-100">
-              <span className="text-[11px] font-extrabold uppercase tracking-wider text-stone-500 mr-1">
-                Milestone Ranks:
-              </span>
-              {MASTERY_POINT_MILESTONES.map((rank) => {
-                const isReached = masteryPoints >= rank.minPoints;
-                return (
-                  <button
-                    key={rank.id}
-                    type="button"
-                    onClick={() => setIsTrophyRoomOpen(true)}
-                    title={`${rank.title} (${rank.minPoints} pts): ${rank.description}`}
-                    className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-bold transition cursor-pointer ${
-                      isReached
-                        ? 'border-[#0F766E] bg-[#F0FDFA] text-[#0F766E] shadow-2xs'
-                        : 'border-stone-200 bg-stone-100 text-stone-400 opacity-75'
-                    }`}
-                  >
-                    <span>{rank.glyph}</span>
-                    <span>{rank.title}</span>
-                    <span className="text-[10px] opacity-75">
-                      ({rank.minPoints}p {isReached ? '✓' : '🔒'})
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* 115 Mastery Badges Footer Strip */}
-            <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-stone-100">
-              <span className="text-[11px] font-extrabold uppercase tracking-wider text-stone-500 mr-1">
-                Mastery Badges ({unlockedBadgeIds.length}/115):
-              </span>
-              {footerShowcaseBadges.map((b) => {
-                const isUnlocked = unlockedSet.has(b.id);
-                return (
-                  <button
-                    key={b.id}
-                    type="button"
-                    onClick={() => handleJumpToBadgeSource(b)}
-                    title={`Badge #${b.badgeNumber}: ${b.title} — ${b.subtitle}`}
-                    className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-bold transition cursor-pointer ${
-                      isUnlocked
-                        ? 'border-amber-400 bg-amber-50 text-stone-900 shadow-2xs'
-                        : 'border-stone-200 bg-stone-50 text-stone-500 hover:border-stone-400'
-                    }`}
-                  >
-                    <span>{b.emblemGlyph}</span>
-                    <span className="font-mono text-[10px]">#{b.badgeNumber}</span>
-                    <span className="truncate max-w-[130px]">{b.title}</span>
-                    {isUnlocked ? (
-                      <span className="text-emerald-600 font-extrabold">✓</span>
-                    ) : (
-                      <Lock className="w-3 h-3 text-stone-400" />
-                    )}
-                  </button>
-                );
-              })}
-              <button
-                type="button"
-                onClick={() => setIsTrophyRoomOpen(true)}
-                className="text-xs font-extrabold text-[#0F766E] hover:underline ml-1 cursor-pointer"
-              >
-                View all 115 badges →
-              </button>
-            </div>
-          </div>
-
-
-        </div>
-      </footer>
 
       {/* Dedicated Trophy Room Modal */}
       <TrophyRoomModal
@@ -532,6 +543,18 @@ export default function App() {
         onClose={() => setIsBossBattleOpen(false)}
         onVictoryUnlockBossBadge={handleUnlockBadge}
         isBossAlreadyDefeated={isBossDefeated}
+      />
+
+      {/* Big Achievement Celebration Modal with Screen Shake & Confetti Fanfare */}
+      <BadgeAchievementModal
+        isOpen={Boolean(celebratingBadge)}
+        badge={celebratingBadge}
+        onClose={() => setCelebratingBadge(null)}
+        totalUnlockedCount={unlockedBadgeIds.length}
+        onTriggerShake={() => {
+          setIsScreenShaking(true);
+          setTimeout(() => setIsScreenShaking(false), 800);
+        }}
       />
 
       {/* Floating Circle Trigger + Slide-Over "Genius Bar" Q&A & Camera Scanner Side Tab (Hidden on Intro & Chapter Selection screens) */}
