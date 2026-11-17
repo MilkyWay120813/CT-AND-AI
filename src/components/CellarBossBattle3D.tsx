@@ -21,12 +21,26 @@ import {
 import { generateBookWideBossQuestions } from '../utils/dynamicQuizGenerator';
 import { formatMathText } from '../utils/formatMath';
 import { BOSS_BADGE_ID } from '../data/masteryBadges';
+import { QuizAttemptRecord } from '../types/account';
+import { QuizDifficultySlider } from './QuizDifficultySlider';
+import {
+  DEFAULT_QUIZ_DIFFICULTY_SETTINGS,
+  QuizDifficultyLevel,
+  QuizDifficultySettings,
+} from '../utils/quizDifficulty';
 
 interface CellarBossBattle3DProps {
   isOpen: boolean;
   onClose: () => void;
   onVictoryUnlockBossBadge: (badgeId: string, bonusPoints: number) => void;
   isBossAlreadyDefeated: boolean;
+  onRecordQuizAttempt?: (attempt: Omit<QuizAttemptRecord, 'id' | 'timestamp'>) => void;
+  quizDifficultySettings?: QuizDifficultySettings;
+  effectiveDifficulty?: QuizDifficultyLevel;
+  recommendedDifficulty?: QuizDifficultyLevel;
+  recommendedReason?: string;
+  onSelectDifficulty?: (level: QuizDifficultyLevel) => void;
+  onToggleAutoMatchDifficulty?: (enabled: boolean) => void;
 }
 
 interface FlyingBookEntity {
@@ -41,6 +55,13 @@ export const CellarBossBattle3D: React.FC<CellarBossBattle3DProps> = ({
   onClose,
   onVictoryUnlockBossBadge,
   isBossAlreadyDefeated,
+  onRecordQuizAttempt,
+  quizDifficultySettings,
+  effectiveDifficulty,
+  recommendedDifficulty = 2,
+  recommendedReason,
+  onSelectDifficulty,
+  onToggleAutoMatchDifficulty,
 }) => {
   const mountRef = useRef<HTMLDivElement | null>(null);
   const [battleSeed, setBattleSeed] = useState<number>(1);
@@ -49,6 +70,30 @@ export const CellarBossBattle3D: React.FC<CellarBossBattle3DProps> = ({
   const [battleState, setBattleState] = useState<'intro' | 'fighting' | 'dead' | 'victory'>('intro');
   const [deathReason, setDeathReason] = useState<string>('');
   const [lastFeedback, setLastFeedback] = useState<string | null>(null);
+
+  const [localDifficulty, setLocalDifficulty] = useState<QuizDifficultySettings>(
+    DEFAULT_QUIZ_DIFFICULTY_SETTINGS
+  );
+  const activeSettings = quizDifficultySettings || localDifficulty;
+  const resolvedDifficulty: QuizDifficultyLevel =
+    effectiveDifficulty ??
+    (activeSettings.autoMatchProgress ? recommendedDifficulty : activeSettings.difficulty);
+
+  const handleSelectDifficultyLevel = (lvl: QuizDifficultyLevel) => {
+    if (onSelectDifficulty) {
+      onSelectDifficulty(lvl);
+    } else {
+      setLocalDifficulty({ difficulty: lvl, autoMatchProgress: false });
+    }
+  };
+
+  const handleToggleAutoMatchLevel = (enabled: boolean) => {
+    if (onToggleAutoMatchDifficulty) {
+      onToggleAutoMatchDifficulty(enabled);
+    } else {
+      setLocalDifficulty((prev) => ({ ...prev, autoMatchProgress: enabled }));
+    }
+  };
 
   // Refs used inside Three.js animation loop to trigger immediate visual actions
   const triggerLethalBookRef = useRef<(() => void) | null>(null);
@@ -71,8 +116,8 @@ export const CellarBossBattle3D: React.FC<CellarBossBattle3DProps> = ({
   }, []);
 
   const bossQuestions = useMemo(
-    () => generateBookWideBossQuestions(allBookStaticPool, battleSeed, 30),
-    [allBookStaticPool, battleSeed]
+    () => generateBookWideBossQuestions(allBookStaticPool, battleSeed, 30, resolvedDifficulty),
+    [allBookStaticPool, battleSeed, resolvedDifficulty]
   );
 
   const currentQuestion = bossQuestions[currentIndex] || bossQuestions[0];
@@ -101,6 +146,18 @@ export const CellarBossBattle3D: React.FC<CellarBossBattle3DProps> = ({
       if (currentIndex + 1 >= bossQuestions.length || nextHp <= 0) {
         setBattleState('victory');
         onVictoryUnlockBossBadge(BOSS_BADGE_ID, 500);
+        if (onRecordQuizAttempt) {
+          onRecordQuizAttempt({
+            quizKey: 'boss:cellar-3d',
+            quizKind: 'boss-battle',
+            title: '3D Underground Cellar Boss Battle',
+            chapterIds: [],
+            score: 30,
+            total: 30,
+            percentage: 100,
+            passed: true,
+          });
+        }
         confetti({
           particleCount: 120,
           spread: 85,
@@ -113,6 +170,19 @@ export const CellarBossBattle3D: React.FC<CellarBossBattle3DProps> = ({
       // Wrong answer -> Boss hurls lethal tome that kills the player
       if (triggerLethalBookRef.current) {
         triggerLethalBookRef.current();
+      }
+      const cleared = 30 - bossHp;
+      if (onRecordQuizAttempt) {
+        onRecordQuizAttempt({
+          quizKey: 'boss:cellar-3d',
+          quizKind: 'boss-battle',
+          title: '3D Underground Cellar Boss Battle',
+          chapterIds: [],
+          score: cleared,
+          total: 30,
+          percentage: Math.round((cleared / 30) * 100),
+          passed: false,
+        });
       }
       const chosenText = currentQuestion.options[optionIndex];
       const correctText = currentQuestion.options[currentQuestion.correctIndex];
@@ -650,6 +720,19 @@ export const CellarBossBattle3D: React.FC<CellarBossBattle3DProps> = ({
                     Warning: If you get a single question wrong, a flying tome strikes you down and YOU DIE!
                   </span>
                 </p>
+                <div className="mt-4 text-left">
+                  <QuizDifficultySlider
+                    difficulty={resolvedDifficulty}
+                    autoMatchProgress={activeSettings.autoMatchProgress}
+                    recommendedLevel={recommendedDifficulty}
+                    recommendedReason={recommendedReason}
+                    onSelectDifficulty={handleSelectDifficultyLevel}
+                    onToggleAutoMatch={handleToggleAutoMatchLevel}
+                    variant="dark"
+                    compact={true}
+                    testIdPrefix="boss-intro-difficulty"
+                  />
+                </div>
                 <div className="mt-5 flex justify-center">
                   <button
                     type="button"
@@ -666,6 +749,19 @@ export const CellarBossBattle3D: React.FC<CellarBossBattle3DProps> = ({
             {/* STATE 2: FIGHTING (30 Questions HUD) */}
             {battleState === 'fighting' && currentQuestion && (
               <div className="mx-auto max-w-4xl rounded-2xl border-2 border-[#A855F7]/70 bg-black/82 backdrop-blur-md p-4 sm:p-5 shadow-[0_15px_45px_rgba(0,0,0,0.9)]">
+                <div className="mb-3">
+                  <QuizDifficultySlider
+                    difficulty={resolvedDifficulty}
+                    autoMatchProgress={activeSettings.autoMatchProgress}
+                    recommendedLevel={recommendedDifficulty}
+                    recommendedReason={recommendedReason}
+                    onSelectDifficulty={handleSelectDifficultyLevel}
+                    onToggleAutoMatch={handleToggleAutoMatchLevel}
+                    variant="dark"
+                    compact={true}
+                    testIdPrefix="boss-hud-difficulty"
+                  />
+                </div>
                 <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
                   <span className="rounded bg-[#A855F7]/25 px-2.5 py-0.5 text-xs font-bold text-[#E9D5FF] border border-[#A855F7]/50 font-chalk">
                     Tome Attack #{currentIndex + 1} of 30 · {currentQuestion.moduleRef}

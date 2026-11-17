@@ -23,6 +23,8 @@ interface ChapterLevelProgressProps {
   unlockedBadgeIds: string[];
   onSelectModule?: (moduleCode: string) => void;
   onOpenTrophyRoom?: () => void;
+  isStatsLocked?: boolean;
+  onRequestSignIn?: () => void;
 }
 
 interface ChapterRankTier {
@@ -91,6 +93,8 @@ export const ChapterLevelProgress: React.FC<ChapterLevelProgressProps> = ({
   unlockedBadgeIds,
   onSelectModule,
   onOpenTrophyRoom,
+  isStatsLocked = false,
+  onRequestSignIn,
 }) => {
   const [isExpanded, setIsExpanded] = useState<boolean>(true);
 
@@ -150,8 +154,8 @@ export const ChapterLevelProgress: React.FC<ChapterLevelProgressProps> = ({
           <div>
             <div className="flex flex-wrap items-center gap-2">
               <span
-                className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider text-stone-950"
-                style={{ backgroundColor: currentRank.badgeHex }}
+                className="rank-badge-pill px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider text-stone-950"
+                style={{ backgroundColor: currentRank.badgeHex, color: '#0F172A' }}
               >
                 Level {currentRank.level} · {currentRank.title}
               </span>
@@ -198,6 +202,38 @@ export const ChapterLevelProgress: React.FC<ChapterLevelProgressProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Locked Stats Banner Until Sign-In */}
+      {isStatsLocked && (
+        <div
+          data-testid="stats-locked-banner"
+          className="mt-4 p-3.5 sm:p-4 rounded-2xl bg-amber-400/15 border border-amber-300/45 flex flex-wrap items-center justify-between gap-3 relative z-10"
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-9 h-9 rounded-xl bg-amber-400/20 border border-amber-300/50 flex items-center justify-center text-amber-300 shrink-0">
+              <Lock className="w-4 h-4" />
+            </div>
+            <div className="min-w-0">
+              <div className="text-xs font-black uppercase tracking-wider text-amber-200">
+                Stats Reset &amp; Locked Until Sign-In
+              </div>
+              <p className="text-xs text-stone-200 leading-snug">
+                Points, chapter ranks, and all 115 badges start reset at 0 and can only be unlocked after signing in.
+              </p>
+            </div>
+          </div>
+          {onRequestSignIn && (
+            <button
+              type="button"
+              onClick={onRequestSignIn}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-stone-950 text-xs font-black transition-colors cursor-pointer shrink-0 shadow-xs"
+            >
+              <span>Sign In to Unlock Stats</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Level XP Progress Bar */}
       <div className="mt-4 pt-4 border-t border-white/10 relative z-10 space-y-1.5">

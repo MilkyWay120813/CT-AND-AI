@@ -12,8 +12,11 @@ import {
   Flame,
   ArrowRight,
   BookOpen,
+  BarChart3,
 } from 'lucide-react';
+import { GanitaChapter } from '../types/math';
 import { StudentAccountProfile, STUDENT_MASCOTS } from '../types/account';
+import { AccountQuizAnalyticsView } from './AccountQuizAnalyticsView';
 import {
   registerAccountOnServer,
   loginAccountOnServer,
@@ -21,6 +24,10 @@ import {
   saveLocalStudentAccount,
   getSavedPin,
 } from '../utils/accountStorage';
+import {
+  evaluateStreakView,
+  sanitizeStreakSnapshot,
+} from '../utils/streakTracker';
 
 interface StudentAccountModalProps {
   isOpen: boolean;
@@ -30,6 +37,9 @@ interface StudentAccountModalProps {
   currentPoints: number;
   unlockedBadgeIds: string[];
   chapterGamePoints: Record<string, number>;
+  initialTab?: 'profile' | 'stats' | 'register' | 'login';
+  chapters?: GanitaChapter[];
+  onJumpToChapter?: (chapterId: string) => void;
 }
 
 export const StudentAccountModal: React.FC<StudentAccountModalProps> = ({
@@ -40,10 +50,30 @@ export const StudentAccountModal: React.FC<StudentAccountModalProps> = ({
   currentPoints,
   unlockedBadgeIds,
   chapterGamePoints,
+  initialTab,
+  chapters = [],
+  onJumpToChapter,
 }) => {
-  const [tab, setTab] = useState<'profile' | 'register' | 'login'>(
-    activeAccount ? 'profile' : 'register'
-  );
+  const [tab, setTab] = useState<'profile' | 'stats' | 'register' | 'login'>(() => {
+    if (initialTab === 'stats' && activeAccount) return 'stats';
+    if (initialTab && (initialTab === 'register' || initialTab === 'login')) {
+      return activeAccount ? 'profile' : initialTab;
+    }
+    return activeAccount ? 'profile' : 'login';
+  });
+
+  React.useEffect(() => {
+    if (!isOpen) return;
+    if (initialTab === 'stats') {
+      setTab(activeAccount ? 'stats' : 'login');
+    } else if (initialTab === 'profile') {
+      setTab(activeAccount ? 'profile' : 'login');
+    } else if (initialTab === 'register' || initialTab === 'login') {
+      setTab(activeAccount ? 'profile' : initialTab);
+    } else {
+      setTab(activeAccount ? 'profile' : 'login');
+    }
+  }, [isOpen, initialTab, activeAccount]);
 
   // Form states
   const [regUsername, setRegUsername] = useState('');
@@ -122,7 +152,10 @@ export const StudentAccountModal: React.FC<StudentAccountModalProps> = ({
         pin,
         currentPoints,
         unlockedBadgeIds,
-        chapterGamePoints
+        chapterGamePoints,
+        activeAccount.quizHistory,
+        activeAccount.completedQuizKeys,
+        sanitizeStreakSnapshot(activeAccount)
       );
       if (synced) {
         onAccountChange(synced);
@@ -140,17 +173,21 @@ export const StudentAccountModal: React.FC<StudentAccountModalProps> = ({
   const handleLogout = () => {
     saveLocalStudentAccount(null);
     onAccountChange(null);
-    setTab('register');
-    setSuccessMsg('Logged out. You can register a new account or log in anytime.');
+    setTab('login');
+    setSuccessMsg('Signed out. All session stats are reset and locked until you sign back in.');
   };
 
   return (
     <div
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/65"
     >
-      <div className="relative w-full max-w-lg rounded-3xl bg-[#FAF6EE] border-2 border-stone-300 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+      <div
+        className={`relative w-full ${
+          tab === 'stats' ? 'max-w-3xl' : 'max-w-lg'
+        } rounded-3xl bg-[#FAF6EE] border-2 border-stone-300 shadow-2xl overflow-hidden flex flex-col max-h-[90vh] transition-all`}
+      >
         {/* Header */}
         <div className="bg-[#12352B] text-white px-6 py-5 flex items-center justify-between border-b border-teal-500/30">
           <div className="flex items-center gap-3">
@@ -170,6 +207,7 @@ export const StudentAccountModal: React.FC<StudentAccountModalProps> = ({
           <button
             type="button"
             onClick={onClose}
+            aria-label="Close account modal"
             className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition cursor-pointer"
           >
             <X className="w-5 h-5" />
@@ -177,38 +215,44 @@ export const StudentAccountModal: React.FC<StudentAccountModalProps> = ({
         </div>
 
         {/* Navigation Tabs */}
-        <div className="flex border-b border-stone-200 bg-white px-6 pt-3 gap-2">
+        <div className="flex border-b border-stone-200 bg-white px-6 pt-3 gap-4">
           {activeAccount ? (
-            <button
-              type="button"
-              onClick={() => {
-                setTab('profile');
-                setErrorMsg(null);
-              }}
-              className={`pb-3 text-xs font-black border-b-2 transition cursor-pointer ${
-                tab === 'profile'
-                  ? 'border-[#00B4A7] text-[#00B4A7]'
-                  : 'border-transparent text-stone-600 hover:text-stone-900'
-              }`}
-            >
-              My Profile & Sync
-            </button>
-          ) : (
             <>
               <button
                 type="button"
                 onClick={() => {
-                  setTab('register');
+                  setTab('profile');
                   setErrorMsg(null);
                 }}
                 className={`pb-3 text-xs font-black border-b-2 transition cursor-pointer ${
-                  tab === 'register'
+                  tab === 'profile'
                     ? 'border-[#00B4A7] text-[#00B4A7]'
                     : 'border-transparent text-stone-600 hover:text-stone-900'
                 }`}
               >
-                Register (No Email)
+                My Profile & Sync
               </button>
+              <button
+                type="button"
+                data-testid="account-tab-quiz-stats"
+                onClick={() => {
+                  setTab('stats');
+                  setErrorMsg(null);
+                }}
+                className={`pb-3 text-xs font-black border-b-2 transition cursor-pointer inline-flex items-center gap-1.5 ${
+                  tab === 'stats'
+                    ? 'border-[#00B4A7] text-[#00B4A7]'
+                    : 'border-transparent text-stone-600 hover:text-stone-900'
+                }`}
+              >
+                <BarChart3 className="w-3.5 h-3.5" />
+                <span>
+                  Quiz Stats &amp; Graphs ({(activeAccount.quizHistory || []).length})
+                </span>
+              </button>
+            </>
+          ) : (
+            <>
               <button
                 type="button"
                 onClick={() => {
@@ -221,7 +265,21 @@ export const StudentAccountModal: React.FC<StudentAccountModalProps> = ({
                     : 'border-transparent text-stone-600 hover:text-stone-900'
                 }`}
               >
-                Student Log In
+                Sign In
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setTab('register');
+                  setErrorMsg(null);
+                }}
+                className={`pb-3 text-xs font-black border-b-2 transition cursor-pointer ${
+                  tab === 'register'
+                    ? 'border-[#00B4A7] text-[#00B4A7]'
+                    : 'border-transparent text-stone-600 hover:text-stone-900'
+                }`}
+              >
+                Create Student Account (No Email)
               </button>
             </>
           )}
@@ -284,10 +342,73 @@ export const StudentAccountModal: React.FC<StudentAccountModalProps> = ({
                     </div>
                   </div>
                 </div>
+
+                {(() => {
+                  const sView = evaluateStreakView(activeAccount);
+                  return (
+                    <div
+                      data-testid="account-streak-summary"
+                      className="p-3.5 rounded-xl bg-amber-50 border border-amber-300 space-y-2.5"
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <span className="w-8 h-8 rounded-lg bg-orange-500 text-white flex items-center justify-center shadow-2xs">
+                            <Flame className="w-4 h-4 fill-current" />
+                          </span>
+                          <div>
+                            <div className="text-xs font-black text-amber-950">
+                              Daily Study Streak: {sView.displayStreak}{' '}
+                              {sView.displayStreak === 1 ? 'Day' : 'Days'}
+                            </div>
+                            <div className="text-[11px] font-semibold text-amber-800">
+                              {sView.studiedToday
+                                ? 'Studied today · Keep your habit burning!'
+                                : sView.status === 'at-risk'
+                                ? 'Open any lesson or simulation today to keep your streak!'
+                                : 'Start studying today to ignite your streak!'}
+                            </div>
+                          </div>
+                        </div>
+                        <span className="px-2.5 py-1 rounded-full bg-white border border-amber-300 text-[11px] font-black text-amber-900 tabular-nums">
+                          Best: {sView.longestStreak} {sView.longestStreak === 1 ? 'day' : 'days'}
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-7 gap-1.5 pt-1">
+                        {sView.recent7Days.map((d) => (
+                          <div
+                            key={d.dateKey}
+                            className={`flex flex-col items-center py-1.5 rounded-lg border text-[10px] font-bold ${
+                              d.active
+                                ? 'bg-orange-500 text-white border-orange-600'
+                                : d.isToday
+                                ? 'bg-white text-amber-900 border-amber-400'
+                                : 'bg-white/70 text-stone-500 border-stone-200'
+                            }`}
+                          >
+                            <span>{d.label}</span>
+                            <span className="mt-0.5 text-xs">
+                              {d.active ? '🔥' : d.isToday ? '○' : '·'}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
 
               {/* Sync Action */}
               <div className="flex flex-col sm:flex-row gap-3">
+                <button
+                  type="button"
+                  onClick={() => setTab('stats')}
+                  className="inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#12352B] hover:bg-[#194530] text-amber-300 text-xs font-black transition cursor-pointer shadow-xs"
+                >
+                  <BarChart3 className="w-4 h-4" />
+                  <span>Quiz Stats &amp; Line Graphs</span>
+                </button>
+
                 <button
                   type="button"
                   disabled={isLoading}
@@ -308,6 +429,22 @@ export const StudentAccountModal: React.FC<StudentAccountModalProps> = ({
                 </button>
               </div>
             </div>
+          )}
+
+          {/* TAB: QUIZ STATS & ANALYTICS GRAPHS */}
+          {tab === 'stats' && activeAccount && (
+            <AccountQuizAnalyticsView
+              quizHistory={activeAccount.quizHistory || []}
+              chapters={chapters}
+              onPracticeChapter={
+                onJumpToChapter
+                  ? (chId) => {
+                      onJumpToChapter(chId);
+                      onClose();
+                    }
+                  : undefined
+              }
+            />
           )}
 
           {/* TAB: REGISTER (NO EMAIL) */}
@@ -413,6 +550,28 @@ export const StudentAccountModal: React.FC<StudentAccountModalProps> = ({
           {/* TAB: LOGIN */}
           {tab === 'login' && (
             <form onSubmit={handleLogin} className="space-y-4">
+              <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-300 text-amber-950 text-xs space-y-1.5">
+                <div className="font-extrabold flex items-center gap-1.5 text-amber-900">
+                  <Lock className="w-4 h-4 text-amber-600 shrink-0" />
+                  <span>Stats Start Reset &amp; Unlock Upon Sign-In</span>
+                </div>
+                <p className="text-amber-800 leading-relaxed">
+                  Every visit starts with stats reset to 0. Sign in with your student nickname and 4-digit PIN (or create a free account without email) to unlock badges, chapter ranks, and up to 4,000 EXP.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLoginUsername('DemoStudent');
+                    setLoginPin('1234');
+                    setErrorMsg(null);
+                  }}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-200/80 hover:bg-amber-300 text-amber-950 text-[11px] font-black transition-colors cursor-pointer"
+                >
+                  <Sparkles className="w-3 h-3" />
+                  <span>Fill Demo Student (DemoStudent · PIN 1234)</span>
+                </button>
+              </div>
+
               <div className="space-y-1">
                 <label className="text-xs font-black text-stone-700 uppercase tracking-wider">
                   Student Nickname / Username
@@ -453,7 +612,7 @@ export const StudentAccountModal: React.FC<StudentAccountModalProps> = ({
                 disabled={isLoading}
                 className="w-full py-3.5 rounded-2xl bg-[#0F766E] hover:bg-[#115E59] text-white text-sm font-black transition cursor-pointer shadow-md disabled:opacity-50 mt-2 flex items-center justify-center gap-2"
               >
-                <span>Log In & Restore My Progress</span>
+                <span>Sign In &amp; Unlock Stats</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
 
@@ -463,7 +622,7 @@ export const StudentAccountModal: React.FC<StudentAccountModalProps> = ({
                   onClick={() => setTab('register')}
                   className="text-xs font-bold text-[#0F766E] hover:underline cursor-pointer"
                 >
-                  Need a student account? Register in 10 seconds (No Email) →
+                  New student? Create an account in 10 seconds (No Email) →
                 </button>
               </div>
             </form>

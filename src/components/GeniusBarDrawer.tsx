@@ -11,9 +11,22 @@ import {
   Upload,
   RefreshCw,
   Sparkles,
+  Maximize2,
+  Minimize2,
+  ArrowLeft,
 } from 'lucide-react';
-import * as math from 'mathjs';
+import { solveGeniusMath, GeniusMathResult } from '../utils/geniusMathSolver';
+import { searchBookKnowledge } from '../utils/bookKnowledgeSearch';
 import { formatMathText } from '../utils/formatMath';
+import { soundscapeEngine } from '../utils/soundscapeEngine';
+
+interface GeniusBarDrawerProps {
+  isOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  isFullscreen?: boolean;
+  onToggleFullscreen?: (next: boolean) => void;
+  onExitToHub?: () => void;
+}
 
 interface GeniusMessage {
   id: string;
@@ -27,231 +40,68 @@ interface GeniusMessage {
   timestamp: string;
 }
 
-// Instantaneous (<10ms) pure math & greeting helper (100% Pure Mathematics)
-function tryInstantMathOrGreeting(rawQuestion: string): {
-  answer: string;
-  steps: string[];
-  formula: string;
-  example: string;
-  diagramSvg?: string;
-} | null {
-  const q = rawQuestion.trim();
-  const qLower = q.toLowerCase().replace(/[?!.]+$/, '').trim();
+// Instantaneous (<10ms) universal greeting & math/calculus solver
+function tryInstantMathOrGreeting(rawQuestion: string): GeniusMathResult | null {
+  const qLower = rawQuestion.trim().toLowerCase().replace(/[?!.]+$/, '').trim();
 
   if (/^(hi|hello|hey|good morning|good afternoon|good evening|namaste)$/.test(qLower)) {
     return {
       answer:
-        'Hello! Welcome to the Genius Bar. Ask any pure mathematics question (arithmetic, algebra, geometry, powers, roots) or use the Camera Scanner above to scan your math homework!',
+        'Hello! Welcome to the Genius Bar. Ask any question — calculus (e.g. "derivative of 3x^2"), algebra equations, arithmetic, science, or general knowledge — or switch to Camera Scanner to scan a photo!',
       steps: [
-        'Examples: "Cube of 213", "Square root of 15625", "Prime factors of 213", "Area of trapezium".',
+        'Examples: "Derivative of 3x^2", "x^2 - 5x + 6 = 0", "Cube of 213", "What is photosynthesis?".',
       ],
       formula: '',
       example: '',
     };
   }
 
-  // 1. Cube of N: e.g. "cube of 213", "213 cubed", "cube 213", "213^3", "213³"
-  const cubeMatch =
-    qLower.match(/^cube\s+of\s+([+-]?\d+(?:\.\d+)?)$/) ||
-    qLower.match(/^([+-]?\d+(?:\.\d+)?)\s*cubed$/) ||
-    qLower.match(/^cube\s+([+-]?\d+(?:\.\d+)?)$/) ||
-    qLower.match(/^([+-]?\d+(?:\.\d+)?)\s*\^\s*3$/) ||
-    qLower.match(/^([+-]?\d+(?:\.\d+)?)\s*³$/);
-
-  if (cubeMatch) {
-    const n = parseFloat(cubeMatch[1]);
-    const nSq = n * n;
-    const nCube = nSq * n;
-    const nFormatted = Number.isInteger(n) ? String(n) : n.toString();
-    const cubeFormatted = Number.isInteger(nCube) ? nCube.toLocaleString('en-US') : nCube.toString();
-    const sqFormatted = Number.isInteger(nSq) ? nSq.toLocaleString('en-US') : nSq.toString();
-
-    return {
-      answer: `The cube of ${nFormatted} is ${cubeFormatted} (${nFormatted}³ = ${cubeFormatted}).`,
-      steps: [
-        `Definition: The cube of a number n is obtained by multiplying it by itself twice: n³ = n × n × n.`,
-        `Step 1: Calculate the square of ${nFormatted}: ${nFormatted} × ${nFormatted} = ${sqFormatted}.`,
-        `Step 2: Multiply by ${nFormatted} once more: ${sqFormatted} × ${nFormatted} = ${cubeFormatted}.`,
-        `Result: ${nFormatted}³ = ${cubeFormatted}.`,
-      ],
-      formula: `n³ = n × n × n  ⇒  ${nFormatted}³ = ${cubeFormatted}`,
-      example: `In geometry, a 3D cube with edge length ${nFormatted} has a volume of V = s³ = ${cubeFormatted} cubic units.`,
-      diagramSvg: `<svg viewBox="0 0 400 240" xmlns="http://www.w3.org/2000/svg">
-        <rect width="400" height="240" rx="14" fill="#0F172A"/>
-        <polygon points="170,120 250,120 250,200 170,200" fill="rgba(45,212,191,0.2)" stroke="#2DD4BF" stroke-width="2.5"/>
-        <polygon points="170,120 250,120 290,75 210,75" fill="rgba(45,212,191,0.35)" stroke="#2DD4BF" stroke-width="2.5"/>
-        <polygon points="250,120 290,75 290,155 250,200" fill="rgba(45,212,191,0.15)" stroke="#2DD4BF" stroke-width="2.5"/>
-        <text x="180" y="215" fill="#5EEAD4" font-size="13" font-weight="bold" font-family="monospace">edge = ${nFormatted}</text>
-        <text x="120" y="42" fill="#FDE047" font-size="14" font-weight="bold" font-family="monospace">Volume = s³ = ${cubeFormatted}</text>
-      </svg>`,
-    };
-  }
-
-  // 2. Square of N: e.g. "square of 213", "213 squared", "square 213", "213^2", "213²"
-  const sqMatch =
-    qLower.match(/^square\s+of\s+([+-]?\d+(?:\.\d+)?)$/) ||
-    qLower.match(/^([+-]?\d+(?:\.\d+)?)\s*squared$/) ||
-    qLower.match(/^square\s+([+-]?\d+(?:\.\d+)?)$/) ||
-    qLower.match(/^([+-]?\d+(?:\.\d+)?)\s*\^\s*2$/) ||
-    qLower.match(/^([+-]?\d+(?:\.\d+)?)\s*²$/);
-
-  if (sqMatch) {
-    const n = parseFloat(sqMatch[1]);
-    const nSq = n * n;
-    const nFormatted = Number.isInteger(n) ? String(n) : n.toString();
-    const sqFormatted = Number.isInteger(nSq) ? nSq.toLocaleString('en-US') : nSq.toString();
-    return {
-      answer: `The square of ${nFormatted} is ${sqFormatted} (${nFormatted}² = ${sqFormatted}).`,
-      steps: [
-        `Definition: The square of a number n is obtained by multiplying it by itself: n² = n × n.`,
-        `Multiply: ${nFormatted} × ${nFormatted} = ${sqFormatted}.`,
-        `Result: ${nFormatted}² = ${sqFormatted}.`,
-      ],
-      formula: `n² = n × n  ⇒  ${nFormatted}² = ${sqFormatted}`,
-      example: `In geometry, a 2D square with side length ${nFormatted} has an area of A = s² = ${sqFormatted} square units.`,
-    };
-  }
-
-  // 3. Cube root of N: e.g. "cube root of 213", "cbrt 213"
-  const cbrtMatch =
-    qLower.match(/^(?:cube\s*root\s*(?:of)?|cbrt|∛)\s*([+-]?\d+(?:\.\d+)?)$/);
-  if (cbrtMatch) {
-    const n = parseFloat(cbrtMatch[1]);
-    const val = Math.cbrt(n);
-    const formatted = Number.isInteger(val) ? String(val) : Number(val.toFixed(6)).toString();
-    return {
-      answer: `The cube root of ${n} is ${formatted} (∛${n} ≈ ${formatted}).`,
-      steps: [
-        `Definition: The cube root of a number x is the value y such that y³ = x.`,
-        `Calculation: ∛${n} = ${formatted}.`,
-        `Verification: (${formatted})³ = ${(val * val * val).toFixed(4)}.`,
-      ],
-      formula: `∛x = y  ⇔  y³ = x`,
-      example: `For a cube with volume ${n}, the edge length is ∛${n} = ${formatted}.`,
-    };
-  }
-
-  // 4. Square root of N: e.g. "square root of 144", "sqrt 144", "√144"
-  const sqrtMatch =
-    qLower.match(/^(?:square\s*root\s*(?:of)?|sqrt|√)\s*(\d+(?:\.\d+)?)$/);
-  if (sqrtMatch) {
-    const n = parseFloat(sqrtMatch[1]);
-    const val = Math.sqrt(n);
-    const formatted = Number.isInteger(val) ? String(val) : Number(val.toFixed(6)).toString();
-    return {
-      answer: `The square root of ${n} is ${formatted} (√${n} = ${formatted}).`,
-      steps: [
-        `Definition: The principal square root of x is the non-negative number y such that y² = x.`,
-        `Calculation: √${n} = ${formatted}.`,
-        `Verification: ${formatted} × ${formatted} = ${(val * val).toFixed(4)}.`,
-      ],
-      formula: `√x = y  ⇔  y² = x`,
-      example: `For a square with area ${n}, the side length is √${n} = ${formatted}.`,
-    };
-  }
-
-  // 5. Factors / Prime Factorization of N: e.g. "factors of 213", "prime factors of 213"
-  const factorMatch = qLower.match(/^(?:prime\s+)?(?:factors|factorization|divisors)\s+of\s+(\d+)$/);
-  if (factorMatch) {
-    const n = parseInt(factorMatch[1], 10);
-    if (n > 0 && n <= 100000000) {
-      const divisors: number[] = [];
-      for (let i = 1; i * i <= n; i++) {
-        if (n % i === 0) {
-          divisors.push(i);
-          if (i * i !== n) divisors.push(n / i);
-        }
-      }
-      divisors.sort((a, b) => a - b);
-
-      let temp = n;
-      const primeFactors: number[] = [];
-      for (let d = 2; d * d <= temp; d++) {
-        while (temp % d === 0) {
-          primeFactors.push(d);
-          temp = Math.floor(temp / d);
-        }
-      }
-      if (temp > 1) primeFactors.push(temp);
-
-      const primeFreq: Record<number, number> = {};
-      primeFactors.forEach((p) => {
-        primeFreq[p] = (primeFreq[p] || 0) + 1;
-      });
-      const primeProductStr = Object.entries(primeFreq)
-        .map(([p, count]) => (count > 1 ? `${p}^${count}` : p))
-        .join(' × ') || String(n);
-
-      return {
-        answer: `The number ${n} has ${divisors.length} divisor${divisors.length === 1 ? '' : 's'}. Its prime factorization is: ${n} = ${primeProductStr}.`,
-        steps: [
-          `All divisors of ${n}: ${divisors.join(', ')}.`,
-          `Prime factors: ${Array.from(new Set(primeFactors)).join(', ') || String(n)}.`,
-          `Expressed as product of prime powers: ${n} = ${primeProductStr}.`,
-          divisors.length === 2 ? `${n} is a PRIME number.` : `${n} is a COMPOSITE number.`,
-        ],
-        formula: `Prime Factorization: ${n} = ${primeProductStr}`,
-        example: divisors.length > 2 ? `Notice that ${n} is divisible by ${divisors[1]} since ${divisors[1]} × ${n / divisors[1]} = ${n}.` : '',
-      };
-    }
-  }
-
-  // 6. Percentage calculations: e.g. "25% of 480"
-  const pctMatch = qLower.match(/^(\d+(?:\.\d+)?)\s*%\s*(?:of\s*)?(\d+(?:\.\d+)?)$/);
-  if (pctMatch) {
-    const p = parseFloat(pctMatch[1]);
-    const total = parseFloat(pctMatch[2]);
-    const res = Number(((p / 100) * total).toFixed(4));
-    return {
-      answer: `${p}% of ${total} equals ${res}.`,
-      steps: [
-        `Convert ${p}% to a decimal: ${p} ÷ 100 = ${p / 100}.`,
-        `Multiply by ${total}: ${p / 100} × ${total} = ${res}.`,
-      ],
-      formula: `(${p} ÷ 100) × ${total} = ${res}`,
-      example: '',
-    };
-  }
-
-  // 7. Pure numerical / algebraic arithmetic expressions
-  const cleanedExpr = q
-    .replace(/^(what is|whats|what's|calculate|solve|evaluate|find|compute|simplify)\s+/i, '')
-    .replace(/\?+$/, '')
-    .replace(/×/g, '*')
-    .replace(/÷/g, '/')
-    .replace(/²/g, '^2')
-    .replace(/³/g, '^3')
-    .replace(/√\(([^)]+)\)/g, 'sqrt($1)')
-    .replace(/√(\d+(\.\d+)?)/g, 'sqrt($1)')
-    .trim();
-
-  if (/^[0-9+\-*/^().\s%sqrtpi,]+$/i.test(cleanedExpr) && /\d/.test(cleanedExpr)) {
-    try {
-      const val = math.evaluate(cleanedExpr);
-      if (typeof val === 'number' && Number.isFinite(val)) {
-        const formattedVal = Number.isInteger(val)
-          ? val.toLocaleString('en-US')
-          : Number(val.toFixed(6)).toString();
-        return {
-          answer: `${cleanedExpr} = ${formattedVal}`,
-          steps: [
-            `Expression: ${cleanedExpr}`,
-            `Computed value: ${formattedVal}`,
-          ],
-          formula: `${cleanedExpr} = ${formattedVal}`,
-          example: '',
-        };
-      }
-    } catch {
-      // Continue to AI server
-    }
-  }
-
-  return null;
+  return solveGeniusMath(rawQuestion) || searchBookKnowledge(rawQuestion);
 }
 
-export const GeniusBarDrawer: React.FC = () => {
-  const [isOpen, setIsOpen] = useState(false);
+export const GeniusBarDrawer: React.FC<GeniusBarDrawerProps> = ({
+  isOpen: controlledOpen,
+  onOpenChange,
+  isFullscreen: controlledFullscreen,
+  onToggleFullscreen,
+  onExitToHub,
+}) => {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const [internalFullscreen, setInternalFullscreen] = useState(false);
+  const isOpen = controlledOpen !== undefined ? controlledOpen : internalOpen;
+  const isFullscreen =
+    controlledFullscreen !== undefined ? controlledFullscreen : internalFullscreen;
+
+  const setIsOpen = useCallback(
+    (next: boolean) => {
+      if (controlledOpen === undefined) {
+        setInternalOpen(next);
+      }
+      onOpenChange?.(next);
+    },
+    [controlledOpen, onOpenChange]
+  );
+
+  const setIsFullscreen = useCallback(
+    (next: boolean) => {
+      if (controlledFullscreen === undefined) {
+        setInternalFullscreen(next);
+      }
+      onToggleFullscreen?.(next);
+    },
+    [controlledFullscreen, onToggleFullscreen]
+  );
+
+  const handleClosePanel = useCallback(() => {
+    soundscapeEngine.playPageFlipSfx();
+    if (isFullscreen && onExitToHub) {
+      onExitToHub();
+      return;
+    }
+    setIsFullscreen(false);
+    setIsOpen(false);
+  }, [isFullscreen, onExitToHub, setIsFullscreen, setIsOpen]);
+
   const [activeTab, setActiveTab] = useState<'chat' | 'camera'>('chat');
   const [inputQuestion, setInputQuestion] = useState('');
   const [isThinking, setIsThinking] = useState(false);
@@ -275,7 +125,7 @@ export const GeniusBarDrawer: React.FC = () => {
     {
       id: 'welcome-msg',
       role: 'genius',
-      text: 'Welcome to the Genius Bar! Ask any pure mathematics question (e.g. "Cube of 213", "Square root of 15625", "Prime factors of 213") or switch to Camera Scanner to snap your math problem.',
+      text: 'Welcome to the Genius Bar! Ask ANY question — calculus (e.g. "Derivative of 3x^2"), algebra equations, geometry, science, or general knowledge — or switch to Camera Scanner to snap a photo.',
       timestamp: 'Ready',
     },
   ]);
@@ -343,19 +193,19 @@ export const GeniusBarDrawer: React.FC = () => {
 
   useEffect(() => {
     if (isOpen && activeTab === 'chat') {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      messagesEndRef.current?.scrollIntoView({ behavior: 'auto', block: 'end' });
     }
   }, [messages, isOpen, activeTab]);
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isOpen) {
-        setIsOpen(false);
+        handleClosePanel();
       }
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [isOpen]);
+  }, [isOpen, handleClosePanel]);
 
   const handleCaptureFrame = () => {
     const video = videoRef.current;
@@ -439,9 +289,12 @@ export const GeniusBarDrawer: React.FC = () => {
     setMessages((prev) => [...prev, userMsg]);
     setIsThinking(true);
 
+    const reqController = new AbortController();
+    const reqTimer = setTimeout(() => reqController.abort(), 24000);
     try {
       const response = await fetch('/api/genius-bar', {
         method: 'POST',
+        signal: reqController.signal,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           question: q,
@@ -449,6 +302,7 @@ export const GeniusBarDrawer: React.FC = () => {
           imageMimeType: imagePayload?.mimeType,
         }),
       });
+      clearTimeout(reqTimer);
 
       const data = await response.json();
 
@@ -478,7 +332,9 @@ export const GeniusBarDrawer: React.FC = () => {
           {
             id: `genius-${Date.now()}`,
             role: 'genius',
-            text: 'Could not read that question clearly. Please try rephrasing or retaking the photo in bright lighting.',
+            text:
+              (data && typeof data.error === 'string' && data.error) ||
+              'Could not answer that question right now. Please try rephrasing or retaking the photo.',
             timestamp: nowLabel,
           },
         ]);
@@ -494,6 +350,7 @@ export const GeniusBarDrawer: React.FC = () => {
         },
       ]);
     } finally {
+      clearTimeout(reqTimer);
       setIsThinking(false);
     }
   };
@@ -536,7 +393,10 @@ export const GeniusBarDrawer: React.FC = () => {
          ===================================================================== */}
       <button
         type="button"
-        onClick={() => setIsOpen(true)}
+        onClick={() => {
+          soundscapeEngine.playPageFlipSfx();
+          setIsOpen(true);
+        }}
         aria-label="Open Genius Bar"
         title="Genius Bar — Ask or Scan any question"
         className="fixed bottom-7 right-7 z-40 group w-20 h-20 hover:w-56 hover:h-16 rounded-full bg-gradient-to-br from-[#0F766E] via-[#0D9488] to-[#115E59] text-white border-2 border-[#5EEAD4] shadow-[0_0_28px_rgba(45,212,191,0.85),0_0_55px_rgba(253,224,71,0.4)] hover:shadow-[0_0_38px_rgba(45,212,191,1),0_0_75px_rgba(253,224,71,0.65)] flex flex-col hover:flex-row items-center justify-center gap-1 hover:gap-3 px-2 hover:px-6 transition-all duration-300 ease-out hover:scale-105 animate-[bounce_3s_ease-in-out_infinite] hover:animate-none cursor-pointer overflow-hidden"
@@ -558,49 +418,98 @@ export const GeniusBarDrawer: React.FC = () => {
           2. DIMMED BACKDROP OVERLAY & SLIDE-OVER SIDE TAB ("GENIUS BAR")
          ===================================================================== */}
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex justify-end">
+        <div
+          className={`fixed inset-0 z-50 flex ${
+            isFullscreen ? 'justify-center' : 'justify-end'
+          }`}
+        >
           {/* Slightly Darkened Backdrop Scrim to draw attention to the Genius Bar */}
           <div
-            onClick={() => setIsOpen(false)}
-            className="fixed inset-0 bg-black/50 backdrop-blur-[2px] transition-opacity cursor-pointer"
+            onClick={handleClosePanel}
+            className="fixed inset-0 bg-black/55 transition-opacity cursor-pointer"
             aria-hidden="true"
           />
 
-          {/* Slide-Over Genius Bar Drawer */}
+          {/* Slide-Over or Full-Screen Genius Bar Panel */}
           <aside
+            data-testid={isFullscreen ? 'genius-bar-fullscreen' : 'genius-bar-panel'}
             aria-label="Genius Bar Question & Answer Panel"
-            className="relative z-10 w-full max-w-md sm:max-w-lg h-full bg-[#FAF6EE] text-stone-900 shadow-2xl border-l border-stone-300 flex flex-col justify-between overflow-hidden"
+            className={`relative z-10 h-full bg-[#FAF6EE] text-stone-900 shadow-2xl flex flex-col justify-between overflow-hidden ${
+              isFullscreen
+                ? 'w-full max-w-none rounded-none border-0'
+                : 'w-full max-w-md sm:max-w-lg border-l border-stone-300'
+            }`}
           >
             {/* Top Genius Bar Header + 2-Tab Switcher (Ask Question | Camera Scanner) */}
             <div className="bg-[#132A46] text-white px-6 pt-5 pb-4 border-b border-white/10 space-y-4 shrink-0">
-              <div className="flex items-center justify-between gap-4">
+              <div
+                className={`flex items-center justify-between gap-4 ${
+                  isFullscreen ? 'max-w-4xl mx-auto w-full' : ''
+                }`}
+              >
                 <div className="flex items-center gap-3">
                   <div className="w-11 h-11 rounded-full bg-[#2DD4BF]/20 border border-[#5EEAD4]/50 flex items-center justify-center shrink-0">
                     <Lightbulb className="w-6 h-6 text-[#FDE047] fill-[#FDE047]" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-extrabold tracking-tight text-white">
-                      Genius Bar
-                    </h2>
+                    <div
+                      role="heading"
+                      aria-level={2}
+                      className="text-lg sm:text-xl font-extrabold tracking-tight text-white"
+                    >
+                      {isFullscreen
+                        ? 'Genius Bar · Step-by-Step Board Work'
+                        : 'Genius Bar'}
+                    </div>
                     <p className="text-xs text-[#5EEAD4] font-medium">
                       Universal AI Q&amp;A &amp; Camera Question Scanner
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 shrink-0">
+                  {onExitToHub && isFullscreen && (
+                    <button
+                      type="button"
+                      data-testid="genius-bar-exit-hub-btn"
+                      onClick={() => {
+                        soundscapeEngine.playPageFlipSfx();
+                        onExitToHub();
+                      }}
+                      className="inline-flex items-center gap-1.5 px-3 py-2 rounded-full bg-[#FDE047] hover:bg-[#FACC15] text-[#142E21] text-xs font-black transition-colors cursor-pointer whitespace-nowrap"
+                    >
+                      <ArrowLeft className="w-3.5 h-3.5" />
+                      <span>Exit to Chapter Hub</span>
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    data-testid="genius-bar-fullscreen-toggle"
+                    onClick={() => setIsFullscreen(!isFullscreen)}
+                    title={isFullscreen ? 'Switch to Side Drawer' : 'Expand Fullscreen'}
+                    aria-label={isFullscreen ? 'Switch to Side Drawer' : 'Expand Fullscreen'}
+                    className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-stone-200 hover:text-white transition-colors cursor-pointer"
+                  >
+                    {isFullscreen ? (
+                      <Minimize2 className="w-4 h-4" />
+                    ) : (
+                      <Maximize2 className="w-4 h-4" />
+                    )}
+                  </button>
                   <button
                     type="button"
                     onClick={handleResetChat}
                     title="Clear Conversation"
+                    aria-label="Clear Conversation"
                     className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-stone-200 hover:text-white transition-colors cursor-pointer"
                   >
                     <RotateCcw className="w-4 h-4" />
                   </button>
                   <button
                     type="button"
-                    onClick={() => setIsOpen(false)}
+                    onClick={handleClosePanel}
                     title="Close Genius Bar"
+                    aria-label="Close Genius Bar"
                     className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-stone-200 hover:text-white transition-colors cursor-pointer"
                   >
                     <X className="w-5 h-5" />
@@ -609,7 +518,11 @@ export const GeniusBarDrawer: React.FC = () => {
               </div>
 
               {/* Segmented Tab Bar: Ask Question vs Camera Scanner */}
-              <div className="grid grid-cols-2 gap-2 p-1 rounded-xl bg-black/30 border border-white/10">
+              <div
+                className={`grid grid-cols-2 gap-2 p-1 rounded-xl bg-black/30 border border-white/10 ${
+                  isFullscreen ? 'max-w-4xl mx-auto w-full' : ''
+                }`}
+              >
                 <button
                   type="button"
                   onClick={() => setActiveTab('chat')}
@@ -641,7 +554,11 @@ export const GeniusBarDrawer: React.FC = () => {
               /* ===============================================================
                  TAB 2: CAMERA SCANNER (Live Viewfinder + Photo Capture/Upload)
                  =============================================================== */
-              <div className="flex-1 overflow-y-auto p-5 space-y-5">
+              <div
+                className={`flex-1 overflow-y-auto p-5 space-y-5 ${
+                  isFullscreen ? 'max-w-4xl mx-auto w-full' : ''
+                }`}
+              >
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -771,7 +688,11 @@ export const GeniusBarDrawer: React.FC = () => {
                  TAB 1: ASK QUESTION (Q&A Feed + Input Box)
                  =============================================================== */
               <>
-                <div className="flex-1 overflow-y-auto px-5 py-5 space-y-4">
+                <div
+                  className={`flex-1 overflow-y-auto px-5 py-5 space-y-4 ${
+                    isFullscreen ? 'max-w-4xl mx-auto w-full' : ''
+                  }`}
+                >
                   {messages.map((msg) => {
                     if (msg.role === 'user') {
                       return (
@@ -874,19 +795,21 @@ export const GeniusBarDrawer: React.FC = () => {
                     e.preventDefault();
                     handleAskTextQuestion();
                   }}
-                  className="p-4 bg-white border-t border-stone-200 shrink-0 space-y-2.5"
+                  className={`p-4 bg-white border-t border-stone-200 shrink-0 space-y-2.5 ${
+                    isFullscreen ? 'max-w-4xl mx-auto w-full rounded-t-2xl border-x' : ''
+                  }`}
                 >
                   {messages.length <= 1 && (
                     <div className="flex flex-wrap items-center gap-1.5 pb-1">
                       <span className="text-[11px] font-bold text-stone-600 uppercase tracking-wider mr-1">
-                        Try Pure Math:
+                        Try Asking:
                       </span>
                       {[
+                        'Derivative of 3x^2',
+                        'x^2 - 5x + 6 = 0',
                         'Cube of 213',
-                        'Square root of 15625',
-                        'Prime factors of 213',
-                        '25% of 480',
                         'Area of trapezium',
+                        'What is photosynthesis?',
                       ].map((chip) => (
                         <button
                           key={chip}
@@ -916,7 +839,7 @@ export const GeniusBarDrawer: React.FC = () => {
                       type="text"
                       value={inputQuestion}
                       onChange={(e) => setInputQuestion(e.target.value)}
-                      placeholder="Ask any math question (e.g. 'Cube of 213', 'Why is 3⁻² = 1/9?')..."
+                      placeholder="Ask any question (e.g. 'Derivative of 3x^2', '3x + 5 = 20', 'What is photosynthesis?')..."
                       className="flex-1 px-4 py-3 rounded-xl bg-stone-100 focus:bg-white border border-stone-300 focus:border-[#0F766E] focus:outline-none text-sm text-stone-900 placeholder:text-stone-500"
                     />
                     <button

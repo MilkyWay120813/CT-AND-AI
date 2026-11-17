@@ -24,10 +24,16 @@ export function formatMathText(input: string | undefined | null): string {
     }
   );
 
-  // 2. Unwrap \text{...}, \mathrm{...}, \mathbf{...}, \big, \Big, \left, \right
+  // 1b. Strip LaTeX math delimiters \(...\), \[...\], $$...$$, $...$
+  s = s.replace(/\\\(|\\\)|\\\[|\\\]/g, '');
+  s = s.replace(/\$\$([\s\S]*?)\$\$/g, '$1');
+  s = s.replace(/\$([^$\n]+?)\$/g, '$1');
+
+  // 2. Unwrap \text{...}, \mathrm{...}, \mathbf{...}, \operatorname{...}, \big, \Big, \left, \right
   for (let i = 0; i < 3; i++) {
-    s = s.replace(/\\(?:text|mathrm|mathbf|textbf|textit)\{([^{}]*)\}/g, '$1');
+    s = s.replace(/\\(?:text|mathrm|mathbf|textbf|textit|operatorname)\{([^{}]*)\}/g, '$1');
   }
+  s = s.replace(/\\mathbb\{N\}/g, 'ℕ').replace(/\\mathbb\{Z\}/g, 'ℤ').replace(/\\mathbb\{Q\}/g, 'ℚ').replace(/\\mathbb\{R\}/g, 'ℝ');
   s = s.replace(/\\(?:big|Big|bigg|Bigg|left|right)\b/g, '');
 
   // 3. Convert \xrightarrow{...}
@@ -163,7 +169,11 @@ export function formatMathText(input: string | undefined | null): string {
   s = s.replace(/Math\.sqrt\(([^()]+)\)/g, '√($1)');
   s = s.replace(/Math\.pow\(([^,]+),\s*([^)]+)\)/g, '$1^$2');
 
-  // 9. Remove any remaining stray single backslashes before letters and clean up curly braces
+  // 9. Remove Markdown bold/italic markers (**text** or *text*) when displayed as plain text
+  s = s.replace(/\*\*([^*\n]+)\*\*/g, '$1');
+  s = s.replace(/(^|[\s(])\*([^*\n]+)\*(?=[\s.,;:!?)]|$)/g, '$1$2');
+
+  // 10. Remove any remaining stray single backslashes before letters and clean up curly braces
   s = s.replace(/\\([a-zA-Z]+)/g, '$1');
   s = s.replace(/[{}]/g, '');
 

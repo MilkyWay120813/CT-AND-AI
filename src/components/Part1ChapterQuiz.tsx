@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import {
   CheckCircle2,
   XCircle,
@@ -8,12 +8,26 @@ import {
   Sparkles,
   ClipboardCheck,
   Trophy,
+  TrendingUp,
 } from 'lucide-react';
 import { ChapterId } from '../types/math';
 import { ChapterAssessmentQuestion } from '../types/part1Curriculum';
+import { QuizAttemptRecord } from '../types/account';
 import { generateDynamicChapterQuiz } from '../utils/dynamicQuizGenerator';
 import { formatMathText } from '../utils/formatMath';
 import { MasteryBadgeDefinition } from '../data/masteryBadges';
+import {
+  addCompletedQuizKey,
+  getInitialQuizSeedForAttempt,
+  getNextDynamicSeed,
+  hasCompletedQuizOnce,
+} from '../utils/quizProgression';
+import { QuizDifficultySlider } from './QuizDifficultySlider';
+import {
+  DEFAULT_QUIZ_DIFFICULTY_SETTINGS,
+  QuizDifficultyLevel,
+  QuizDifficultySettings,
+} from '../utils/quizDifficulty';
 
 interface Part1ChapterQuizProps {
   chapterId: ChapterId | 'ch8-master-quiz' | 'part2-ch8-master-quiz';
@@ -23,7 +37,38 @@ interface Part1ChapterQuizProps {
   quizBadge?: MasteryBadgeDefinition;
   isQuizBadgeUnlocked?: boolean;
   onUnlockBadge?: (badgeId: string, rewardPoints: number) => void;
+  isStatsLocked?: boolean;
+  onRequestSignIn?: () => void;
+  completedQuizKeys?: string[];
+  onRecordQuizAttempt?: (attempt: Omit<QuizAttemptRecord, 'id' | 'timestamp'>) => void;
+  onOpenQuizStats?: () => void;
+  quizDifficultySettings?: QuizDifficultySettings;
+  effectiveDifficulty?: QuizDifficultyLevel;
+  recommendedDifficulty?: QuizDifficultyLevel;
+  recommendedReason?: string;
+  onSelectDifficulty?: (level: QuizDifficultyLevel) => void;
+  onToggleAutoMatchDifficulty?: (enabled: boolean) => void;
 }
+
+const PART1_MEMBER_CHAPTERS: ChapterId[] = [
+  'ch1-square-cube',
+  'ch2-power-play',
+  'ch3-story-numbers',
+  'ch4-quadrilaterals',
+  'ch5-number-play',
+  'ch6-we-distribute',
+  'ch7-proportional-1',
+];
+
+const PART2_MEMBER_CHAPTERS: ChapterId[] = [
+  'ch4-fractions-disguise',
+  'ch5-baudhayana-pythagoras',
+  'ch6-proportional-reasoning',
+  'ch11-geometric-themes',
+  'ch12-dots-and-lines',
+  'ch13-algebra-play',
+  'ch14-area',
+];
 
 export const Part1ChapterQuiz: React.FC<Part1ChapterQuizProps> = ({
   chapterId,
@@ -33,10 +78,54 @@ export const Part1ChapterQuiz: React.FC<Part1ChapterQuizProps> = ({
   quizBadge,
   isQuizBadgeUnlocked = false,
   onUnlockBadge,
+  isStatsLocked = false,
+  onRequestSignIn,
+  completedQuizKeys = [],
+  onRecordQuizAttempt,
+  onOpenQuizStats,
+  quizDifficultySettings,
+  effectiveDifficulty,
+  recommendedDifficulty = 2,
+  recommendedReason,
+  onSelectDifficulty,
+  onToggleAutoMatchDifficulty,
 }) => {
-  // Seed starts with current timestamp + random offset so every open is fresh
+  const quizKey = `chapter:${chapterId}`;
+  const [sessionCompletedKeys, setSessionCompletedKeys] = useState<string[]>([]);
+
+  const [localDifficulty, setLocalDifficulty] = useState<QuizDifficultySettings>(
+    DEFAULT_QUIZ_DIFFICULTY_SETTINGS
+  );
+  const activeSettings = quizDifficultySettings || localDifficulty;
+  const resolvedDifficulty: QuizDifficultyLevel =
+    effectiveDifficulty ??
+    (activeSettings.autoMatchProgress ? recommendedDifficulty : activeSettings.difficulty);
+
+  const handleSelectDifficultyLevel = (lvl: QuizDifficultyLevel) => {
+    if (onSelectDifficulty) {
+      onSelectDifficulty(lvl);
+    } else {
+      setLocalDifficulty({ difficulty: lvl, autoMatchProgress: false });
+    }
+  };
+
+  const handleToggleAutoMatchLevel = (enabled: boolean) => {
+    if (onToggleAutoMatchDifficulty) {
+      onToggleAutoMatchDifficulty(enabled);
+    } else {
+      setLocalDifficulty((prev) => ({ ...prev, autoMatchProgress: enabled }));
+    }
+  };
+
+  const effectiveCompletedKeys = useMemo(
+    () => Array.from(new Set([...(completedQuizKeys || []), ...sessionCompletedKeys])),
+    [completedQuizKeys, sessionCompletedKeys]
+  );
+
+  const isUnlockedDynamic = hasCompletedQuizOnce(quizKey, effectiveCompletedKeys);
+
   const [attemptSeed, setAttemptSeed] = useState<number>(() =>
-    Math.floor(Date.now() % 100000) + Math.floor(Math.random() * 9000)
+    getInitialQuizSeedForAttempt(quizKey, completedQuizKeys)
   );
   const [attemptCount, setAttemptCount] = useState<number>(1);
   const [currentIdx, setCurrentIdx] = useState<number>(0);
@@ -44,31 +133,56 @@ export const Part1ChapterQuiz: React.FC<Part1ChapterQuizProps> = ({
   const [shortAnswers, setShortAnswers] = useState<Record<number, string>>({});
   const [submittedQuestions, setSubmittedQuestions] = useState<Record<number, boolean>>({});
   const [quizFinished, setQuizFinished] = useState<boolean>(false);
+  const recordedRunRef = useRef<number | null>(null);
 
-  // Reset and generate a brand new quiz whenever chapterId changes
+  // Reset and resolve initial seed whenever chapterId changes (fixed before first completion, fresh thereafter)
   useEffect(() => {
-    setAttemptSeed(Math.floor(Date.now() % 100000) + Math.floor(Math.random() * 9000));
+    setAttemptSeed(getInitialQuizSeedForAttempt(`chapter:${chapterId}`, effectiveCompletedKeys));
     setAttemptCount(1);
     setCurrentIdx(0);
     setSelectedOptions({});
     setShortAnswers({});
     setSubmittedQuestions({});
     setQuizFinished(false);
+    recordedRunRef.current = null;
   }, [chapterId]);
 
+  const prevDifficultyRef = useRef<QuizDifficultyLevel>(resolvedDifficulty);
+  useEffect(() => {
+    if (prevDifficultyRef.current !== resolvedDifficulty) {
+      prevDifficultyRef.current = resolvedDifficulty;
+      setCurrentIdx(0);
+      setSelectedOptions({});
+      setShortAnswers({});
+      setSubmittedQuestions({});
+      setQuizFinished(false);
+      recordedRunRef.current = null;
+    }
+  }, [resolvedDifficulty]);
+
   const questions = useMemo(
-    () => generateDynamicChapterQuiz(chapterId, baseQuestions, attemptSeed),
-    [chapterId, baseQuestions, attemptSeed]
+    () =>
+      generateDynamicChapterQuiz(
+        chapterId,
+        baseQuestions,
+        attemptSeed,
+        10,
+        resolvedDifficulty
+      ),
+    [chapterId, baseQuestions, attemptSeed, resolvedDifficulty]
   );
 
   const handleGenerateNewQuiz = () => {
-    setAttemptSeed((prev) => prev + Math.floor(Math.random() * 7919) + 137);
+    if (!isUnlockedDynamic) return;
+    const { seed: nextSeed } = getNextDynamicSeed(attemptSeed, quizKey, effectiveCompletedKeys);
+    setAttemptSeed(nextSeed);
     setAttemptCount((c) => c + 1);
     setCurrentIdx(0);
     setSelectedOptions({});
     setShortAnswers({});
     setSubmittedQuestions({});
     setQuizFinished(false);
+    recordedRunRef.current = null;
   };
 
   const currentQuestion = questions[currentIdx] || questions[0];
@@ -92,6 +206,37 @@ export const Part1ChapterQuiz: React.FC<Part1ChapterQuizProps> = ({
 
   const handleFinishQuiz = () => {
     setQuizFinished(true);
+    setSessionCompletedKeys((prev) => addCompletedQuizKey(prev, quizKey));
+
+    if (isStatsLocked) {
+      return;
+    }
+
+    if (recordedRunRef.current !== attemptSeed && onRecordQuizAttempt) {
+      recordedRunRef.current = attemptSeed;
+      const total = questions.length || 1;
+      const pct = Math.round((scoreCount / total) * 100);
+      const isGrand =
+        chapterId === 'ch8-master-quiz' || chapterId === 'part2-ch8-master-quiz';
+      const chapterIds: ChapterId[] =
+        chapterId === 'ch8-master-quiz'
+          ? PART1_MEMBER_CHAPTERS
+          : chapterId === 'part2-ch8-master-quiz'
+          ? PART2_MEMBER_CHAPTERS
+          : [chapterId as ChapterId];
+
+      onRecordQuizAttempt({
+        quizKey,
+        quizKind: isGrand ? 'grand-mastery' : 'chapter-quiz',
+        title: chapterTitle,
+        chapterIds,
+        score: scoreCount,
+        total,
+        percentage: pct,
+        passed: pct >= 70,
+      });
+    }
+
     if (quizBadge && !isQuizBadgeUnlocked && onUnlockBadge) {
       onUnlockBadge(quizBadge.id, quizBadge.pointsReward);
     }
@@ -108,19 +253,23 @@ export const Part1ChapterQuiz: React.FC<Part1ChapterQuizProps> = ({
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#CCFBF1] text-[#0F766E] text-xs font-bold uppercase tracking-wider">
             <ClipboardCheck className="w-3.5 h-3.5" />
             <span>
-              Dynamic Randomized Assessment · Set #{attemptCount} ({questions.length} Questions)
+              {isUnlockedDynamic
+                ? `Dynamic Randomized Assessment · Set #${attemptCount} (${questions.length} Questions)`
+                : `Initial Assessment Set #1 (${questions.length} Questions · Dynamic after 1st completion)`}
             </span>
           </div>
           <h3 className="text-2xl font-bold text-stone-900 mt-2">
             {formatMathText(chapterTitle)} — {questions.length}-Question Mastery Quiz
           </h3>
           <p className="text-sm text-stone-600 mt-0.5">
-            Every attempt dynamically generates fresh procedural numbers, roots, ratios, and shuffled options so no two quizzes are alike.
+            {isUnlockedDynamic
+              ? 'First completion unlocked: every retake dynamically generates fresh procedural numbers and shuffled options.'
+              : 'Your first attempt uses a standard baseline set. Complete this quiz once to unlock a fresh dynamic variation every time!'}
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <div className="px-4 py-2 rounded-2xl bg-[#0F3828] text-white text-center">
+          <div className="px-4 py-2 rounded-2xl bg-[#0F3828] text-white text-center tabular-nums">
             <div className="text-[10px] uppercase tracking-wider text-teal-300 font-bold">
               Score
             </div>
@@ -131,23 +280,48 @@ export const Part1ChapterQuiz: React.FC<Part1ChapterQuizProps> = ({
 
           <button
             type="button"
-            onClick={handleFinishQuiz}
+            onClick={() => {
+              if (isStatsLocked && onRequestSignIn) {
+                onRequestSignIn();
+                return;
+              }
+              handleFinishQuiz();
+            }}
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-amber-400 hover:bg-amber-300 text-stone-950 font-bold text-xs sm:text-sm shadow transition cursor-pointer"
           >
             <Trophy className="w-4 h-4" />
-            <span>Grade & Finish Quiz</span>
+            <span>{isStatsLocked ? 'Sign In to Grade & Unlock Badge' : 'Grade & Finish Quiz'}</span>
           </button>
 
           <button
             type="button"
+            disabled={!isUnlockedDynamic}
             onClick={handleGenerateNewQuiz}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-[#14B8A6] hover:bg-[#0D9488] text-white font-bold text-xs sm:text-sm shadow transition cursor-pointer"
+            title={
+              isUnlockedDynamic
+                ? 'Generate a fresh dynamic question set'
+                : 'Complete this quiz once to unlock dynamic sets'
+            }
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-[#14B8A6] hover:bg-[#0D9488] disabled:opacity-45 text-white font-bold text-xs sm:text-sm shadow transition cursor-pointer disabled:cursor-not-allowed"
           >
             <Shuffle className="w-4 h-4" />
-            <span>New Quiz Set</span>
+            <span>{isUnlockedDynamic ? 'New Quiz Set' : 'Complete Once to Shuffle'}</span>
           </button>
         </div>
       </div>
+
+      {/* Inline Quiz Settings: Difficulty Slider & Progress-Level Match */}
+      <QuizDifficultySlider
+        difficulty={resolvedDifficulty}
+        autoMatchProgress={activeSettings.autoMatchProgress}
+        recommendedLevel={recommendedDifficulty}
+        recommendedReason={recommendedReason}
+        onSelectDifficulty={handleSelectDifficultyLevel}
+        onToggleAutoMatch={handleToggleAutoMatchLevel}
+        variant="card"
+        compact={true}
+        testIdPrefix="chapter-quiz-difficulty"
+      />
 
       {/* Grand Mastery Quiz Badge Banner (for Badge #113 Part I & Badge #114 Part II) */}
       {quizBadge && (
@@ -268,6 +442,16 @@ export const Part1ChapterQuiz: React.FC<Part1ChapterQuizProps> = ({
               <Shuffle className="w-4 h-4" />
               <span>Generate Brand-New Quiz Set</span>
             </button>
+            {!isStatsLocked && onOpenQuizStats && (
+              <button
+                type="button"
+                onClick={onOpenQuizStats}
+                className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-[#FDE047] hover:bg-[#FACC15] text-stone-950 font-bold text-sm transition cursor-pointer"
+              >
+                <TrendingUp className="w-4 h-4" />
+                <span>View Quiz Stats &amp; Line Graphs</span>
+              </button>
+            )}
             <button
               type="button"
               onClick={() => setQuizFinished(false)}

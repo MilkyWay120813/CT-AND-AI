@@ -1,6 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import { Sparkles, Compass, Layers, BookOpen } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Sparkles } from 'lucide-react';
 import { formatMathText } from '../utils/formatMath';
+import {
+  MarqueeTheme,
+  buildMarqueeBulbs,
+  getMarqueePaletteForTheme,
+} from '../utils/marqueeLighting';
 
 interface AnimatedChapterBannerProps {
   chapterId: string;
@@ -13,6 +18,7 @@ interface AnimatedChapterBannerProps {
   selectedModuleCode: string | null;
   chapters?: Array<{ id: string; number: number; title: string }>;
   onSelectChapter?: (chapterId: string) => void;
+  uiTheme?: MarqueeTheme;
 }
 
 interface ChapterVisualTheme {
@@ -208,10 +214,13 @@ export const AnimatedChapterBanner: React.FC<AnimatedChapterBannerProps> = ({
   selectedModuleCode,
   chapters,
   onSelectChapter,
+  uiTheme = 'light',
 }) => {
   const [animKey, setAnimKey] = useState(0);
   const [activeFormulaIdx, setActiveFormulaIdx] = useState(0);
   const theme = getChapterVisualTheme(chapterId, title);
+  const marqueePalette = useMemo(() => getMarqueePaletteForTheme(uiTheme), [uiTheme]);
+  const marqueeBulbs = useMemo(() => buildMarqueeBulbs(24), []);
   const formattedTitle = formatMathText(title);
 
   useEffect(() => {
@@ -229,9 +238,38 @@ export const AnimatedChapterBanner: React.FC<AnimatedChapterBannerProps> = ({
   return (
     <div
       key={animKey}
-      className="relative rounded-3xl overflow-hidden border border-stone-300/80 shadow-lg text-white px-6 sm:px-9 py-7 sm:py-8 transition-all duration-300"
-      style={{ background: theme.bgGradient }}
+      data-testid="chapter-marquee-banner"
+      className="relative rounded-3xl overflow-hidden border-2 shadow-lg text-white transition-all duration-300"
+      style={{
+        background: theme.bgGradient,
+        borderColor: marqueePalette.trimBorder,
+      }}
     >
+      {/* Top Movie-Theater Marquee Lighting Strip */}
+      <div
+        data-testid="chapter-marquee-lights"
+        aria-hidden="true"
+        className="relative z-10 px-4 sm:px-8 py-2 border-b flex items-center justify-between gap-2"
+        style={{
+          background: marqueePalette.trimBg,
+          borderColor: marqueePalette.trimBorder,
+        }}
+      >
+        {marqueeBulbs.map((bulb) => (
+          <span
+            key={`hub-top-${bulb.index}`}
+            className={`w-2 h-2 rounded-full shrink-0 ${
+              bulb.phase === 'even' ? 'marquee-chase-even' : 'marquee-chase-odd'
+            }`}
+            style={{
+              backgroundColor: marqueePalette.bulbOnHex,
+              boxShadow: marqueePalette.bulbGlowCss,
+            }}
+          />
+        ))}
+      </div>
+
+      <div className="relative px-6 sm:px-9 py-6 sm:py-7">
       {/* Bespoke Chapter-Specific Animated SVG Mathematical Stage Backdrop */}
       <svg
         className="absolute inset-0 w-full h-full pointer-events-none opacity-25"
@@ -258,15 +296,21 @@ export const AnimatedChapterBanner: React.FC<AnimatedChapterBannerProps> = ({
         </g>
       </svg>
 
+      {/* Subtle Cinematic Projector Light Sweep (contained inside banner) */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-transparent via-white/20 to-transparent cinema-banner-sweep"
+      />
+
       {/* Foreground Content: Itza-Style Layout */}
       <div className="relative z-10 flex flex-col lg:flex-row lg:items-end justify-between gap-6">
         <div className="space-y-2.5 max-w-3xl">
           {/* Top-Left Itza Translucent Pill Tag */}
-          <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs sm:text-sm font-semibold tracking-wide text-white bg-[#00B4A7]/35 border border-[#00B4A7]/60 backdrop-blur-md shadow-xs">
+          <div className="inline-flex flex-wrap items-center gap-x-2 gap-y-0.5 rounded-full px-3.5 py-1 sm:px-4 sm:py-1.5 text-xs sm:text-sm font-semibold tracking-wide text-white bg-black/45 border border-teal-300/45 backdrop-blur-md shadow-xs">
             <Sparkles className="w-3.5 h-3.5 text-teal-200 shrink-0" />
             <span>{partLabel}</span>
-            <span className="opacity-50">·</span>
-            <span>{formatMathText(ribbonText || 'NCERT Ganita Prakash')}</span>
+            <span className="opacity-50 hidden sm:inline">·</span>
+            <span className="hidden sm:inline">{formatMathText(ribbonText || 'NCERT Ganita Prakash')}</span>
             <span className="opacity-50">·</span>
             <span className="text-amber-200">Chapter {chapterIndex}</span>
             {selectedModuleCode && (
@@ -325,7 +369,7 @@ export const AnimatedChapterBanner: React.FC<AnimatedChapterBannerProps> = ({
                     className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-black text-sm sm:text-base transition-all duration-150 cursor-pointer ${
                       isActive
                         ? 'bg-[#FAF6EE] text-[#008779] shadow-lg ring-3 ring-white/80 scale-110 z-10'
-                        : 'bg-[#00B4A7] hover:bg-[#14B8A6] hover:scale-105 text-white shadow-xs border border-teal-300/30'
+                        : 'bg-[#0F766E] hover:bg-[#115E59] hover:scale-105 text-white shadow-xs border border-teal-300/40'
                     }`}
                   >
                     {ch.number}
@@ -338,6 +382,30 @@ export const AnimatedChapterBanner: React.FC<AnimatedChapterBannerProps> = ({
             </div>
           </div>
         )}
+      </div>
+      </div>
+
+      {/* Bottom Movie-Theater Marquee Lighting Strip */}
+      <div
+        aria-hidden="true"
+        className="relative z-10 px-4 sm:px-8 py-2 border-t flex items-center justify-between gap-2"
+        style={{
+          background: marqueePalette.trimBg,
+          borderColor: marqueePalette.trimBorder,
+        }}
+      >
+        {marqueeBulbs.map((bulb) => (
+          <span
+            key={`hub-bot-${bulb.index}`}
+            className={`w-2 h-2 rounded-full shrink-0 ${
+              bulb.phase === 'odd' ? 'marquee-chase-even' : 'marquee-chase-odd'
+            }`}
+            style={{
+              backgroundColor: marqueePalette.bulbOnHex,
+              boxShadow: marqueePalette.bulbGlowCss,
+            }}
+          />
+        ))}
       </div>
     </div>
   );

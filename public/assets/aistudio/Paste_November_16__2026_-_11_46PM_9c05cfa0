@@ -1,0 +1,565 @@
+Got it! You want a clean separation between **Interactive Simulations** (sandboxes where students manipulate variables and see the math happen live) and **True Arcade/Puzzle Games** (fast-paced gameplay with enemies, timers, lives, combos, bosses, and fail states—never quizzes) for all **98 modules** across the 14 chapters of *Ganita Prakash* Part I & Part II.
+
+Here is the complete dual-layer design—every single module now has both a **Sim** and a **Game**.
+
+---
+
+## GANITA PRAKASH — PART I
+
+### Chapter 1: A Square and A Cube
+
+* **M1 (Square Patterns):**
+* **Sim:** *Gnomon Grid Expander* — Drag a slider $n$ to watch consecutive odd L-borders snap onto a grid to form $n \times n$ squares.
+* **Game:** *Square Siege* — Incoming goblin waves march in rectangular formations; rapidly fling odd-numbered L-shaped stone walls to box them into complete squares before they breach your gate.
+
+
+* **M2 (Unit Digits & Properties):**
+* **Sim:** *Last-Digit Ending Explorer* — Spin a number wheel from $0\text{–}99$ to observe which unit digits and zero-counts can ever end a square.
+* **Game:** *Asteroid Cannon* — Man a planetary turret; blast fake "square" asteroids (ending in $2, 3, 7, 8$ or odd zeros) while letting genuine square asteroids pass through to refuel your shields.
+
+
+* **M3 (Square Roots):**
+* **Sim:** *Prime Pair Loom* — Drop any composite number into a machine that splits it into prime threads and pairs identical threads to reveal the side length.
+* **Game:** *Dungeon Tile Escape* — Lava rises from below; jump only onto tiles whose prime factor pairs match the root key needed to unlock the exit door before the floor melts.
+
+
+* **M4 (Cubic Numbers):**
+* **Sim:** *3D Voxel Cube Builder* — Stack $1 \times 1 \times 1$ translucent blocks in 3D space to see how $n^3$ grows layer by layer.
+* **Game:** *Cube Tetris 3D* — Falling polycube chunks drop into a pit; rotate and slot pieces together to complete solid $3 \times 3 \times 3$ and $4 \times 4 \times 4$ cubes to clear lines and score combos.
+
+
+* **M5 (Hardy-Ramanujan & Cube Sums):**
+* **Sim:** *Taxicab Number Split Viewer* — Slide two cube sliders ($a^3 + b^3$) to discover numbers expressible as two distinct cube sums (like $1729$).
+* **Game:** *1729 Express Rush* — Dispatch dual cargo trains down converging tracks; load exact cubic crates onto both trains simultaneously before they collide at the junction.
+
+
+* **M6 (Cube Roots via Factorization):**
+* **Sim:** *Triplet Centrifuge* — Place prime factors into spinning buckets that only glow when three identical factors lock together.
+* **Game:** *Bio-Lab Containment* — Mutating prime spores multiply across a petri dish; swipe to lasso triplets of identical spores to neutralize them into stable cube-root crystals before containment fails.
+
+
+* **M7 (Estimating Roots):**
+* **Sim:** *Number Line Bracket Magnifier* — Place an irrational root on a number line and watch surrounding integer squares light up as bounds.
+* **Game:** *Artillery Bombardment* — Aim a cannon at enemy bunkers placed at irrational distances ($\sqrt{50}, \sqrt{85}$); dial in the decimal trajectory within 3 shots before enemy fire destroys your base.
+
+
+
+---
+
+### Chapter 2: Power Play
+
+* **M1 (Exponential Growth):**
+* **Sim:** *Paper-Fold Altitude Graph* — Fold a virtual sheet $42$ times and watch the height bar rocket from millimeters to the Moon.
+* **Game:** *Lilypad Pond Panic* — Doubling lilypads spread across a lake; hop a frog across safe stones and harvest exponential clusters before the pond completely chokes up.
+
+
+* **M2 (Product & Quotient Laws):**
+* **Sim:** *Base-Exponent Collider* — Slide two exponential blocks ($a^m$ and $a^n$) together to see expanded factors merge or cancel out visually.
+* **Game:** *Reactor Core Meltdown* — Catch falling fuel rods with matching bases in your reactor core to hit exact target exponents; mismatched bases trigger alarms and overheat the core.
+
+
+* **M3 (Power of a Power & Zero Exponent):**
+* **Sim:** *Nested Lens Array* — Pass a light ray through stacked power lenses, watching $(a^m)^n$ multiply and $a^0$ reset to $1$.
+* **Game:** *Laser Mirror Heist* — Bounce a thief-detection laser through rotating power mirrors to hit a security sensor at exact wattage; hitting a $0$-power mirror resets your beam to $1$ to slip past sensors.
+
+
+* **M4 (Negative Exponents):**
+* **Sim:** *Reciprocal Elevator* — Drag terms above and below a fraction bar to see $a^{-n}$ flip into $1/a^n$.
+* **Game:** *Anti-Gravity Platformer* — Run and jump through a cyber-factory; shoot negative-exponent blocks with a polarity gun to flip them from ceiling traps into floor bridges.
+
+
+* **M5 (Powers of 10 - Macro):**
+* **Sim:** *Cosmic Powers-of-10 Slider* — Scrub smoothly from $10^0$ m (human) to $10^{24}$ m (galaxy clusters).
+* **Game:** *Warp Drive Navigator* — Pilot a starship fleeing a black hole; punch in exact $10^n$ light-year jumps to hop between star systems without overshooting into deep space.
+
+
+* **M6 (Powers of 10 - Micro):**
+* **Sim:** *Electron Microscope Zoom* — Zoom down from $10^{-2}$ m to $10^{-10}$ m comparing dust, cells, viruses, and atoms.
+* **Game:** *Nanobot Immune Defender* — Shrink your submarine inside a bloodstream to zap pathogens sized at $10^{-6}$ m while dodging giant $10^{-5}$ m red blood cells.
+
+
+* **M7 (Standard Form Operations):**
+* **Sim:** *Scientific Notation Balance* — Adjust mantissa and exponent dials to watch decimal points shift automatically.
+* **Game:** *Asteroid Mining Tycoon* — Mine planetary ore in scientific notation; combine and divide massive yields to fulfill space-station contracts before rival miners steal the claim.
+
+
+
+---
+
+### Chapter 3: A Story of Numbers
+
+* **M1 (Tally & Early Counting):**
+* **Sim:** *Pebble & Tally Bundler* — Group single pebbles into 5-tally gates and clay-token bundles.
+* **Game:** *Wolf Pack Night Watch* — Count sheep running into a pen at night using tally marks; if your pebble count is off by one when the gate shuts, a hidden wolf sneaks in!
+
+
+* **M2 (Egyptian & Roman Numerals):**
+* **Sim:** *Ancient Symbol Converter* — Drag Roman (`I, V, X, L, C, D, M`) and Egyptian hieroglyphs onto a stone slab to watch live value totals.
+* **Game:** *Temple Trap Tomb Raider* — Sprint down a collapsing corridor; step only on Roman/Egyptian floor tiles in ascending order to outrun a rolling boulder.
+
+
+* **M3 (Mayan Base-20):**
+* **Sim:** *Mayan Tiered Abacus* — Stack shells ($0$), dots ($1$), and bars ($5$) across vertical $1, 20, 400$ levels.
+* **Game:** *Jungle Temple Lockpick* — Rotate Mayan stone rings to input Base-20 glyph combinations before poison darts fire from the walls.
+
+
+* **M4 (Babylonian Base-60):**
+* **Sim:** *Cuneiform Sexagesimal Board* — Stamp wedges (`1` and `10`) into Base-60 columns and watch time/angle conversions.
+* **Game:** *Mesopotamian Star Chariot* — Steer a desert chariot by reading Base-60 sundial coordinates to reach oases before your water canteen runs dry.
+
+
+* **M5 (Idea of Any Base):**
+* **Sim:** *Multi-Base Odometer* — Watch numbers count upward simultaneously in Base-2, Base-5, Base-8, and Base-10.
+* **Game:** *Alien Spaceport Smuggler* — Decode Base-4 and Base-7 cargo manifests on alien docks to load contraband pods onto your ship before patrol drones scan you.
+
+
+* **M6 (Place Value Mechanics):**
+* **Sim:** *Exploding Dots Machine* — Drop dots into boxes where $10$ dots explode into $1$ dot one box to the left.
+* **Game:** *Dot-Explosion Chain Reaction* — Drop dots into a multi-column grid to trigger massive cascading explosions that clear infected virus blocks before the grid fills up.
+
+
+* **M7 (Zero & Hindu-Arabic System):**
+* **Sim:** *Abacus vs. Positional Race* — Perform addition/multiplication side-by-side on a counting board vs. Hindu-Arabic digits.
+* **Game:** *Silk Road Caravan Duel* — Race a rival merchant across checkpoints by rapidly slotting placeholder zeros (`0`) to clear trade ledgers and unlock toll bridges.
+
+
+
+---
+
+### Chapter 4: Quadrilaterals
+
+* **M1 (Polygon Angle Sums):**
+* **Sim:** *Polygon Vertex Stretcher* — Drag vertices of triangles, quads, and pentagons to watch interior angles change while their sum stays locked.
+* **Game:** *Laser Turret Ricochet* — Rotate polygon walls in an arena so a laser beam bounces around every interior corner and hits the target core in one shot.
+
+
+* **M2 (Trapezium & Kite):**
+* **Sim:** *Kite & Trapezium Morph Rig* — Drag side-length sliders to see when a general quad locks into a kite or trapezium.
+* **Game:** *Sky-Kite Storm Racer* — Fly a kite through thunderclouds; adjust crossbar lengths mid-flight to dive through narrow wind tunnels and dodge lightning bolts.
+
+
+* **M3 (Parallelogram Properties):**
+* **Sim:** *4-Bar Linkage Pantograph* — Move one vertex of a parallelogram and observe parallel opposite sides and bisecting diagonals.
+* **Game:** *Drawbridge Rescue* — Operate a hinged parallelogram bridge mechanism to lift trucks over rising floodwaters without tilting the roadbed.
+
+
+* **M4 (Rhombus Diagonals):**
+* **Sim:** *Perpendicular Bisector Slicer* — Adjust diagonal sliders at $90^\circ$ to see equal side lengths form automatically.
+* **Game:** *Diamond Heist Laser Grid* — Slice raw crystals with perpendicular laser cutters on a moving conveyor belt to craft flawless rhombuses before they fall into the crusher.
+
+
+* **M5 (Rectangle Properties):**
+* **Sim:** *Diagonal Equality Tester* — Flex a parallelogram until its diagonals read equal, snapping corners to $90^\circ$.
+* **Game:** *Earthquake Frame Builder* — Brace wobbling skyscraper frames by snapping equal-length diagonal steel beams before the tremor meter hits max.
+
+
+* **M6 (Square Symmetry):**
+* **Sim:** *Origami Symmetry Folder* — Fold a square across all 4 lines of symmetry and rotate it by $90^\circ$ increments.
+* **Game:** *Ninja Origami Shuriken* — Rapidly fold and crease flying paper squares along exact symmetry axes to launch shurikens at incoming target dummies.
+
+
+* **M7 (Quadrilateral Hierarchy):**
+* **Sim:** *Venn & Family Tree Explorer* — Toggle properties (`4 equal sides`, `right angles`, `1 pair parallel`) to highlight which shapes qualify.
+* **Game:** *Shape-Shifter Parkour* — Sprint an auto-running geometric bot through an obstacle course; morph between trapezium, rhombus, rectangle, and square to fit through shaped forcefields.
+
+
+
+---
+
+### Chapter 5: Number Play
+
+* **M1 (Parity & Odd/Even Patterns):**
+* **Sim:** *Parity Tile Combiner* — Combine odd and even block strips to see how protruding single units pair up or stay leftover.
+* **Game:** *Parity Lava Stepping-Stones* — Hop across sinking river stones by pairing `Odd + Odd` or `Even + Even` tiles to create solid ground ahead of a chasing crocodile.
+
+
+* **M2 (Divisibility by 2, 5, 10, 4, 8):**
+* **Sim:** *Tail-Digit X-Ray* — Highlight the last 1, 2, or 3 digits of any huge number to see why earlier hundreds/thousands always divide cleanly.
+* **Game:** *Freight Train Switchyard* — Flip track switches at high speed based on the tail digits of oncoming trains to route them into `÷4`, `÷5`, and `÷8` tunnels without crashes.
+
+
+* **M3 (Divisibility by 3 and 9):**
+* **Sim:** *Bundle-of-9 Remainder Visualizer* — Break $100$s and $10$s into $99+1$ and $9+1$ piles, leaving only the sum of digits behind.
+* **Game:** *Digital Root Pinball* — Launch numbered balls into bumper rings that sum their digits; hit `3`, `6`, or `9` pockets to trigger multi-ball fever mode.
+
+
+* **M4 (Divisibility by 11):**
+* **Sim:** *Alternating `+ / -` Balance Beam* — Place digits of a number onto alternating `+` and `-` pans to see the net difference.
+* **Game:** *Bomb Defusal Wire-Cutter* — Cut numbered wires on a ticking bomb in alternating `+` and `-` slots so the final readout hits `0` or a multiple of `11` before `00:00`.
+
+
+* **M5 (Reversing Digits & Palindromes):**
+* **Sim:** *1089 Reverse-Subtract Machine* — Input any 3-digit number and step through reverse-subtraction and reverse-addition automatically.
+* **Game:** *Palindrome Mirror Runner* — Flip digit cards mid-sprint to mirror numbers and blast through crystal barriers blocking your path.
+
+
+* **M6 (Cryptarithms):**
+* **Sim:** *Column Carry-Over Sandbox* — Assign digits `0–9` to letters in vertical addition/multiplication with live carry indicators.
+* **Game:** *Safe-Cracker Heist* — Crack a bank vault’s lettered cryptarithm dial by locking in digit gears before security guards complete their patrol loop.
+
+
+* **M7 (Magic Squares):**
+* **Sim:** *Lo Shu Sum Heatmap* — Swap numbers in a $3 \times 3$ grid with glowing red/green row, column, and diagonal sum bars.
+* **Game:** *Temple Flood Gate* — Slide heavy stone tiles in a $3 \times 3$ water chamber to equalize all 8 magic sums before rising water drowns the chamber.
+
+
+
+---
+
+### Chapter 6: We Distribute, Yet Things Multiply
+
+* **M1 (Distributive Property):**
+* **Sim:** *Area-Split Rectangle Slicer* — Drag a vertical splitter line across an $a \times (b+c)$ array to see $ab + ac$ separate and rejoin.
+* **Game:** *Tile-Master Floor Rush* — Slice oddly shaped customer rooms into clean rectangles and lay matching tile batches before the angry homeowner walks out.
+
+
+* **M2 (Monomial × Polynomial):**
+* **Sim:** *Algebra Tile Array Builder* — Stretch $x$-rods and unit tiles along length and width axes to generate $x^2$ and $x$ areas.
+* **Game:** *Cyber-Grid Territory Capture* — Expand your glowing neon rectangle across a circuit board by multiplying monomial pulses to capture nodes before enemy viruses infect them.
+
+
+* **M3 (Binomial × Binomial):**
+* **Sim:** *4-Quadrant FOIL Box* — Adjust $(x+a)$ and $(x+b)$ sliders to watch the four sub-rectangles scale dynamically.
+* **Game:** *Space Station Module Docking* — Assemble four rectangular hull plates ($x^2, ax, bx, ab$) in zero gravity to seal a hull breach before oxygen hits zero.
+
+
+* **M4 (Identity I: $(a+b)^2$):**
+* **Sim:** *$(a+b)^2$ Square Expander* — Drag an inner corner point to see $a^2$, $b^2$, and two $ab$ pieces resize inside a master square.
+* **Game:** *Castle Courtyard Fortifier* — Expand your central keep ($a^2$) with outer barracks ($2ab$) and watchtowers ($b^2$) to complete a square fortress before siege catapults fire.
+
+
+* **M5 (Identity II: $(a-b)^2$):**
+* **Sim:** *Overlapping Trim Visualizer* — Cut two $a \times b$ strips from an $a^2$ square and watch the overlapping $b^2$ corner glow to show why it’s added back.
+* **Game:** *Precision Laser Carpenter* — Trim excess edges off oversized metal plates in a factory press; add back the corner patch to hit exact $(a-b)^2$ tolerances without wasting scrap.
+
+
+* **M6 (Identity III: $(a+b)(a-b)$):**
+* **Sim:** *Cut-and-Rotate Morph* — Slice a $b^2$ corner out of $a^2$ and drag-rotate the remaining strip into an $(a+b) \times (a-b)$ rectangle.
+* **Game:** *Tetris Block Reforger* — Carve $b^2$ notches out of falling $a^2$ blocks and swing the leftover arm into a flat rectangle to clear rows at lightning speed.
+
+
+* **M7 (Mental Math & Error Spotting):**
+* **Sim:** *Expression Circuit Tester* — Plug values of $x$ into two expressions to watch a bulb light up green only when they are truly identical.
+* **Game:** *Circuit Saboteur* — Hunt down and solder missing $2ab$ cross-wires on a sparking power grid before short-circuits black out the city.
+
+
+
+---
+
+### Chapter 7: Proportional Reasoning-1
+
+* **M1 (Observing Similarity in Change):**
+* **Sim:** *Aspect-Ratio Image Stretcher* — Drag free-form vs. locked-ratio handles on an image to see distortion vs. true similarity.
+* **Game:** *Paparazzi Photo Cropper* — Snap and resize photos of speeding celebrities on a red carpet; distorted photos get rejected by your editor!
+
+
+* **M2 (Simplest Form Ratios):**
+* **Sim:** *GCD Bucket Reducer* — Pour two colored liquids into smaller measuring cups until both reduce to indivisible prime-ratio cups.
+* **Game:** *Potion Bartender Rush* — Serve thirsty adventurers by reducing massive cauldron recipes down to single-mug ratios before customers lose patience.
+
+
+* **M3 (Proportional Scaling):**
+* **Sim:** *Pantograph Map Enlarger* — Trace a small island map with a mechanical linkage to draw a $3\times$ scaled map live.
+* **Game:** *Miniature Railroad Tycoon* — Construct scale bridges and tunnels from blueprints; build a piece off-ratio and the test train derails into the canyon!
+
+
+* **M4 (Unitary Method):**
+* **Sim:** *Single-Unit Price Strip* — Shrink a multi-item bar down to $1$ unit, then stretch it out to $n$ units.
+* **Game:** *Street-Market Haggler* — Compare rival vendors' bulk crates on the fly by snapping to the 1-item unit price to buy the cheapest goods before the market bell rings.
+
+
+* **M5 (Speed, Distance & Time):**
+* **Sim:** *Constant-Speed Motion Track* — Set a car's speed slider and watch distance markers tick every second on a live tape.
+* **Game:** *Bullet Train Dispatch* — Control throttle speeds of multiple express trains on shared tracks so every train hits its station window without rear-ending the train ahead.
+
+
+* **M6 (Sharing in a Ratio):**
+* **Sim:** *Bar-Model Partitioner* — Split a gold bar into $a + b + c$ equal segments and slide dividers to distribute shares.
+* **Game:** *Pirate Mutiny Loot Split* — Toss gold coins, rubies, and rum barrels into crew chests matching exact pirate rank ratios before the crew starts a mutiny!
+
+
+* **M7 (Comparing Ratios):**
+* **Sim:** *Two-Tank Concentration Mixer* — Add syrup and water drops to Tank A and Tank B while a color-meter compares sweetness ratios.
+* **Game:** *Lemonade Stand Showdown* — Out-mix a rival stand across the street by balancing lemon-to-sugar ratios to hit peak customer flavor ratings.
+
+
+
+---
+
+## GANITA PRAKASH — PART II
+
+### Chapter 1: Fractions in Disguise
+
+* **M1 (Fractions, Decimals, Percentages):**
+* **Sim:** *100-Square Grid Converter* — Paint cells on a $10 \times 10$ grid and watch the fraction, decimal, and percentage readouts update simultaneously.
+* **Game:** *Neon Grid Hack* — Flood-fill exact percentages of a firewall grid to bypass security nodes before a trace program locks onto your location.
+
+
+* **M2 (Percentage Increase & Decrease):**
+* **Sim:** *Elastic Bar Stretcher* — Pull a $100\%$ reference bar longer or shorter to see how $+20\%$ followed by $-20\%$ lands below the start.
+* **Game:** *Hydro-Dam Flood Control* — Open and close spillway gates to adjust reservoir volume by exact percentages before monsoon rains overflow the dam.
+
+
+* **M3 (Discounts & Marked Price):**
+* **Sim:** *Price-Tag Layer Peeler* — Toggle between Cost Price, Marked Price, and Discounted Selling Price bars.
+* **Game:** *Black Friday Store Chaos* — Stamp discount tags onto falling merchandise to clear store shelves before closing time without selling below cost.
+
+
+* **M4 (Profit & Loss):**
+* **Sim:** *Revenue vs. Cost Balance Scale* — Adjust wholesale cost and retail price sliders to watch the profit/loss needle swing.
+* **Game:** *Night-Market Shawarma Boss* — Buy ingredients at fluctuating wholesale prices and adjust menu prices on the fly as hungry crowds surge or thin out.
+
+
+* **M5 (GST & Billing):**
+* **Sim:** *Tax-Slab Stacker* — Place $5\%, 12\%, 18\%$, or $28\%$ tax blocks atop base prices to see final bill totals.
+* **Game:** *Hypermarket Express Checkout* — Scan speeding items on a conveyor belt and slap the right GST slab on each item before the customer queue overflows.
+
+
+* **M6 (Compound Interest - Iterative):**
+* **Sim:** *Step-by-Step Interest Brick Builder* — Watch each year’s interest turn into new principal bricks that earn interest the next year.
+* **Game:** *Avalanche Snowball Slalom* — Steer a snowball down a mountain through percentage-multiplier gates (`+10%`, `+20%`) to grow massive enough to smash through ice walls at the bottom.
+
+
+* **M7 (Compound Interest Growth):**
+* **Sim:** *Simple vs. Compound Curve Racer* — Run two investments side-by-side over 20 years to watch the exponential curve leave the straight line behind.
+* **Game:** *Mars Colony Terraformer* — Invest colony credits across annual vs. half-yearly compounding banks to fund oxygen domes before meteor strikes hit.
+
+
+
+---
+
+### Chapter 2: The Baudhayana-Pythagoras Theorem
+
+* **M1 (Squares on Triangle Sides):**
+* **Sim:** *Tilting Water-Square Apparatus* — Rotate a right triangle so liquid from the two leg squares drains completely into the hypotenuse square.
+* **Game:** *Aqueduct Pressure Puzzle* — Route flowing water from two square reservoirs into a main hypotenuse basin to power ancient watermills before villages dry up.
+
+
+* **M2 (Baudhayana Rope Geometry):**
+* **Sim:** *Peg-and-Rope Sulbasutra Grid* — Stretch a knotted rope around pegs to construct $90^\circ$ corners and double-area squares.
+* **Game:** *Vedic Fire-Altar Architect* — Lay out sacred brick altars using knotted ropes under a royal deadline; crooked corners collapse the altar!
+
+
+* **M3 (Finding the Hypotenuse):**
+* **Sim:** *Right-Triangle Leg Stretcher* — Drag perpendicular $a$ and $b$ sliders and watch the hypotenuse $c$ tape measure update live.
+* **Game:** *Canyon Zipline Rescue* — Fire a steel zipline cable from a cliff ledge to a stranded hiker across a gorge; mistype the cable length and the line snaps!
+
+
+* **M4 (Finding a Missing Leg):**
+* **Sim:** *Wall-Ladder Sliding Sim* — Slide the base of a fixed-length ladder away from a wall and watch the top height drop along a curve.
+* **Game:** *Skyscraper Inferno Rescue* — Park your firetruck at exact street distances so your extendable ladder reaches trapped civilians on burning upper floors.
+
+
+* **M5 (Pythagorean Triples):**
+* **Sim:** *Euclid’s $(m, n)$ Triple Generator* — Adjust integer sliders $m$ and $n$ to forge clean integer right triangles.
+* **Game:** *Blacksmith Triple Forge* — Hammer glowing iron bars into exact integer triples ($3\text{–}4\text{–}5$, $5\text{–}12\text{–}13$, $8\text{–}15\text{–}17$) to craft unbreakable shields for knights under attack.
+
+
+* **M6 (Right-Triangle Checker):**
+* **Sim:** *Acute / Right / Obtuse Hinge Tester* — Drag three side-length bars together to see whether $a^2 + b^2$ is less than, equal to, or greater than $c^2$.
+* **Game:** *Bridge Truss Quality Inspector* — Inspect incoming steel triangle trusses on an assembly line; stamp `PASS` on true right triangles and smash warped ones before they ship out.
+
+
+* **M7 (Diagonal Shortcuts & 3D):**
+* **Sim:** *3D Room Diagonal Laser* — Shine a laser from a floor corner to the opposite ceiling corner inside a transparent cuboid.
+* **Game:** *Stealth Drone Courtyard Run* — Pilot a battery-limited recon drone diagonally across fenced compounds and warehouses to reach the extraction zone before battery drains to $0\%$.
+
+
+
+---
+
+### Chapter 3: Proportional Reasoning-2
+
+* **M1 (Maps & Scale Factors):**
+* **Sim:** *Zoomable Map Scale Bar* — Drag a caliper across a city map and toggle between $1\text{ cm}:1\text{ km}$ and $1\text{ cm}:50\text{ km}$ scales.
+* **Game:** *Submarine Sonar Triangulation* — Measure map grid distances from two coastal buoys using your scale ruler to drop depth charges on an enemy sub before it escapes.
+
+
+* **M2 (Dividing a Whole into Parts):**
+* **Sim:** *Multi-Part Ratio Bar Splitter* — Divide a $100\text{ kg}$ bar into 3 or 4 proportional parts with live weight readouts.
+* **Game:** *Bronze Cannon Foundry* — Pour molten copper, tin, and zinc in exact proportional parts into molds; get the alloy ratio wrong and the cannon explodes on test fire!
+
+
+* **M3 (Pie Charts - Central Angles):**
+* **Sim:** *360° Protractor Wedge Slicer* — Drag wedge handles on a circle to see percentages convert live into central degrees.
+* **Game:** *Intergalactic Pizza Chef* — Slice glowing plasma pizzas at exact degree angles using a laser cutter to feed picky alien crews before their ship warps away.
+
+
+* **M4 (Pie Charts - Data Wheel):**
+* **Sim:** *Interactive Budget Pie* — Adjust category sliders and watch slices dynamically expand and compress around $360^\circ$.
+* **Game:** *City Power-Grid Balancer* — Rotate and resize solar, wind, and hydro slices on a city energy wheel to prevent blackouts during rolling heatwaves and storms.
+
+
+* **M5 (Direct vs. Inverse Identification):**
+* **Sim:** *Dual-Graph Behavior Comparator* — Toggle $y = kx$ vs. $y = k/x$ sliders to watch a straight line through $(0,0)$ vs. a hyperbola curve.
+* **Game:** *Gearbox Factory Sorter* — Wire interlocking gears and pulleys on a moving assembly line; route direct-scaling rigs left and inverse-scaling rigs right before the belt jams.
+
+
+* **M6 (Inverse Proportion - Crew & Time):**
+* **Sim:** *Worker-Days Hyperbola Curve* — Add workers to a construction project and watch completion days drop along a curve.
+* **Game:** *Pyramid Pharaoh Rush* — Hire and reassign stone-hauling crews across monuments to finish before the Nile floods, while managing daily grain rations.
+
+
+* **M7 (Inverse Proportion - Speed & Gears):**
+* **Sim:** *Bicycle Chainring & Sprocket Sim* — Switch front and rear gear teeth counts to see wheel RPM vs. pedal force.
+* **Game:** *Tour de Mountain Climb* — Shift gears dynamically up steep alpine climbs and down fast descents to maintain optimal cadence without snapping your chain or stalling out.
+
+
+
+---
+
+### Chapter 4: Exploring Some Geometric Themes
+
+* **M1 (Fractals - Koch Snowflake):**
+* **Sim:** *Recursive Snowflake Iterator* — Click `Iterate (n = 0 to 6)` to watch each line segment sprout equilateral bumps while perimeter explodes.
+* **Game:** *Frost-Crystal Defense* — Grow recursive Koch snowflake barriers around your ice core to trap incoming fireballs inside infinite perimeter pockets.
+
+
+* **M2 (Fractals - Sierpinski Triangle):**
+* **Sim:** *Sierpinski Subdivision Explorer* — Zoom infinitely into a Sierpinski gasket to see identical self-similar triangles at every level.
+* **Game:** *Laser Sierpinski Carver* — Punch out inverted center triangles across cascading recursion waves before the timer runs out.
+
+
+* **M3 (3D Solids & Euler’s Formula):**
+* **Sim:** *Polyhedron Vertex-Edge-Face Counter* — Orbit Platonic and Archimedean solids in 3D while $V - E + F = 2$ updates live.
+* **Game:** *Zero-G Space Habitat Welder* — Snap struts (edges) and panels (faces) onto floating nodes (vertices) in orbit; if $V - E + F \neq 2$, the hull depressurizes!
+
+
+* **M4 (Nets of 3D Shapes):**
+* **Sim:** *3D-to-2D Net Folder* — Drag a fold-angle slider from $0^\circ$ to $90^\circ$ to watch flat 6-square nets wrap into closed cubes.
+* **Game:** *Origami Box Factory* — Spot valid vs. overlapping 2D nets zooming down a conveyor belt and zap invalid nets before they jam the folding press.
+
+
+* **M5 (Orthographic Projections):**
+* **Sim:** *3-Spotlight Shadow Room* — Place voxels on a 3D stage and inspect Top, Front, and Side shadows projected onto walls.
+* **Game:** *Shadow-Sculptor Heist* — Carve a rotating block of marble with a laser chisel until its three wall shadows match the museum’s security silhouette sensors.
+
+
+* **M6 (Isometric Drawing):**
+* **Sim:** *Isometric Dot-Grid Builder* — Click on a triangular isometric grid to snap shaded 3D cubes together cleanly.
+* **Game:** *Escher Staircase Courier* — Build isometric bridges and optical-illusion staircases to guide a sleepwalking robot to the exit flag without falling off open edges.
+
+
+* **M7 (Cross-Sections of Solids):**
+* **Sim:** *3D Laser Plane Slicer* — Tilt and slide a glowing cutting plane through cubes, cones, cylinders, and spheres to inspect the 2D cut face.
+* **Game:** *Fruit-Ninja Geometry Dojo* — Slice flying 3D geometric solids at exact angles to produce target 2D cross-sections (e.g., slice a cube to get a regular hexagon!).
+
+
+
+---
+
+### Chapter 5: Tales by Dots and Lines
+
+* **M1 (Dot Plots & Clusters):**
+* **Sim:** *Interactive Dot-Plot Dropper* — Click along a number line to drop data dots and watch clusters, gaps, and outliers highlight.
+* **Game:** *Archery Wind-Drift Tournament* — Fire arrows at a target line in shifting winds; read your own dot-plot clusters to adjust aim and hit bullseyes.
+
+
+* **M2 (Arithmetic Mean as Balance Point):**
+* **Sim:** *Fulcrum Seesaw Beam* — Place weighted blocks along a ruler and slide the triangular fulcrum until the beam balances flat.
+* **Game:** *Tightrope Circus Balancer* — Slide a balance pole left and right under acrobats standing at different positions so the beam stays level as new performers jump on!
+
+
+* **M3 (Median & Mode Explorer):**
+* **Sim:** *Outlier Tug-of-War Line* — Drag one extreme data point far to the right and watch the Mean get dragged away while the Median barely budges.
+* **Game:** *VIP Concert Bouncer* — Reorder and swap people in a height-sorted queue to hit exact median and mode targets before the concert doors open.
+
+
+* **M4 (Reading Line Graphs):**
+* **Sim:** *Tangent Slope & Scrubbing Tracker* — Scrub a vertical cursor across a distance-time or temperature graph to read instantaneous rates of change.
+* **Game:** *Submarine Sonar Chase* — Read depth-vs-time line graphs on your periscope screen to predict when an enemy sub surfaces so you can fire torpedoes on time.
+
+
+* **M5 (Plotting Line Graphs):**
+* **Sim:** *Telemetry Point-to-Line Plotter* — Drag data pins onto a coordinate grid to generate smooth trend lines.
+* **Game:** *Hurricane Storm Tracker* — Plot incoming barometric pressure readings onto a live weather chart to predict landfall and evacuate coastal towns before the storm hits.
+
+
+* **M6 (Comparing Two Line Graphs):**
+* **Sim:** *Dual-Curve Intersection Finder* — Adjust slope and starting-point sliders of two lines to watch their crossover point move.
+* **Game:** *Street-Race Nitro Overtake* — Read two overlapping speed-distance curves in real time and trigger your nitro boost at the exact intersection point to overtake your rival.
+
+
+* **M7 (Spotting Misleading Graphs):**
+* **Sim:** *Y-Axis Scale & Truncation Stretcher* — Drag the y-axis baseline from $0$ up to $90$ to see a tiny $2\%$ change look like a massive spike.
+* **Game:** *Fake-News Editor Showdown* — Slash exaggerated y-axes and fix squished scales on manipulative charts before they go live on a 6 PM TV broadcast!
+
+
+
+---
+
+### Chapter 6: Algebra Play
+
+* **M1 (Number Magic Tricks):**
+* **Sim:** *Algebraic X-Ray Bag* — Drop an opaque "mystery bag" ($x$) and marbles into a machine; apply `×2`, `+6`, `÷2`, `-x` and watch the bag vanish, leaving `3`.
+* **Game:** *Stage Magician Sabotage* — Reverse-engineer a rival magician’s number tricks in real time to shout out the secret ending number before he finishes his patter!
+
+
+* **M2 (Algebraic Number Pyramids):**
+* **Sim:** *3-Tier Sum Pyramid Sandbox* — Edit base numbers or variables ($x, y$) and watch upper bricks update algebraically.
+* **Game:** *Mayan Pyramid Collapse* — Fill missing bottom-row stones so the apex stone hits the exact target sum before heavy stone ceilings crush your explorer.
+
+
+* **M3 (Calendar Grid Patterns):**
+* **Sim:** *Calendar $3 \times 3$ Window Slider* — Drag a glowing $3 \times 3$ frame over any month to see why the sum of all 9 dates always equals $9 \times \text{center}$.
+* **Game:** *Time-Bomb Calendar Hack* — Rapidly slide a $3 \times 3$ decoder window across a digital calendar to find the exact grid whose 9 dates sum to the bomb’s disarm code.
+
+
+* **M4 (Matchstick Pattern Growth):**
+* **Sim:** *Matchstick Chain Extender* — Drag slider $n$ from $1$ to $20$ to see how each new square adds $3$ matchsticks to a starting $1$ ($3n + 1$).
+* **Game:** *Bridge Builder Logistics* — Order exact bundles of steel trusses using the $n\text{-th}$ term formula to bridge chasms for an approaching convoy—order 1 beam too few and the trucks plunge!
+
+
+* **M5 (Visual Algebra Tiles):**
+* **Sim:** *Two-Pan Algebra Balance* — Add or remove matching $x$-bars and unit tiles from both pans while keeping the beam level.
+* **Game:** *Alchemist’s Poison Scale* — Isolate the glowing green $x$-vial on a tipping balance scale by removing matching counter-weights from both pans before toxic fumes fill the lab.
+
+
+* **M6 (Modeling Word Scenarios):**
+* **Sim:** *Dual-Slider Constraint Mixer* — Slide `Adult Tickets` and `Child Tickets` bars to watch total headcount and total revenue meters align.
+* **Game:** *Theme Park Gatekeeper* — Balance incoming family groups and VIP passes at the turnstiles to hit exact headcount and revenue targets before the parade starts.
+
+
+* **M7 (Always, Sometimes, Never True):**
+* **Sim:** *Universal Domain Stress-Tester* — Sweep $x$ across negative numbers, zero, fractions, and integers to test when $x^2 > x$ holds or fails.
+* **Game:** *Truth-Shield Cyber Defense* — Incoming algebraic statements fly toward your firewall; blast `NEVER` statements, deflect `SOMETIMES` statements with counter-examples, and absorb `ALWAYS` statements!
+
+
+
+---
+
+### Chapter 7: Area
+
+* **M1 (Area of Parallelograms):**
+* **Sim:** *Shear-and-Slide Morpher* — Drag a slant slider to watch a parallelogram shear continuously into a rectangle of identical base and height.
+* **Game:** *Land-Rush Lawn Mower* — Slice slanted plots into clean rectangles to mow exact target acreages before sunset without running out of fuel.
+
+
+* **M2 (Area of Triangles):**
+* **Sim:** *180° Twin-Triangle Rotator* — Clone any triangle, rotate it $180^\circ$, and snap it onto the original to form a parallelogram of area $b \times h$.
+* **Game:** *Sailmaker’s Loft* — Pair up triangular canvas scraps on a cutting table into full parallelograms to sew ship sails before the armada sets sail.
+
+
+* **M3 (Area of Trapeziums):**
+* **Sim:** *Double-Trapezium Flipper* — Duplicate a trapezium, flip it upside down, and slide it flush to form a parallelogram of base $(a + b)$.
+* **Game:** *River Dam Spillway Paver* — Fit flipped pairs of trapezoidal concrete slabs across a widening river channel before spring meltwater breaches the banks.
+
+
+* **M4 (Area of Rhombus & Kites):**
+* **Sim:** *Bounding-Box Diagonal Frame* — Enclose a rhombus inside a $d_1 \times d_2$ rectangle and fold the 4 outer corner triangles inward to cover the rhombus twice.
+* **Game:** *Stained-Glass Cathedral Restorer* — Cut diamond-shaped stained glass panes from rectangular glass sheets using diagonal frames without shattering expensive glass.
+
+
+* **M5 (Partitioning Composite Polygons):**
+* **Sim:** *Polygon Triangulation Slicer* — Draw diagonal chords across irregular polygons to decompose them into measurable triangles and trapeziums.
+* **Game:** *Asteroid Claim Surveyor* — Shoot laser lines across irregular space-rock plots to partition and claim exact square-kilometer mining zones before rival prospectors drop beacons.
+
+
+* **M6 (Pathways & Borders):**
+* **Sim:** *Inner vs. Outer Lawn Subtract-Viewer* — Toggle outer rectangle, inner lawn, and shaded border strips to see area subtraction visually.
+* **Game:** *Royal Palace Garden Paver* — Lay stone walkways around and across palace lawns; order the exact pallet of tiles—excess tiles cost fines, and short orders fail inspection!
+
+
+* **M7 (Same Perimeter, Different Area):**
+* **Sim:** *Fixed-Loop Rope Stretcher* — Drag corners of a 40-unit closed loop to watch area peak when the rectangle becomes a $10 \times 10$ square.
+* **Game:** *Wolf-Proof Sheep Corral* — Stretch a fixed length of electric fencing against a canyon wall to enclose the maximum grazing area for your flock before nightfall!

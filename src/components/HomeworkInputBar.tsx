@@ -102,7 +102,7 @@ export const HomeworkInputBar: React.FC<HomeworkInputBarProps> = ({
         </div>
 
         {/* Explanation Style Segmented Selector */}
-        <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-lg shrink-0">
+        <div className="flex flex-wrap items-center gap-1 p-1 bg-slate-100 rounded-lg max-w-full">
           <button
             type="button"
             onClick={() => setExplanationStyle('balanced')}
@@ -266,8 +266,8 @@ export const HomeworkInputBar: React.FC<HomeworkInputBarProps> = ({
       )}
 
       {/* Curated Interactive Homework Presets Strip */}
-      <div className="pt-2 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
-        <div className="flex flex-wrap items-center gap-1.5">
+      <div className="pt-2 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 min-w-0 max-w-full">
+        <div className="flex flex-wrap items-center gap-1.5 min-w-0 max-w-full">
           <span className="text-xs font-medium text-slate-500 mr-1 whitespace-nowrap">
             Interactive Lab Presets:
           </span>
@@ -278,7 +278,7 @@ export const HomeworkInputBar: React.FC<HomeworkInputBarProps> = ({
                 key={preset.id}
                 type="button"
                 onClick={() => onSelectPreset(preset)}
-                className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors whitespace-nowrap shrink-0 ${
+                className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors max-w-full truncate text-left ${
                   isSelected
                     ? 'bg-slate-900 text-white border-slate-900'
                     : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-slate-300 hover:text-slate-900'

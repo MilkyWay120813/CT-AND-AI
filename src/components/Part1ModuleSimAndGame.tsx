@@ -39,15 +39,33 @@ import {
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { ModuleSimulationConfig, ModuleGameConfig } from '../types/part1Curriculum';
+import { QuizAttemptRecord } from '../types/account';
 import { formatMathText } from '../utils/formatMath';
 import { MasteryBadgeDefinition } from '../data/masteryBadges';
 import { getRecapQuizConfig, RecapQuizConfig } from '../utils/moduleRecapQuestions';
 import { fireBigAchievementConfetti, playAchievementFanfare } from './BadgeAchievementModal';
+import {
+  addCompletedQuizKey,
+  getInitialQuizSeedForAttempt,
+  getNextDynamicSeed,
+  hasCompletedQuizOnce,
+} from '../utils/quizProgression';
+import { Custom98Simulations } from './simulations/Custom98Simulations';
+import { isCustom98SimulationModule } from '../data/custom98Simulations';
+import { Custom98Games } from './games/Custom98Games';
+import { isCustom98GameModule } from '../data/custom98Games';
+import { QuizDifficultySlider } from './QuizDifficultySlider';
+import {
+  DEFAULT_QUIZ_DIFFICULTY_SETTINGS,
+  QuizDifficultyLevel,
+  QuizDifficultySettings,
+} from '../utils/quizDifficulty';
 
 interface Part1ModuleSimAndGameProps {
   moduleCode: string;
   moduleId?: string;
   chapterId?: string;
+  moduleTitle?: string;
   simulation: ModuleSimulationConfig;
   game: ModuleGameConfig;
   mode: 'simulation' | 'game' | 'quiz';
@@ -58,6 +76,17 @@ interface Part1ModuleSimAndGameProps {
   onGoToQuiz?: () => void;
   onAddGamePoints?: (points: number) => void;
   isLastModule?: boolean;
+  isStatsLocked?: boolean;
+  onRequestSignIn?: () => void;
+  completedQuizKeys?: string[];
+  onRecordQuizAttempt?: (attempt: Omit<QuizAttemptRecord, 'id' | 'timestamp'>) => void;
+  onOpenQuizStats?: () => void;
+  quizDifficultySettings?: QuizDifficultySettings;
+  effectiveDifficulty?: QuizDifficultyLevel;
+  recommendedDifficulty?: QuizDifficultyLevel;
+  recommendedReason?: string;
+  onSelectDifficulty?: (level: QuizDifficultyLevel) => void;
+  onToggleAutoMatchDifficulty?: (enabled: boolean) => void;
 }
 
 // ============================================================================
@@ -128,6 +157,7 @@ export const Part1ModuleSimAndGame: React.FC<Part1ModuleSimAndGameProps> = ({
   moduleCode,
   moduleId = '',
   chapterId = '',
+  moduleTitle = '',
   simulation,
   game,
   mode,
@@ -138,6 +168,17 @@ export const Part1ModuleSimAndGame: React.FC<Part1ModuleSimAndGameProps> = ({
   onGoToQuiz,
   onAddGamePoints,
   isLastModule = false,
+  isStatsLocked = false,
+  onRequestSignIn,
+  completedQuizKeys = [],
+  onRecordQuizAttempt,
+  onOpenQuizStats,
+  quizDifficultySettings,
+  effectiveDifficulty,
+  recommendedDifficulty = 2,
+  recommendedReason,
+  onSelectDifficulty,
+  onToggleAutoMatchDifficulty,
 }) => {
   const [soundEnabled, setSoundEnabled] = useState(true);
 
@@ -316,8 +357,22 @@ export const Part1ModuleSimAndGame: React.FC<Part1ModuleSimAndGameProps> = ({
 
   // --------------------------------------------------------------------------
   // SLIDE 5: RECAP QUIZ STATE (DYNAMIC 5-QUESTION RECAP OR 10-MARKER CAPSTONE)
+  // Dynamic ONLY after first completion of this module quiz!
   // --------------------------------------------------------------------------
-  const [quizRandomSeed, setQuizRandomSeed] = useState<number>(0);
+  const moduleQuizKey = `module:${chapterId}:${moduleCode}`;
+  const [sessionCompletedKeys, setSessionCompletedKeys] = useState<string[]>([]);
+  const effectiveCompletedKeys = useMemo(
+    () => Array.from(new Set([...(completedQuizKeys || []), ...sessionCompletedKeys])),
+    [completedQuizKeys, sessionCompletedKeys]
+  );
+  const isModuleQuizCompletedOnce = hasCompletedQuizOnce(
+    moduleQuizKey,
+    effectiveCompletedKeys
+  );
+
+  const [quizRandomSeed, setQuizRandomSeed] = useState<number>(() =>
+    getInitialQuizSeedForAttempt(moduleQuizKey, completedQuizKeys)
+  );
   const [quizIndex, setQuizIndex] = useState<number>(0);
   const [quizSelectedOption, setQuizSelectedOption] = useState<number | null>(null);
   const [quizShowHint, setQuizShowHint] = useState<boolean>(false);
@@ -327,31 +382,73 @@ export const Part1ModuleSimAndGame: React.FC<Part1ModuleSimAndGameProps> = ({
   const [quizCompleted, setQuizCompleted] = useState<boolean>(false);
   const [hasPassed80Percent, setHasPassed80Percent] = useState<boolean>(false);
   const [isModuleShaking, setIsModuleShaking] = useState<boolean>(false);
+  const recordedSeedRef = React.useRef<number | null>(null);
+
+  const [localDifficulty, setLocalDifficulty] = useState<QuizDifficultySettings>(
+    DEFAULT_QUIZ_DIFFICULTY_SETTINGS
+  );
+  const activeQuizSettings = quizDifficultySettings || localDifficulty;
+  const resolvedDifficulty: QuizDifficultyLevel =
+    effectiveDifficulty ??
+    (activeQuizSettings.autoMatchProgress
+      ? recommendedDifficulty
+      : activeQuizSettings.difficulty);
+
+  const handleSelectDifficultyLevel = useCallback(
+    (lvl: QuizDifficultyLevel) => {
+      if (onSelectDifficulty) {
+        onSelectDifficulty(lvl);
+      } else {
+        setLocalDifficulty({ difficulty: lvl, autoMatchProgress: false });
+      }
+    },
+    [onSelectDifficulty]
+  );
+
+  const handleToggleAutoMatchLevel = useCallback(
+    (enabled: boolean) => {
+      if (onToggleAutoMatchDifficulty) {
+        onToggleAutoMatchDifficulty(enabled);
+      } else {
+        setLocalDifficulty((prev) => ({ ...prev, autoMatchProgress: enabled }));
+      }
+    },
+    [onToggleAutoMatchDifficulty]
+  );
 
   // Dynamic recap quiz configuration: 5 questions for regular modules, 10-marker paper for last module
   const recapConfig: RecapQuizConfig = useMemo(() => {
     return getRecapQuizConfig(
       moduleCode,
-      game.title,
+      moduleTitle || game.title,
       simulation.formulaHighlight,
       game.challenges,
       simulation,
       Boolean(isLastModule),
-      quizRandomSeed
+      quizRandomSeed,
+      moduleId,
+      chapterId,
+      resolvedDifficulty
     );
   }, [
     moduleCode,
+    moduleTitle,
+    moduleId,
+    chapterId,
     game.title,
     simulation.formulaHighlight,
     game.challenges,
     simulation,
     isLastModule,
     quizRandomSeed,
+    resolvedDifficulty,
   ]);
 
   const recapRounds = recapConfig.questions;
 
   useEffect(() => {
+    const key = `module:${chapterId}:${moduleCode}`;
+    setQuizRandomSeed(getInitialQuizSeedForAttempt(key, effectiveCompletedKeys));
     setQuizIndex(0);
     setQuizSelectedOption(null);
     setQuizShowHint(false);
@@ -360,10 +457,34 @@ export const Part1ModuleSimAndGame: React.FC<Part1ModuleSimAndGameProps> = ({
     setQuizCorrectCount(0);
     setQuizCompleted(false);
     setHasPassed80Percent(false);
-  }, [moduleCode, moduleId, isLastModule]);
+    recordedSeedRef.current = null;
+  }, [chapterId, moduleCode, moduleId, isLastModule]);
+
+  const prevDifficultyRef = React.useRef<QuizDifficultyLevel>(resolvedDifficulty);
+  useEffect(() => {
+    if (prevDifficultyRef.current !== resolvedDifficulty) {
+      prevDifficultyRef.current = resolvedDifficulty;
+      setQuizIndex(0);
+      setQuizSelectedOption(null);
+      setQuizShowHint(false);
+      setQuizScore(0);
+      setQuizStreak(0);
+      setQuizCorrectCount(0);
+      setQuizCompleted(false);
+      setHasPassed80Percent(false);
+      recordedSeedRef.current = null;
+    }
+  }, [resolvedDifficulty]);
 
   const handleRetakeQuiz = useCallback(() => {
-    setQuizRandomSeed((s) => s + 1);
+    const updatedKeys = addCompletedQuizKey(effectiveCompletedKeys, moduleQuizKey);
+    setSessionCompletedKeys((prev) => addCompletedQuizKey(prev, moduleQuizKey));
+    const { seed: nextSeed } = getNextDynamicSeed(
+      quizRandomSeed,
+      moduleQuizKey,
+      updatedKeys
+    );
+    setQuizRandomSeed(nextSeed);
     setQuizIndex(0);
     setQuizSelectedOption(null);
     setQuizShowHint(false);
@@ -372,7 +493,8 @@ export const Part1ModuleSimAndGame: React.FC<Part1ModuleSimAndGameProps> = ({
     setQuizCorrectCount(0);
     setQuizCompleted(false);
     setHasPassed80Percent(false);
-  }, []);
+    recordedSeedRef.current = null;
+  }, [effectiveCompletedKeys, moduleQuizKey, quizRandomSeed]);
 
   // Scoring helper
   const handleAwardGamePoints = useCallback(
@@ -406,6 +528,10 @@ export const Part1ModuleSimAndGame: React.FC<Part1ModuleSimAndGameProps> = ({
   // RENDER SLIDE 3: INTERACTIVE BESPOKE SIMULATIONS
   // ==========================================================================
   const renderSlide3Simulation = () => {
+    if (isCustom98SimulationModule(moduleId)) {
+      return <Custom98Simulations moduleId={moduleId} simA={simA} simB={simB} />;
+    }
+
     const t = simulation.interactionType;
     const ch = chapterId.toLowerCase();
 
@@ -971,6 +1097,16 @@ export const Part1ModuleSimAndGame: React.FC<Part1ModuleSimAndGameProps> = ({
   // RENDER SLIDE 4: PLAYABLE MINI-GAMES ROUTED BY RESOLVED GAME ENGINE
   // ==========================================================================
   const renderSlide4MiniGame = () => {
+    if (moduleId && isCustom98GameModule(moduleId)) {
+      return (
+        <Custom98Games
+          moduleId={moduleId}
+          onAddGamePoints={onAddGamePoints}
+          onGoToQuiz={onGoToQuiz}
+        />
+      );
+    }
+
     // A. READY SCREEN
     if (gameStage === 'ready') {
       return (
@@ -2139,7 +2275,24 @@ export const Part1ModuleSimAndGame: React.FC<Part1ModuleSimAndGameProps> = ({
       if (quizIndex === rounds.length - 1) {
         const passed = nextCorrect >= passingQuestions;
         setHasPassed80Percent(passed);
-        if (passed) {
+        setSessionCompletedKeys((prev) => addCompletedQuizKey(prev, moduleQuizKey));
+
+        if (!isStatsLocked && recordedSeedRef.current !== quizRandomSeed && onRecordQuizAttempt) {
+          recordedSeedRef.current = quizRandomSeed;
+          const pct = Math.round((nextCorrect / rounds.length) * 100);
+          onRecordQuizAttempt({
+            quizKey: moduleQuizKey,
+            quizKind: 'module-recap',
+            title: `${moduleCode}: ${game.title}`,
+            chapterIds: chapterId ? [chapterId] : [],
+            score: nextCorrect,
+            total: rounds.length,
+            percentage: pct,
+            passed,
+          });
+        }
+
+        if (passed && !isStatsLocked) {
           playSound('win', soundEnabled);
           fireBigAchievementConfetti();
           playAchievementFanfare();
@@ -2164,7 +2317,7 @@ export const Part1ModuleSimAndGame: React.FC<Part1ModuleSimAndGameProps> = ({
 
     const renderBadgeBar = () => {
       if (!badge) return null;
-      const isUnlocked = Boolean(isBadgeUnlocked || hasPassed80Percent);
+      const isUnlocked = Boolean(!isStatsLocked && (isBadgeUnlocked || hasPassed80Percent));
 
       return (
         <div
@@ -2209,6 +2362,22 @@ export const Part1ModuleSimAndGame: React.FC<Part1ModuleSimAndGameProps> = ({
               <span className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-400/20 border border-emerald-300 px-3.5 py-2 text-xs font-bold text-emerald-200">
                 <CheckCircle2 className="h-4 w-4" /> Badge Acquired!
               </span>
+            ) : isStatsLocked ? (
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="inline-flex items-center gap-1.5 rounded-xl bg-amber-50 border border-amber-300 px-3 py-2 text-xs font-bold text-amber-900">
+                  <Lock className="h-4 w-4 text-amber-700" />
+                  <span>{hasPassed80Percent ? 'Score Passed! Sign in to claim badge' : 'Sign in to unlock badges & EXP'}</span>
+                </div>
+                {onRequestSignIn && (
+                  <button
+                    type="button"
+                    onClick={onRequestSignIn}
+                    className="px-3 py-2 rounded-xl bg-[#0F766E] hover:bg-[#115E59] text-white text-xs font-black transition cursor-pointer"
+                  >
+                    Sign In
+                  </button>
+                )}
+              </div>
             ) : (
               <div className="inline-flex items-center gap-1.5 rounded-xl bg-stone-100 border border-stone-300 px-3.5 py-2 text-xs font-bold text-stone-600">
                 <Lock className="h-4 w-4 text-stone-500" />
@@ -2288,14 +2457,31 @@ export const Part1ModuleSimAndGame: React.FC<Part1ModuleSimAndGameProps> = ({
 
             {/* Actions */}
             <div className="flex flex-wrap items-center justify-between gap-4 pt-2">
-              <button
-                type="button"
-                onClick={handleRetakeQuiz}
-                className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-white hover:bg-stone-100 text-stone-900 font-black text-sm transition shadow cursor-pointer"
-              >
-                <RotateCcw className="w-4 h-4 text-teal-700" />
-                <span>Retake Assessment (Fresh Randomized Questions)</span>
-              </button>
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  onClick={handleRetakeQuiz}
+                  className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-white hover:bg-stone-100 text-stone-900 font-black text-sm transition shadow cursor-pointer"
+                >
+                  <RotateCcw className="w-4 h-4 text-teal-700" />
+                  <span>
+                    {isModuleQuizCompletedOnce
+                      ? 'Retake Assessment (Fresh Dynamic Questions)'
+                      : 'Retake Assessment'}
+                  </span>
+                </button>
+
+                {!isStatsLocked && onOpenQuizStats && (
+                  <button
+                    type="button"
+                    onClick={onOpenQuizStats}
+                    className="inline-flex items-center gap-2 px-4 py-3 rounded-2xl bg-[#FDE047] hover:bg-[#FACC15] text-stone-950 font-black text-sm transition shadow cursor-pointer"
+                  >
+                    <BarChart3 className="w-4 h-4" />
+                    <span>View Quiz Stats &amp; Line Graphs</span>
+                  </button>
+                )}
+              </div>
 
               {passed && onGoToQuiz && (
                 <span className="text-xs text-emerald-200 font-semibold">
@@ -2535,6 +2721,19 @@ export const Part1ModuleSimAndGame: React.FC<Part1ModuleSimAndGameProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Inline Quiz Settings: Difficulty Slider & Progress-Level Match */}
+      <QuizDifficultySlider
+        difficulty={resolvedDifficulty}
+        autoMatchProgress={activeQuizSettings.autoMatchProgress}
+        recommendedLevel={recommendedDifficulty}
+        recommendedReason={recommendedReason}
+        onSelectDifficulty={handleSelectDifficultyLevel}
+        onToggleAutoMatch={handleToggleAutoMatchLevel}
+        variant="card"
+        compact={true}
+        testIdPrefix="module-recap-difficulty"
+      />
 
       {renderSlide5RecapQuiz()}
     </div>

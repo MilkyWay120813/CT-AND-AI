@@ -1036,10 +1036,20 @@ export const Part1VideoPlayer: React.FC<Part1VideoPlayerProps> = ({
     if (!ctx) return;
 
     let rafId = 0;
+    let lastDrawTime = 0;
+    let lastIdleKey = '';
     const t0 = performance.now();
 
     const drawDocumentaryFrame = (now: number) => {
       const st = renderStateRef.current;
+      const idleKey = `${st.chapterTitle}|${st.moduleCode}|${st.activeClipIdx}|${st.isPlaying}`;
+      if (!st.isPlaying && idleKey === lastIdleKey && now - lastDrawTime < 180) {
+        rafId = requestAnimationFrame(drawDocumentaryFrame);
+        return;
+      }
+      lastIdleKey = idleKey;
+      lastDrawTime = now;
+
       const w = canvas.width;
       const h = canvas.height;
       const cx = w / 2;

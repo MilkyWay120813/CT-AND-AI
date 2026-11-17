@@ -11,6 +11,7 @@ import {
   Layers,
   ChevronRight,
   Compass,
+  Lock,
 } from 'lucide-react';
 import { ALL_MASTERY_BADGES } from '../data/masteryBadges';
 import { PART1_CURRICULUM_CHAPTERS, PART2_CURRICULUM_CHAPTERS } from '../data/part1CurriculumData';
@@ -20,6 +21,8 @@ interface CircularUniverseProgressProps {
   activeChapterId?: string;
   onSelectChapter?: (chapterId: string) => void;
   onOpen112Hub?: (tab: 'games' | 'simulations') => void;
+  isStatsLocked?: boolean;
+  onRequestSignIn?: () => void;
 }
 
 const TOTAL_MODULES = 112; // 56 Part I + 56 Part II
@@ -29,6 +32,8 @@ export const CircularUniverseProgress: React.FC<CircularUniverseProgressProps> =
   activeChapterId,
   onSelectChapter,
   onOpen112Hub,
+  isStatsLocked = false,
+  onRequestSignIn,
 }) => {
   const [isMapModalOpen, setIsMapModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'all' | 'part1' | 'part2'>('all');
@@ -67,8 +72,8 @@ export const CircularUniverseProgress: React.FC<CircularUniverseProgressProps> =
     return { title: 'Curriculum Explorer', icon: '🌱', color: '#14B8A6', step: 0 };
   }, [totalCompleted]);
 
-  // SVG circular ring geometry
-  const radius = 22;
+  // SVG circular ring geometry (compact 36x36 dial)
+  const radius = 14;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (progressPercent / 100) * circumference;
 
@@ -103,55 +108,36 @@ export const CircularUniverseProgress: React.FC<CircularUniverseProgressProps> =
 
   return (
     <>
-      {/* Sleek Circular Progress Astrolabe Button (Header Element) */}
+      {/* Clean Compact Circular Progress Dial Button */}
       <button
         type="button"
         onClick={() => setIsMapModalOpen(true)}
-        className="group relative flex items-center gap-2.5 px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-full bg-white hover:bg-stone-50 border-2 border-stone-200 text-stone-800 transition-all duration-200 cursor-pointer shadow-2xs hover:shadow-sm hover:scale-[1.02] active:scale-[0.98]"
-        title="Open 112 Universe Progress Map"
+        className="group inline-flex items-center gap-2 h-9 pl-1.5 pr-3 rounded-full bg-white hover:bg-stone-50 border border-stone-200 text-stone-900 transition-all duration-150 cursor-pointer shadow-2xs hover:shadow-xs"
+        title={
+          isStatsLocked
+            ? 'Stats locked until sign-in (0/112). Click to view map or sign in.'
+            : `Universal Progress: ${totalCompleted}/112 modules completed (${progressPercent}%). Click to view 14-chapter map.`
+        }
+        aria-label={`112 Universe Progress: ${totalCompleted} of 112 modules completed (${progressPercent}%)${isStatsLocked ? ', Locked until sign in' : ''}`}
       >
-        {/* Circular SVG Progress Dial */}
-        <div className="relative w-11 h-11 sm:w-12 sm:h-12 flex-shrink-0 flex items-center justify-center">
-          <svg className="w-full h-full -rotate-90 transform" viewBox="0 0 54 54">
-            {/* Background ring */}
+        {/* Crisp Circular SVG Progress Ring */}
+        <div className="relative w-7 h-7 shrink-0 flex items-center justify-center">
+          <svg className="w-full h-full -rotate-90 transform" viewBox="0 0 36 36" aria-hidden="true">
             <circle
-              cx="27"
-              cy="27"
+              cx="18"
+              cy="18"
               r={radius}
               stroke="currentColor"
-              strokeWidth="4"
+              strokeWidth="3.5"
               className="text-stone-200"
               fill="transparent"
             />
-            {/* 14 Chapter Tick Notches along perimeter */}
-            {Array.from({ length: 14 }).map((_, i) => {
-              const angle = (i * 360) / 14;
-              const rad = (angle * Math.PI) / 180;
-              const x1 = 27 + (radius + 2.5) * Math.cos(rad);
-              const y1 = 27 + (radius + 2.5) * Math.sin(rad);
-              const x2 = 27 + (radius - 2.5) * Math.cos(rad);
-              const y2 = 27 + (radius - 2.5) * Math.sin(rad);
-              return (
-                <line
-                  key={i}
-                  x1={x1}
-                  y1={y1}
-                  x2={x2}
-                  y2={y2}
-                  stroke="currentColor"
-                  strokeWidth="1.2"
-                  className={i < (totalCompleted / 8) ? 'text-teal-500' : 'text-stone-300'}
-                  opacity={0.8}
-                />
-              );
-            })}
-            {/* Animated Active Progress Stroke */}
             <circle
-              cx="27"
-              cy="27"
+              cx="18"
+              cy="18"
               r={radius}
               stroke="url(#universeRingGrad)"
-              strokeWidth="4.5"
+              strokeWidth="3.5"
               strokeDasharray={circumference}
               strokeDashoffset={strokeDashoffset}
               strokeLinecap="round"
@@ -161,49 +147,19 @@ export const CircularUniverseProgress: React.FC<CircularUniverseProgressProps> =
             <defs>
               <linearGradient id="universeRingGrad" x1="0%" y1="0%" x2="100%" y2="100%">
                 <stop offset="0%" stopColor="#00B4A7" />
-                <stop offset="60%" stopColor="#14B8A6" />
                 <stop offset="100%" stopColor="#F59E0B" />
               </linearGradient>
             </defs>
           </svg>
-
-          {/* Central Hub Counter */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-            <span className="text-[10px] sm:text-[11px] font-black leading-tight text-stone-900 tabular-nums">
-              {totalCompleted}
-            </span>
-            <span className="text-[8px] font-bold text-stone-500 leading-none">
-              /112
-            </span>
-          </div>
-
-          {/* Glowing pulse ring if at least one module completed */}
-          {totalCompleted > 0 && (
-            <div className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-teal-400 ring-2 ring-white animate-pulse" />
-          )}
+          <span className="absolute inset-0 flex items-center justify-center text-[9px] font-black text-stone-900 tabular-nums">
+            {progressPercent}%
+          </span>
         </div>
 
-        {/* Text Context (Hidden on ultra-narrow, clean and readable on normal) */}
-        <div className="text-left hidden md:block pr-1">
-          <div className="flex items-center gap-1.5 text-[10px] font-black tracking-wider uppercase text-teal-700">
-            <span>{universeRank.icon}</span>
-            <span>112 Progress</span>
-            <span className="bg-teal-100 text-teal-800 px-1.5 py-0.2 rounded-full text-[9px] font-bold">
-              {progressPercent}%
-            </span>
-          </div>
-          <div className="text-xs font-black text-stone-900 tracking-tight flex items-center gap-1.5">
-            <span>Part I: {part1CompletedBadges.length}/56</span>
-            <span className="text-stone-300">·</span>
-            <span>Part II: {part2CompletedBadges.length}/56</span>
-          </div>
-        </div>
-
-        {/* Mobile Minimal Badge */}
-        <div className="md:hidden text-left pr-0.5">
-          <div className="text-[10px] font-black text-teal-700">112</div>
-          <div className="text-[11px] font-black text-stone-900">{progressPercent}%</div>
-        </div>
+        {/* Single-line crisp count */}
+        <span className="text-xs font-black text-stone-900 tabular-nums whitespace-nowrap">
+          {totalCompleted}<span className="text-stone-500 font-bold">/112</span>
+        </span>
       </button>
 
       {/* 112 Universe Progress Map Modal */}
@@ -242,6 +198,28 @@ export const CircularUniverseProgress: React.FC<CircularUniverseProgressProps> =
                 <X className="w-5 h-5" />
               </button>
             </div>
+
+            {/* Locked Stats Notice inside Universal Map Modal */}
+            {isStatsLocked && (
+              <div className="px-6 py-3 bg-amber-50 border-b border-amber-200 flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-2 text-xs font-bold text-amber-950">
+                  <Lock className="w-4 h-4 text-amber-700 shrink-0" />
+                  <span>Progress stats are reset and locked. Sign in to unlock badges and save your 112-module completion.</span>
+                </div>
+                {onRequestSignIn && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsMapModalOpen(false);
+                      onRequestSignIn();
+                    }}
+                    className="px-3.5 py-1.5 rounded-xl bg-[#0F766E] hover:bg-[#115E59] text-white text-xs font-black transition-colors cursor-pointer"
+                  >
+                    Sign In to Unlock
+                  </button>
+                )}
+              </div>
+            )}
 
             {/* Quick Actions & Milestones Banner */}
             <div className="px-6 py-3 bg-stone-50 border-b border-stone-200 flex flex-wrap items-center justify-between gap-3">

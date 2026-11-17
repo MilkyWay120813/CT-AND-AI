@@ -85,7 +85,8 @@ export interface ModuleSimulationConfig {
     | 'ratio-sharer'
     | 'inverse-speed-curve'
     | 'market-proportionality-lab'
-    | 'grand-capstone-sim';
+    | 'grand-capstone-sim'
+    | 'custom-98-sim';
   defaultControlA: number;
   defaultControlB: number;
   controlALabel: string;

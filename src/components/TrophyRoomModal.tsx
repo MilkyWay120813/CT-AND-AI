@@ -29,6 +29,8 @@ interface TrophyRoomModalProps {
   onResetBadges: () => void;
   onOpenBossBattle: () => void;
   onJumpToBadgeSource?: (badge: MasteryBadgeDefinition) => void;
+  isStatsLocked?: boolean;
+  onRequestSignIn?: () => void;
 }
 
 export const TrophyRoomModal: React.FC<TrophyRoomModalProps> = ({
@@ -39,6 +41,8 @@ export const TrophyRoomModal: React.FC<TrophyRoomModalProps> = ({
   onResetBadges,
   onOpenBossBattle,
   onJumpToBadgeSource,
+  isStatsLocked = false,
+  onRequestSignIn,
 }) => {
   const [activeFilter, setActiveFilter] = useState<
     'all' | 'part1-module' | 'part2-module' | 'mastery-quiz' | 'cellar-boss' | 'unlocked'
@@ -112,6 +116,34 @@ export const TrophyRoomModal: React.FC<TrophyRoomModalProps> = ({
 
         {/* Scrollable Body */}
         <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-6">
+          {isStatsLocked && (
+            <div className="rounded-2xl border-2 border-[#FACC15]/60 bg-[#FACC15]/10 p-4 flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <Lock className="w-5 h-5 text-[#FACC15] shrink-0" />
+                <div>
+                  <div className="text-sm font-black text-[#FACC15]">
+                    Trophy Room &amp; EXP Locked Until Sign-In
+                  </div>
+                  <p className="text-xs text-[#FFFDF5]/85">
+                    Your stats reset to 0 on every visit and unlock once you sign in with your Student Nickname &amp; PIN.
+                  </p>
+                </div>
+              </div>
+              {onRequestSignIn && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    onRequestSignIn();
+                  }}
+                  className="px-4 py-2 rounded-xl bg-[#FACC15] hover:bg-amber-300 text-stone-950 text-xs font-black transition-colors cursor-pointer shrink-0"
+                >
+                  Sign In to Unlock Stats
+                </button>
+              )}
+            </div>
+          )}
+
           {/* Section 1: Cellar Key & 114-Badge Vault Status */}
           <div
             className={`relative overflow-hidden rounded-2xl border-2 p-5 transition-all ${

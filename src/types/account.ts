@@ -1,3 +1,23 @@
+export type QuizKind =
+  | 'module-recap'
+  | 'chapter-quiz'
+  | 'grand-mastery'
+  | 'tricky-textbook'
+  | 'boss-battle';
+
+export interface QuizAttemptRecord {
+  id: string;
+  quizKey: string;
+  quizKind: QuizKind;
+  title: string;
+  chapterIds: string[];
+  score: number;
+  total: number;
+  percentage: number;
+  timestamp: string;
+  passed: boolean;
+}
+
 export interface StudentAccountProfile {
   username: string;
   mascot: string; // e.g. '🦉', '🐯', '🚀', '🧙‍♂️', '🦁', '🦊', '🐬', '🦅'
@@ -7,6 +27,12 @@ export interface StudentAccountProfile {
   points: number;
   unlockedBadgeIds: string[];
   chapterGamePoints: Record<string, number>; // Points earned in creative games per chapter
+  quizHistory?: QuizAttemptRecord[];
+  completedQuizKeys?: string[];
+  streakCount?: number;
+  longestStreak?: number;
+  lastStreakDate?: string | null;
+  streakHistoryDays?: string[];
 }
 
 export interface RegisterPayload {

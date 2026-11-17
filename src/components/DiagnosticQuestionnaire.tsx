@@ -171,7 +171,7 @@ const STRUGGLE_SYMPTOMS: StruggleSymptom[] = [
 export const DiagnosticQuestionnaire: React.FC<DiagnosticQuestionnaireProps> = ({
   chapters,
   initialProfile,
-  initialStage = 'welcome',
+  initialStage = 'chapters',
   onComplete,
   onQuickSelectQuiz,
   onClose,
@@ -238,76 +238,37 @@ export const DiagnosticQuestionnaire: React.FC<DiagnosticQuestionnaireProps> = (
     });
   };
 
-  // STAGE 1: SPACIOUS CLASSROOM CHALKBOARD WELCOME SCREEN (OPENS FROM TOP)
+  // STAGE 1: CLASSROOM WELCOME BOARD (WITHOUT MASCOT)
   if (stage === 'welcome') {
     return (
       <div key="stage-welcome" className="open-from-top max-w-5xl mx-auto pt-2 pb-8 space-y-8">
         <ChalkDustOverlay triggerKey={`welcome-${difficultyFocus}`} />
         <div className="chalkboard-frame chalkboard-grid bg-[#194530] rounded-3xl overflow-hidden text-[#F9F8F3]">
-          <div className="px-6 py-10 sm:px-14 sm:py-12 space-y-9 relative">
-            {/* Floating Animated Curiosity Chalk Doodles on the Board */}
-            <div className="hidden lg:flex flex-col items-end gap-2.5 absolute right-10 top-24 pointer-events-none select-none opacity-85">
-              {[
-                { formula: '1729 = 12³ + 1³ = 10³ + 9³', color: '#FDE047', delay: 0 },
-                { formula: 'a² + b² = c² · √(24² + 32²) = 40', color: '#93C5FD', delay: 0.4 },
-                { formula: '100M + D + 165 · Top = a + 2b + c', color: '#FCA5A5', delay: 0.8 },
-                { formula: 'Area = ½h(a + b) · 8ⁿ Fractals', color: '#86EFAC', delay: 1.2 },
-              ].map((doodle, idx) => (
-                <motion.div
-                  key={doodle.formula}
-                  animate={{
-                    y: [0, -5, 0],
-                    rotate: [idx % 2 === 0 ? -1.5 : 1.5, idx % 2 === 0 ? 1.5 : -1.5, idx % 2 === 0 ? -1.5 : 1.5],
-                  }}
-                  transition={{
-                    duration: 3.6 + idx * 0.4,
-                    repeat: Infinity,
-                    ease: 'easeInOut',
-                    delay: doodle.delay,
-                  }}
-                  className="px-3 py-1 rounded-xl bg-white/5 border border-white/15 font-mono text-xs"
-                  style={{ color: doodle.color }}
-                >
-                  {doodle.formula}
-                </motion.div>
-              ))}
-            </div>
-
+          <div className="px-6 py-8 sm:px-12 sm:py-10 space-y-6 relative">
             {/* Top Chalkboard Header Row */}
-            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/15 pb-4">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/15 pb-3">
               <div className="flex items-center gap-2.5 text-sm font-mono text-[#FDE68A] tracking-wider uppercase">
-                <motion.div
-                  animate={{ rotate: [0, -10, 10, 0] }}
-                  transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-                >
-                  <GraduationCap className="w-5 h-5" />
-                </motion.div>
+                <GraduationCap className="w-5 h-5" />
                 <span>Room 8-A · NCERT Ganita Prakash Class 8 Complete Classroom (All 14 Chapters)</span>
               </div>
               <div className="font-mono text-sm text-emerald-200/90 flex items-center gap-2">
-                <Compass className="w-4 h-4 text-[#FDE047] animate-spin" style={{ animationDuration: '12s' }} />
-                <span>Part I (Ch 1–7) &amp; Part II (Ch 1–7) · 42 Interactive Lessons</span>
+                <Compass className="w-4 h-4 text-[#FDE047]" />
+                <span>Part I (Ch 1–7) &amp; Part II (Ch 1–7) · 112 Labs</span>
               </div>
             </div>
 
             {/* Grand Classroom Chalk Title */}
-            <motion.div
-              initial={{ opacity: 0, y: -16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.45 }}
-              className="space-y-4 max-w-2xl"
-            >
-              <h1 className="font-chalk-title text-3xl sm:text-5xl text-white leading-[1.18]">
-                Welcome to the Class 8{' '}
+            <div className="space-y-3 max-w-3xl">
+              <h1 className="font-chalk-title text-3xl sm:text-5xl text-white leading-[1.16]">
+                Welcome to{' '}
                 <span className="text-[#FDE047] underline decoration-wavy decoration-[#FDE047]/60 underline-offset-8">
-                  Ganita Prakash
-                </span>{' '}
-                Classroom
+                  Ganitomania
+                </span>
               </h1>
               <p className="text-base sm:text-lg text-emerald-100/95 leading-relaxed">
-                Pull up a chair at the front desk! Explore all <strong>14 chapters</strong> of NCERT Class 8 <em>Ganita Prakash</em> (Part I &amp; Part II)—from square lockers, quadrilaterals, number play, and Brahmagupta’s algebra to fractals, mean seesaws, number pyramids, and Śulba-Sūtra area dissections.
+                Explore all <strong>14 chapters</strong> of NCERT Class 8 <em>Ganita Prakash</em>—from square lockers, quadrilaterals, and Brahmagupta’s algebra to fractals, mean seesaws, and area dissections.
               </p>
-            </motion.div>
+            </div>
 
             {/* Quick Pre-Class Question: Preferred Teaching Style */}
             <div className="bg-black/20 border border-white/15 rounded-2xl p-6 sm:p-7 space-y-4">
@@ -326,18 +287,21 @@ export const DiagnosticQuestionnaire: React.FC<DiagnosticQuestionnaireProps> = (
                     id: 'intuition' as DifficultyFocus,
                     title: 'Visual Chalkboard Models',
                     desc: 'Show me hands-on grids, shape dissections, and interactive sliders first.',
+                    destination: 'Opens Chapter Hub',
                     icon: Sparkles,
                   },
                   {
                     id: 'steps' as DifficultyFocus,
                     title: 'Step-by-Step Board Work',
                     desc: 'Walk me through every equation line-by-line with zero skipped steps.',
+                    destination: 'Opens Fullscreen Genius Bar',
                     icon: Layers,
                   },
                   {
                     id: 'word-problems' as DifficultyFocus,
                     title: 'Tricky Textbook Puzzles',
-                    desc: 'Help me decode word problems, historical gems, and practice twins.',
+                    desc: 'Pick any chapters you want and tackle a fresh dynamic 20-question challenge every time.',
+                    destination: 'Opens 20Q Puzzle Arena',
                     icon: BookOpen,
                   },
                 ].map((item, idx) => {
@@ -347,30 +311,36 @@ export const DiagnosticQuestionnaire: React.FC<DiagnosticQuestionnaireProps> = (
                     <motion.button
                       key={item.id}
                       type="button"
+                      data-testid={`lesson-style-card-${item.id}`}
                       initial={{ opacity: 0, y: -14 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: idx * 0.08 }}
                       whileHover={{ y: -4, scale: 1.01 }}
                       whileTap={{ scale: 0.98 }}
                       onClick={() => setDifficultyFocus(item.id)}
-                      className={`text-left p-4 rounded-xl border transition-colors cursor-pointer flex flex-col justify-between gap-2 ${
+                      className={`text-left p-4 rounded-xl border transition-colors cursor-pointer flex flex-col justify-between gap-2.5 ${
                         isSelected
                           ? 'bg-white/15 border-[#FDE047] shadow-sm'
                           : 'bg-white/5 border-white/15 hover:bg-white/10'
                       }`}
                     >
-                      <div className="flex items-center justify-between">
-                        <span className="font-display font-bold text-base text-white flex items-center gap-2">
-                          <Icon className="w-4 h-4 text-[#FDE047]" />
-                          {item.title}
-                        </span>
-                        {isSelected && (
-                          <CheckCircle2 className="w-4 h-4 text-[#FDE047] shrink-0" />
-                        )}
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <span className="font-display font-bold text-base text-white flex items-center gap-2">
+                            <Icon className="w-4 h-4 text-[#FDE047]" />
+                            {item.title}
+                          </span>
+                          {isSelected && (
+                            <CheckCircle2 className="w-4 h-4 text-[#FDE047] shrink-0" />
+                          )}
+                        </div>
+                        <p className="text-xs sm:text-sm text-emerald-100/85 leading-relaxed">
+                          {item.desc}
+                        </p>
                       </div>
-                      <p className="text-xs sm:text-sm text-emerald-100/85 leading-relaxed">
-                        {item.desc}
-                      </p>
+                      <span className="text-[11px] font-mono text-[#FDE047]/90">
+                        → {item.destination}
+                      </span>
                     </motion.button>
                   );
                 })}
@@ -382,12 +352,30 @@ export const DiagnosticQuestionnaire: React.FC<DiagnosticQuestionnaireProps> = (
               <div className="flex flex-wrap items-center gap-4">
                 <motion.button
                   type="button"
+                  data-testid="lesson-style-proceed-btn"
                   whileHover={{ scale: 1.03, y: -2 }}
                   whileTap={{ scale: 0.97 }}
-                  onClick={() => setStage('chapters')}
+                  onClick={() => {
+                    if (difficultyFocus === 'steps' || difficultyFocus === 'word-problems') {
+                      onComplete({
+                        completedQuestionnaire: true,
+                        chapterId: selectedChapterId,
+                        segmentId: selectedSegmentId,
+                        difficultyFocus,
+                      });
+                    } else {
+                      setStage('chapters');
+                    }
+                  }}
                   className="inline-flex items-center justify-center gap-3 px-8 py-4 rounded-2xl bg-[#FDE047] hover:bg-[#FACC15] text-[#142E21] font-display font-bold text-lg shadow-md transition-colors cursor-pointer"
                 >
-                  <span>Proceed to All 14 Textbook Chapters</span>
+                  <span>
+                    {difficultyFocus === 'steps'
+                      ? 'Open Fullscreen Genius Bar'
+                      : difficultyFocus === 'word-problems'
+                      ? 'Open Tricky Textbook Puzzles (20Q)'
+                      : 'Proceed to All 14 Textbook Chapters'}
+                  </span>
                   <ArrowRight className="w-5 h-5" />
                 </motion.button>
 
@@ -407,7 +395,7 @@ export const DiagnosticQuestionnaire: React.FC<DiagnosticQuestionnaireProps> = (
                 <button
                   type="button"
                   onClick={onClose}
-                  className="text-sm font-mono text-[#FDE047] hover:text-white underline underline-offset-4 cursor-pointer self-start sm:self-center"
+                  className="text-sm font-mono text-[#FDE047] hover:text-white underline underline-offset-4 cursor-pointer self-start sm:self-center whitespace-nowrap shrink-0"
                 >
                   Return to current lesson →
                 </button>

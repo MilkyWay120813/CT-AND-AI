@@ -62,18 +62,74 @@ export const ClassroomThemeSwitch: React.FC<ClassroomThemeSwitchProps> = ({
     onToggleTheme();
   };
 
-  const containerClass =
-    variant === 'inline'
-      ? 'relative inline-flex items-center select-none'
-      : 'fixed top-3 right-3 sm:top-4 sm:right-6 z-50 select-none';
+  if (variant === 'inline') {
+    return (
+      <div
+        className="relative inline-flex items-center select-none"
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        <button
+          type="button"
+          role="switch"
+          aria-checked={isChalkboard}
+          aria-label={`Toggle classroom theme. Currently in ${isChalkboard ? 'Midnight Chalkboard' : 'Daylight'} mode`}
+          onClick={handleClick}
+          className={`inline-flex items-center gap-2 h-9 pl-1.5 pr-3 rounded-full transition-all duration-200 cursor-pointer border text-xs font-bold shadow-2xs ${
+            isChalkboard
+              ? 'bg-[#12261C] border-[#34D399]/50 text-[#F3F4F6] hover:bg-[#193326]'
+              : 'bg-white border-stone-200 text-stone-800 hover:bg-stone-50'
+          }`}
+        >
+          {/* Compact Switch Track */}
+          <span
+            className={`relative w-9 h-5 rounded-full p-0.5 transition-colors duration-200 flex items-center ${
+              isChalkboard ? 'bg-[#0B1711] border border-[#34D399]/40' : 'bg-[#E5DEC9]'
+            }`}
+          >
+            <span
+              className={`w-4 h-4 rounded-full shadow-xs transform transition-transform duration-200 flex items-center justify-center ${
+                isChalkboard
+                  ? 'translate-x-4 bg-[#34D399] text-[#0A1A12]'
+                  : 'translate-x-0 bg-white text-[#D97706]'
+              }`}
+            >
+              {isChalkboard ? (
+                <Moon className="w-2.5 h-2.5 stroke-[2.5]" />
+              ) : (
+                <Sun className="w-2.5 h-2.5 stroke-[2.5]" />
+              )}
+            </span>
+          </span>
+          <span className="hidden sm:inline whitespace-nowrap">
+            {isChalkboard ? 'Chalkboard' : 'Daylight'}
+          </span>
+        </button>
+
+        {isHovered && (
+          <div
+            className={`absolute top-full right-0 mt-2 px-3 py-1.5 rounded-xl text-[11px] font-bold shadow-xl border whitespace-nowrap pointer-events-none z-50 ${
+              isChalkboard
+                ? 'bg-[#0E1F16] border-[#34D399]/40 text-[#E2E8F0]'
+                : 'bg-[#1C1917] border-stone-700 text-[#FAF6EE]'
+            }`}
+          >
+            {isChalkboard
+              ? 'Switch to Daylight Classroom'
+              : 'Switch to Midnight Chalkboard'}
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div
-      className={containerClass}
+      className="fixed top-3 right-3 sm:top-4 sm:right-6 z-50 select-none"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Real Classroom Light Switch Plate */}
+      {/* Real Classroom Light Switch Plate (Welcome Screen) */}
       <button
         type="button"
         role="switch"
@@ -86,33 +142,17 @@ export const ClassroomThemeSwitch: React.FC<ClassroomThemeSwitchProps> = ({
             : 'bg-[#FFFDF7] border-[#D6C7A1] shadow-[0_4px_16px_rgba(80,60,30,0.15)] text-[#1C1917]'
         } hover:scale-105 active:scale-95`}
       >
-        {/* Top Screw Representation */}
-        <div className="absolute top-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full border border-stone-400 bg-stone-300 flex items-center justify-center opacity-60">
-          <div className="w-1 h-[0.5px] bg-stone-600 rotate-45" />
-        </div>
-
-        {/* Tactile Mechanical Switch Mechanism */}
         <div
-          className={`relative w-12 h-6 rounded-full p-0.5 transition-colors duration-300 flex items-center border ${
+          className={`relative w-11 h-6 rounded-full p-0.5 transition-colors duration-300 flex items-center border ${
             isChalkboard
               ? 'bg-[#0B1711] border-[#34D399]/40'
               : 'bg-[#E5DEC9] border-[#C8BFA5]'
           }`}
         >
-          {/* Neon / Glow Indicator Light */}
-          <div
-            className={`absolute left-1/2 -translate-x-1/2 w-1 h-1 rounded-full transition-all duration-300 ${
-              isChalkboard
-                ? 'bg-[#34D399] shadow-[0_0_8px_#34D399]'
-                : 'bg-[#F59E0B] shadow-[0_0_6px_#F59E0B]'
-            }`}
-          />
-
-          {/* Toggle Thumb / Lever */}
           <div
             className={`w-5 h-5 rounded-full shadow-md transform transition-transform duration-300 flex items-center justify-center ${
               isChalkboard
-                ? 'translate-x-6 bg-[#34D399] text-[#0A1A12]'
+                ? 'translate-x-5 bg-[#34D399] text-[#0A1A12]'
                 : 'translate-x-0 bg-[#FFF] text-[#D97706]'
             }`}
           >
@@ -124,24 +164,14 @@ export const ClassroomThemeSwitch: React.FC<ClassroomThemeSwitchProps> = ({
           </div>
         </div>
 
-        {/* Classroom Theme Text Badge */}
         <div className="text-left hidden sm:block">
-          <div className="text-[9px] font-black uppercase tracking-wider opacity-70">
-            Classroom Mode
-          </div>
           <div className="text-xs font-black tracking-tight flex items-center gap-1">
             <span>{isChalkboard ? 'Midnight Chalkboard' : 'Daylight Class'}</span>
             {isChalkboard && <Sparkles className="w-3 h-3 text-[#34D399] animate-pulse" />}
           </div>
         </div>
-
-        {/* Bottom Screw Representation */}
-        <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full border border-stone-400 bg-stone-300 flex items-center justify-center opacity-60">
-          <div className="w-1 h-[0.5px] bg-stone-600 -rotate-45" />
-        </div>
       </button>
 
-      {/* Floating Helper Tooltip on Hover */}
       {isHovered && (
         <div
           className={`absolute top-full right-0 mt-2 px-3 py-1.5 rounded-xl text-[11px] font-bold shadow-xl border whitespace-nowrap pointer-events-none transition-opacity ${
@@ -151,8 +181,8 @@ export const ClassroomThemeSwitch: React.FC<ClassroomThemeSwitchProps> = ({
           }`}
         >
           {isChalkboard
-            ? '💡 Click to turn on classroom lights (Daylight Theme)'
-            : '🌙 Click switch to enter Midnight Chalkboard Dark Mode'}
+            ? 'Switch to Daylight Classroom'
+            : 'Switch to Midnight Chalkboard'}
         </div>
       )}
     </div>

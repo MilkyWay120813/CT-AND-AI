@@ -21,8 +21,11 @@ import {
   Lightbulb,
   Zap,
   Quote,
+  Focus,
+  AudioLines,
+  Layers,
 } from 'lucide-react';
-import { ChapterId, GanitaChapter, MathHomeworkSolution } from '../types/math';
+import { ChapterId, GanitaChapter } from '../types/math';
 import { Part1ChapterCurriculum, Part1ModuleItem } from '../types/part1Curriculum';
 import { getModuleFunInterpretation } from '../utils/moduleFunInterpretations';
 import {
@@ -38,10 +41,14 @@ import { ModuleTitleArtwork } from './ModuleTitleArtwork';
 import { AnimatedChapterBanner } from './AnimatedChapterBanner';
 import { ChapterLevelProgress } from './ChapterLevelProgress';
 import { CircularUniverseProgress } from './CircularUniverseProgress';
-import { ClassroomThemeSwitch } from './ClassroomThemeSwitch';
-import { StudentAccountModal } from './StudentAccountModal';
 import { All112HubModal } from './All112HubModal';
-import { StudentAccountProfile } from '../types/account';
+import { ControlCenterDuo } from './ControlCenterDuo';
+import {
+  AmbienceSettings,
+  DEFAULT_AMBIENCE_SETTINGS,
+  soundscapeEngine,
+} from '../utils/soundscapeEngine';
+import { QuizAttemptRecord, StudentAccountProfile } from '../types/account';
 import { formatMathText } from '../utils/formatMath';
 import {
   ALL_MASTERY_BADGES,
@@ -49,25 +56,18 @@ import {
   getModuleBadgeId,
   getQuizBadgeId,
 } from '../data/masteryBadges';
+import { HeaderStreakBadge } from './HeaderStreakBadge';
+import type { EvaluatedStreakView } from '../utils/streakTracker';
+import type {
+  QuizDifficultyLevel,
+  QuizDifficultySettings,
+} from '../utils/quizDifficulty';
 
 interface Part1ChapterHubProps {
   allChapters: GanitaChapter[];
   activeChapterId: string;
   onSelectChapterId: (chapterId: string) => void;
   onOpenAllChaptersModal: () => void;
-  activeSolution: MathHomeworkSolution;
-  activeStepIndex: number;
-  onSelectStep: (idx: number) => void;
-  chapterSolutions: MathHomeworkSolution[];
-  onSelectSolution: (sol: MathHomeworkSolution) => void;
-  onSolveCustom: (payload: {
-    problemText: string;
-    imageBase64?: string;
-    imageMimeType?: string;
-    explanationStyle: 'balanced' | 'arcade' | 'visual';
-  }) => Promise<void>;
-  isSolving: boolean;
-  errorMsg: string | null;
   masteryPoints: number;
   onAddPoints: (pts: number) => void;
   unlockedBadgeIds: string[];
@@ -78,8 +78,29 @@ interface Part1ChapterHubProps {
   onAddChapterPoints: (chapterId: string, pts: number) => void;
   activeStudentAccount: StudentAccountProfile | null;
   onAccountChange: (account: StudentAccountProfile | null) => void;
+  isStatsLocked?: boolean;
+  onOpenAccountModal?: () => void;
+  onOpenQuizStats?: () => void;
+  completedQuizKeys?: string[];
+  onRecordQuizAttempt?: (attempt: Omit<QuizAttemptRecord, 'id' | 'timestamp'>) => void;
+  streakView?: EvaluatedStreakView;
+  onRecordStudyActivity?: () => void;
+  onOpenLessonStyleModal?: () => void;
   theme?: 'light' | 'midnight-chalkboard';
   onToggleTheme?: () => void;
+  ambienceSettings?: AmbienceSettings;
+  isAudioUnlocked?: boolean;
+  onUpdateAmbience?: (patch: Partial<AmbienceSettings>, triggeredByUser?: boolean) => void;
+  quizDifficultySettings?: QuizDifficultySettings;
+  effectiveDifficulty?: QuizDifficultyLevel;
+  recommendedDifficulty?: QuizDifficultyLevel;
+  recommendedReason?: string;
+  onSelectDifficulty?: (level: QuizDifficultyLevel) => void;
+  onToggleAutoMatchDifficulty?: (enabled: boolean) => void;
+  cinemaFocus?: boolean;
+  onToggleCinemaFocus?: () => void;
+  isStorytellerOpen?: boolean;
+  onToggleStoryteller?: () => void;
 }
 
 type ModuleSlideId = 'videos' | 'text' | 'simulation' | 'game' | 'quiz';
@@ -249,12 +270,31 @@ export const Part1ChapterHub: React.FC<Part1ChapterHubProps> = ({
   chapterGamePoints,
   onAddChapterPoints,
   activeStudentAccount,
-  onAccountChange,
+  isStatsLocked = false,
+  onOpenAccountModal,
+  onOpenQuizStats,
+  completedQuizKeys = [],
+  onRecordQuizAttempt,
+  streakView,
+  onRecordStudyActivity,
+  onOpenLessonStyleModal,
   theme = 'light',
   onToggleTheme,
+  ambienceSettings,
+  isAudioUnlocked = false,
+  onUpdateAmbience,
+  quizDifficultySettings,
+  effectiveDifficulty,
+  recommendedDifficulty,
+  recommendedReason,
+  onSelectDifficulty,
+  onToggleAutoMatchDifficulty,
+  cinemaFocus = false,
+  onToggleCinemaFocus,
+  isStorytellerOpen = false,
+  onToggleStoryteller,
 }) => {
   const slideshowSectionRef = useRef<HTMLDivElement | null>(null);
-  const [isAccountModalOpen, setIsAccountModalOpen] = useState<boolean>(false);
 
   const unlockedSet = useMemo(() => new Set(unlockedBadgeIds), [unlockedBadgeIds]);
   const prereqUnlockedCount = useMemo(
@@ -298,6 +338,14 @@ export const Part1ChapterHub: React.FC<Part1ChapterHubProps> = ({
     activeCurriculum.modules[0]?.moduleCode || 'Module 1.1'
   );
   const [visitedModules, setVisitedModules] = useState<Record<string, boolean>>({});
+
+  // Ensure module visit stats also reset whenever locked/logged out
+  useEffect(() => {
+    if (isStatsLocked) {
+      setVisitedModules({});
+    }
+  }, [isStatsLocked]);
+
   const [activeSlideIndex, setActiveSlideIndex] = useState<number>(0);
   const [is112HubOpen, setIs112HubOpen] = useState<boolean>(false);
   const [hubInitialTab, setHubInitialTab] = useState<'games' | 'simulations'>('games');
@@ -351,8 +399,12 @@ export const Part1ChapterHub: React.FC<Part1ChapterHubProps> = ({
     moduleItem: Part1ModuleItem,
     initialSlideIdx = 0
   ) => {
-    const visitKey = `${activeCurriculum.chapterId}:${moduleItem.moduleCode}`;
-    setVisitedModules((prev) => ({ ...prev, [visitKey]: true }));
+    soundscapeEngine.playPageFlipSfx();
+    if (!isStatsLocked) {
+      const visitKey = `${activeCurriculum.chapterId}:${moduleItem.moduleCode}`;
+      setVisitedModules((prev) => ({ ...prev, [visitKey]: true }));
+      onRecordStudyActivity?.();
+    }
     setLastHighlightedModuleCode(moduleItem.moduleCode);
     setSelectedModuleCode(moduleItem.moduleCode);
     setActiveSlideIndex(initialSlideIdx);
@@ -368,6 +420,7 @@ export const Part1ChapterHub: React.FC<Part1ChapterHubProps> = ({
   const handleStepSlide = (delta: number) => {
     const nextSlide = activeSlideIndex + delta;
     if (nextSlide >= 0 && nextSlide < SLIDESHOW_SLIDES.length) {
+      soundscapeEngine.playPageFlipSfx();
       setActiveSlideIndex(nextSlide);
       return;
     }
@@ -453,35 +506,49 @@ export const Part1ChapterHub: React.FC<Part1ChapterHubProps> = ({
   return (
     <div className="w-full space-y-6 relative">
 
-      {/* Streamlined, Readable Top Navigation Ribbon */}
+      {/* Clean, Uncluttered Scroll-Along Top Navigation Bar */}
       <header
         aria-label="Chapter Controls & Tools"
-        className="w-full flex flex-wrap items-center justify-between gap-3 px-1 py-1"
+        className="w-full flex flex-wrap xl:flex-nowrap items-center justify-between gap-2 px-1 py-1 relative z-40"
       >
-        {/* Left: Chapters Picker + Compact Part I / Part II Volume Switch */}
-        <div className="flex items-center gap-2">
+        {/* Left: Chapters Picker + Part I / Part II Switch */}
+        <div
+          className={`flex flex-wrap xl:flex-nowrap items-center gap-1.5 max-w-full xl:shrink-0 ${
+            cinemaFocus ? 'cinema-focus-dim' : ''
+          }`}
+        >
           <button
             type="button"
             onClick={onOpenAllChaptersModal}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full bg-white hover:bg-stone-50 text-stone-800 border-2 border-stone-200 text-xs sm:text-sm font-black transition-all cursor-pointer shadow-2xs hover:shadow-xs hover:scale-[1.02] active:scale-[0.98]"
+            className="inline-flex items-center gap-1.5 h-9 px-2.5 rounded-full bg-white hover:bg-stone-50 text-stone-800 border border-stone-200 text-xs font-black transition-all cursor-pointer shadow-2xs whitespace-nowrap"
             title="Browse All 14 Chapters"
           >
-            <LayoutGrid className="w-4 h-4 text-[#00B4A7]" />
+            <LayoutGrid className="w-3.5 h-3.5 text-[#00B4A7]" />
             <span>Chapters</span>
-            <span className="text-[10px] font-bold bg-teal-50 text-teal-700 px-1.5 py-0.5 rounded-full border border-teal-200 hidden sm:inline">
-              {isPart2Active ? `Part II · Ch ${activeCurriculum.chapterIndex}` : `Ch ${activeCurriculum.chapterIndex}`}
-            </span>
           </button>
 
+          {onOpenLessonStyleModal && (
+            <button
+              type="button"
+              data-testid="hub-lesson-style-btn"
+              onClick={onOpenLessonStyleModal}
+              className="inline-flex items-center gap-1.5 h-9 px-2.5 rounded-full bg-white hover:bg-stone-50 text-stone-800 border border-stone-200 text-xs font-black transition-all cursor-pointer shadow-2xs whitespace-nowrap"
+              title="Choose Lesson Style: Visual Models, Fullscreen Genius Bar, or 20Q Tricky Puzzles"
+            >
+              <Layers className="w-3.5 h-3.5 text-[#0F766E]" />
+              <span className="hidden sm:inline">Lesson Mode</span>
+            </button>
+          )}
+
           {/* Compact Part I / Part II Switch */}
-          <div className="inline-flex items-center p-0.5 rounded-full bg-stone-200/80 border border-stone-300 shadow-inner">
+          <div className="inline-flex items-center h-9 p-0.5 rounded-full bg-stone-200/80 border border-stone-300">
             <button
               type="button"
               onClick={() => onSelectChapterId(PART1_CURRICULUM_CHAPTERS[0].chapterId)}
-              className={`px-3 py-1.5 rounded-full text-xs font-black transition-all cursor-pointer whitespace-nowrap ${
+              className={`h-8 px-2.5 rounded-full text-xs font-black transition-all cursor-pointer whitespace-nowrap ${
                 !isPart2Active
-                  ? 'bg-[#00B4A7] text-white shadow-xs'
-                  : 'text-stone-700 hover:text-stone-900 hover:bg-white/60'
+                  ? 'bg-[#0F766E] text-white shadow-xs'
+                  : 'text-stone-700 hover:text-stone-900'
               }`}
             >
               Part I
@@ -491,10 +558,10 @@ export const Part1ChapterHub: React.FC<Part1ChapterHubProps> = ({
               onClick={() => {
                 if (part2Chapters[0]) onSelectChapterId(part2Chapters[0].id);
               }}
-              className={`px-3 py-1.5 rounded-full text-xs font-black transition-all cursor-pointer whitespace-nowrap ${
+              className={`h-8 px-2.5 rounded-full text-xs font-black transition-all cursor-pointer whitespace-nowrap ${
                 isPart2Active
-                  ? 'bg-[#00B4A7] text-white shadow-xs'
-                  : 'text-stone-700 hover:text-stone-900 hover:bg-white/60'
+                  ? 'bg-[#0F766E] text-white shadow-xs'
+                  : 'text-stone-700 hover:text-stone-900'
               }`}
             >
               Part II
@@ -502,144 +569,206 @@ export const Part1ChapterHub: React.FC<Part1ChapterHubProps> = ({
           </div>
         </div>
 
-        {/* Center: Creative Circular Universe Progress Astrolabe */}
-        <div className="flex items-center justify-center">
-          <CircularUniverseProgress
-            unlockedBadgeIds={unlockedBadgeIds}
-            activeChapterId={activeCurriculum.chapterId}
-            onSelectChapter={onSelectChapterId}
-            onOpen112Hub={(tab) => {
-              setHubInitialTab(tab);
-              setIs112HubOpen(true);
-            }}
-          />
-        </div>
-
-        {/* Right: Consolidated Tools & Inline Classroom Switch */}
-        <div className="flex flex-wrap items-center gap-2">
-          {/* 112 Hub Fast Launch */}
-          <button
-            type="button"
-            onClick={() => {
-              setHubInitialTab('games');
-              setIs112HubOpen(true);
-            }}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-400 hover:bg-amber-300 text-stone-950 font-black text-xs transition-all cursor-pointer shadow-2xs hover:scale-105"
-            title="Browse all 112 Games & 112 Simulations"
-          >
-            <Gamepad2 className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">112 Arcade & Labs</span>
-            <span className="sm:hidden">112 Hub</span>
-          </button>
-
-          {/* Trophy Room Counter */}
-          <button
-            type="button"
-            onClick={onOpenTrophyRoom}
-            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-amber-50 hover:bg-amber-100 text-amber-950 border border-amber-300 text-xs font-black transition-all cursor-pointer shadow-2xs"
-            title="Open Trophy Room"
-          >
-            <Trophy className="w-3.5 h-3.5 text-amber-600" />
-            <span className="tabular-nums">{unlockedBadgeIds.length}/115</span>
-          </button>
-
-          {/* Cellar Boss */}
-          <button
-            type="button"
-            onClick={() => {
-              if (isCellarKeyUnlocked) {
-                onOpenBossBattle();
-              } else {
-                onOpenTrophyRoom();
-              }
-            }}
-            className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-black transition-all cursor-pointer shadow-2xs ${
-              isCellarKeyUnlocked
-                ? 'bg-[#1E1430] hover:bg-[#2A1C42] text-amber-300 border border-amber-400'
-                : 'bg-stone-900 hover:bg-stone-800 text-stone-200 border border-stone-700'
+        {/* Right: Clean Single-Row Progress, Account, Focus/Story & iPhone Control Center Duo */}
+        <div className="flex flex-wrap xl:flex-nowrap items-center gap-1.5 justify-start xl:justify-end max-w-full xl:shrink-0">
+          <div
+            className={`flex flex-wrap xl:flex-nowrap items-center gap-1.5 max-w-full ${
+              cinemaFocus ? 'cinema-focus-dim' : ''
             }`}
-            title="Cellar Boss Battle"
           >
-            {isCellarKeyUnlocked ? (
-              <Key className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
-            ) : (
-              <Lock className="w-3.5 h-3.5 text-rose-400" />
-            )}
-            <span className="hidden md:inline">Boss</span>
-          </button>
-
-          {/* Student Account */}
-          <button
-            type="button"
-            onClick={() => setIsAccountModalOpen(true)}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-black transition-all cursor-pointer shadow-2xs ${
-              activeStudentAccount
-                ? 'bg-[#12352B] hover:bg-[#1A4B3D] text-amber-300 border border-teal-500/50'
-                : 'bg-emerald-50 hover:bg-emerald-100 text-[#0F766E] border border-emerald-300'
-            }`}
-            title="Student Account & Cloud Save"
-          >
-            <span>{activeStudentAccount?.mascot || '👤'}</span>
-            <span className="max-w-[75px] truncate hidden sm:inline">
-              {activeStudentAccount ? activeStudentAccount.username : 'Account'}
-            </span>
-          </button>
-
-          {/* NCERT PDF Link */}
-          <a
-            href={activeCurriculum.pdfUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-white hover:bg-stone-50 text-stone-700 hover:text-stone-900 border border-stone-200 text-xs font-bold transition-all shadow-2xs hidden lg:inline-flex"
-            title="Open NCERT Textbook PDF"
-          >
-            <FileText className="w-3.5 h-3.5 text-[#00B4A7]" />
-            <span>PDF</span>
-          </a>
-
-          {/* Inline Classroom Light Switch (Never overlaps content!) */}
-          {onToggleTheme && (
-            <ClassroomThemeSwitch
-              theme={theme}
-              onToggleTheme={onToggleTheme}
-              variant="inline"
+            <CircularUniverseProgress
+              unlockedBadgeIds={unlockedBadgeIds}
+              activeChapterId={activeCurriculum.chapterId}
+              onSelectChapter={onSelectChapterId}
+              onOpen112Hub={(tab) => {
+                setHubInitialTab(tab);
+                setIs112HubOpen(true);
+              }}
+              isStatsLocked={isStatsLocked}
+              onRequestSignIn={onOpenAccountModal}
             />
+
+            {/* Compact Trophy Room & Boss Trigger */}
+            <button
+              type="button"
+              onClick={() => {
+                if (isCellarKeyUnlocked && !isStatsLocked) {
+                  onOpenBossBattle();
+                } else {
+                  onOpenTrophyRoom();
+                }
+              }}
+              className={`inline-flex items-center gap-1 h-9 px-2.5 rounded-full text-xs font-black transition-all cursor-pointer shadow-2xs whitespace-nowrap border ${
+                isCellarKeyUnlocked && !isStatsLocked
+                  ? 'bg-[#1E1430] hover:bg-[#2A1C42] text-amber-300 border-amber-400'
+                  : 'bg-white hover:bg-stone-50 text-stone-800 border-stone-200'
+              }`}
+              title={
+                isCellarKeyUnlocked && !isStatsLocked
+                  ? 'Cellar Boss Battle Unlocked!'
+                  : isStatsLocked
+                  ? 'Trophy Room (Locked until sign-in)'
+                  : 'Open Trophy Room'
+              }
+            >
+              {isCellarKeyUnlocked && !isStatsLocked ? (
+                <Key className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
+              ) : isStatsLocked ? (
+                <Lock className="w-3.5 h-3.5 text-amber-500" />
+              ) : (
+                <Trophy className="w-3.5 h-3.5 text-amber-500" />
+              )}
+              <span className="tabular-nums">{unlockedBadgeIds.length}/115</span>
+            </button>
+
+            {/* Student Account / Sign In CTA */}
+            <button
+              type="button"
+              data-testid="hub-account-btn"
+              onClick={() => onOpenAccountModal?.()}
+              className={`inline-flex items-center gap-1 h-9 px-2.5 rounded-full text-xs font-black transition-all cursor-pointer shadow-2xs whitespace-nowrap ${
+                activeStudentAccount
+                  ? 'bg-[#12352B] hover:bg-[#1A4B3D] text-amber-300 border border-teal-500/50'
+                  : 'bg-[#0F766E] hover:bg-[#115E59] text-white border border-[#0F766E]'
+              }`}
+              title={activeStudentAccount ? 'Student Account & Cloud Save' : 'Sign In to Unlock Stats'}
+            >
+              <span>{activeStudentAccount?.mascot || '🔓'}</span>
+              <span className="max-w-[78px] truncate">
+                {activeStudentAccount ? activeStudentAccount.username : 'Sign In'}
+              </span>
+            </button>
+
+            {/* Daily Study Streak Flame & Count Badge */}
+            {streakView && (
+              <HeaderStreakBadge
+                streakView={streakView}
+                theme={theme}
+                testId="header-streak-badge"
+                onClick={() => onOpenAccountModal?.()}
+              />
+            )}
+          </div>
+
+          {/* Ambient Storyteller Toggle (accessible even during Cinema Focus) */}
+          {onToggleStoryteller && (
+            <button
+              type="button"
+              onClick={onToggleStoryteller}
+              aria-pressed={isStorytellerOpen}
+              className={`inline-flex items-center gap-1.5 h-9 px-2.5 rounded-full text-xs font-black transition-all cursor-pointer shadow-2xs border whitespace-nowrap ${
+                isStorytellerOpen
+                  ? 'bg-[#194530] text-amber-300 border-amber-400 ring-2 ring-amber-300/40'
+                  : cinemaFocus
+                  ? 'bg-white/95 text-stone-800 border-stone-300 opacity-90'
+                  : 'bg-white hover:bg-stone-50 text-stone-800 border-stone-200'
+              }`}
+              title="Open Ambient Storyteller Narration"
+            >
+              <AudioLines
+                className={`w-3.5 h-3.5 ${isStorytellerOpen ? 'text-amber-300' : 'text-[#0F766E]'}`}
+              />
+              <span className="hidden sm:inline">Storyteller</span>
+            </button>
+          )}
+
+          {/* Cinema Focus Spotlight Toggle */}
+          {onToggleCinemaFocus && (
+            <button
+              type="button"
+              onClick={onToggleCinemaFocus}
+              aria-pressed={cinemaFocus}
+              className={`inline-flex items-center gap-1.5 h-9 px-2.5 rounded-full text-xs font-black transition-all cursor-pointer shadow-2xs border whitespace-nowrap ${
+                cinemaFocus
+                  ? 'bg-amber-400 hover:bg-amber-300 text-stone-950 border-amber-300 ring-2 ring-amber-300/70'
+                  : 'bg-white hover:bg-stone-50 text-stone-800 border-stone-200'
+              }`}
+              title="Spotlight the active chapter card and dim non-essential UI"
+            >
+              <Focus className="w-3.5 h-3.5" />
+              <span>{cinemaFocus ? 'Exit Focus' : 'Cinema Focus'}</span>
+            </button>
+          )}
+
+          {/* Scroll-Along iPhone Control Center Duo (Theme + Ambience Volume + Storyteller Pace + Tools) */}
+          {onToggleTheme && onUpdateAmbience && (
+            <div className={cinemaFocus ? 'cinema-focus-dim' : ''}>
+              <ControlCenterDuo
+                theme={theme}
+                onToggleTheme={onToggleTheme}
+                settings={ambienceSettings || DEFAULT_AMBIENCE_SETTINGS}
+                isAudioUnlocked={isAudioUnlocked}
+                onUpdateSettings={onUpdateAmbience}
+                quizDifficultySettings={quizDifficultySettings}
+                effectiveDifficulty={effectiveDifficulty}
+                recommendedDifficulty={recommendedDifficulty}
+                recommendedReason={recommendedReason}
+                onSelectDifficulty={onSelectDifficulty}
+                onToggleAutoMatchDifficulty={onToggleAutoMatchDifficulty}
+                cinemaFocus={cinemaFocus}
+                onToggleCinemaFocus={onToggleCinemaFocus}
+                isStorytellerOpen={isStorytellerOpen}
+                onToggleStoryteller={onToggleStoryteller}
+                showFocusAndStory={true}
+                onOpen112Labs={() => {
+                  setHubInitialTab('games');
+                  setIs112HubOpen(true);
+                }}
+                onOpenTrophyRoom={onOpenTrophyRoom}
+                pdfUrl={activeCurriculum.pdfUrl}
+              />
+            </div>
           )}
         </div>
       </header>
 
-      {/* Main Chapter Stage with Itza-Style Animated Chapter Banner */}
-      <div className="w-full space-y-7 relative z-10">
-        <AnimatedChapterBanner
-          chapterId={activeCurriculum.chapterId}
-          chapterIndex={activeCurriculum.chapterIndex}
-          partLabel={isPart2Active ? 'Part II' : 'Part I'}
-          title={activeCurriculum.title}
-          subtitle={activeCurriculum.heroSubtitle}
-          ribbonText={activeCurriculum.heroRibbonText}
-          moduleCount={activeCurriculum.modules.length}
-          selectedModuleCode={effectiveSelectedModuleCode}
-          chapters={switcherItems}
-          onSelectChapter={onSelectChapterId}
-        />
+      {/* Main Stage: Streamlined Chapter Hub */}
+      <div
+        key="workspace-hub"
+        data-testid="chapter-hub-view"
+        className="w-full space-y-7 relative z-10 cinema-stage-enter"
+      >
+        {/* PRIMARY ACTIVE CHAPTER CARD (Spotlighted during Cinema Focus Mode) */}
+        <div
+          data-testid="spotlight-chapter-card"
+          className={cinemaFocus ? 'cinema-spotlight-card' : ''}
+        >
+          <AnimatedChapterBanner
+            chapterId={activeCurriculum.chapterId}
+            chapterIndex={activeCurriculum.chapterIndex}
+            partLabel={isPart2Active ? 'Part II' : 'Part I'}
+            title={activeCurriculum.title}
+            subtitle={activeCurriculum.heroSubtitle}
+            ribbonText={activeCurriculum.heroRibbonText}
+            moduleCount={activeCurriculum.modules.length}
+            selectedModuleCode={effectiveSelectedModuleCode}
+            chapters={switcherItems}
+            onSelectChapter={onSelectChapterId}
+            uiTheme={theme}
+          />
+        </div>
 
         {/* Level Progress Indicator for Current Chapter with Animated Filling Badges */}
-        <ChapterLevelProgress
-          chapterId={activeCurriculum.chapterId}
-          chapterTitle={activeCurriculum.title}
-          chapterIndex={activeCurriculum.chapterIndex}
-          chapterGamePoints={chapterGamePoints[activeCurriculum.chapterId] || 0}
-          unlockedBadgeIds={unlockedBadgeIds}
-          onSelectModule={(modCode) => {
-            const mod = activeCurriculum.modules.find((m) => m.moduleCode === modCode);
-            if (mod) handleOpenModuleSlideshow(mod, 3); // Jump straight to Slide 4 (The Game!)
-          }}
-          onOpenTrophyRoom={onOpenTrophyRoom}
-        />
+        <div className={cinemaFocus ? 'cinema-focus-dim' : ''}>
+          <ChapterLevelProgress
+            chapterId={activeCurriculum.chapterId}
+            chapterTitle={activeCurriculum.title}
+            chapterIndex={activeCurriculum.chapterIndex}
+            chapterGamePoints={chapterGamePoints[activeCurriculum.chapterId] || 0}
+            unlockedBadgeIds={unlockedBadgeIds}
+            onSelectModule={(modCode) => {
+              const mod = activeCurriculum.modules.find((m) => m.moduleCode === modCode);
+              if (mod) handleOpenModuleSlideshow(mod, 3); // Jump straight to Slide 4 (The Game!)
+            }}
+            onOpenTrophyRoom={onOpenTrophyRoom}
+            isStatsLocked={isStatsLocked}
+            onRequestSignIn={onOpenAccountModal}
+          />
+        </div>
 
         {/* When viewing a module, show a clean jump strip */}
         {effectiveSelectedModuleCode && activeModule && (
-          <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl bg-white border-2 border-stone-200 shadow-2xs">
+          <div className={`flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl bg-white border-2 border-stone-200 shadow-2xs ${cinemaFocus ? 'cinema-focus-dim' : ''}`}>
             <button
               type="button"
               onClick={() => setSelectedModuleCode(null)}
@@ -678,7 +807,9 @@ export const Part1ChapterHub: React.FC<Part1ChapterHubProps> = ({
         {/* ALWAYS AT THE TOP OF WORKSPACE: 25-SECOND CHAPTER INTRO VIDEO */}
         <section
           aria-label="Chapter Intro Video"
-          className="rounded-3xl bg-white border-2 border-stone-200/90 shadow-md p-5 sm:p-6 space-y-3"
+          className={`rounded-3xl bg-white border-2 border-stone-200/90 shadow-md p-5 sm:p-6 space-y-3 ${
+            cinemaFocus ? 'cinema-focus-dim' : ''
+          }`}
         >
           <div className="flex flex-wrap items-center justify-between gap-2 px-1">
             <span className="inline-flex items-center gap-2 text-xs sm:text-sm font-extrabold uppercase tracking-wider text-[#0F766E]">
@@ -714,7 +845,7 @@ export const Part1ChapterHub: React.FC<Part1ChapterHubProps> = ({
             - IF A MODULE IS OPEN -> 4-SLIDE MODULE SLIDESHOW (VIDEOS, TEXT, SIMULATION, GAME)
             - IF NO MODULE IS OPEN -> CLEAN 8-MODULE SELECTION GRID
            =================================================================== */}
-        <div ref={slideshowSectionRef} className="scroll-mt-6">
+        <div ref={slideshowSectionRef} className={`scroll-mt-6 ${cinemaFocus ? 'cinema-focus-dim' : ''}`}>
           {effectiveSelectedModuleCode && activeModule ? (
             /* =================================================================
                MODULE SLIDESHOW VIEW (4 SLIDES: THE VIDEOS, THE TEXT, THE SIMULATION, THE GAME)
@@ -926,10 +1057,16 @@ export const Part1ChapterHub: React.FC<Part1ChapterHubProps> = ({
                       activeModule.moduleCode,
                       activeModule.title,
                       activeModule.simulation.formulaHighlight,
-                      activeCurriculum.title
+                      activeCurriculum.title,
+                      activeModule.id,
+                      activeCurriculum.chapterId
                     );
                     return (
-                      <div className="mt-6 rounded-3xl bg-gradient-to-br from-[#FFFDF7] via-[#FEF9ED] to-[#FEF3C7]/60 border-2 border-amber-200 shadow-sm p-6 sm:p-8 space-y-5">
+                      <div
+                        data-testid="module-fun-interpretation"
+                        data-module-id={activeModule.id}
+                        className="mt-6 rounded-3xl bg-gradient-to-br from-[#FFFDF7] via-[#FEF9ED] to-[#FEF3C7]/60 border-2 border-amber-200 shadow-sm p-6 sm:p-8 space-y-5"
+                      >
                         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-amber-200/80 pb-4">
                           <div className="flex items-center gap-3">
                             <span className="text-3xl p-2 rounded-2xl bg-white border border-amber-200 shadow-2xs">
@@ -938,7 +1075,9 @@ export const Part1ChapterHub: React.FC<Part1ChapterHubProps> = ({
                             <div>
                               <div className="text-[11px] font-extrabold uppercase tracking-wider text-amber-700 flex items-center gap-1.5">
                                 <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-                                <span>Intuitive Interpretation & Mental Model · {activeModule.moduleCode}</span>
+                                <span>
+                                  Intuitive Interpretation &amp; Mental Model · {activeModule.moduleCode} · {activeModule.id}
+                                </span>
                               </div>
                               <h4 className="text-xl sm:text-2xl font-black text-stone-900 tracking-tight mt-0.5">
                                 {funInterpretation.headline}
@@ -1014,6 +1153,7 @@ export const Part1ChapterHub: React.FC<Part1ChapterHubProps> = ({
                     moduleCode={activeModule.moduleCode}
                     moduleId={activeModule.id}
                     chapterId={activeCurriculum.chapterId}
+                    moduleTitle={activeModule.title}
                     simulation={activeModule.simulation}
                     game={activeModule.game}
                     mode="simulation"
@@ -1027,6 +1167,7 @@ export const Part1ChapterHub: React.FC<Part1ChapterHubProps> = ({
                     moduleCode={activeModule.moduleCode}
                     moduleId={activeModule.id}
                     chapterId={activeCurriculum.chapterId}
+                    moduleTitle={activeModule.title}
                     simulation={activeModule.simulation}
                     game={activeModule.game}
                     mode="game"
@@ -1041,15 +1182,27 @@ export const Part1ChapterHub: React.FC<Part1ChapterHubProps> = ({
                     moduleCode={activeModule.moduleCode}
                     moduleId={activeModule.id}
                     chapterId={activeCurriculum.chapterId}
+                    moduleTitle={activeModule.title}
                     simulation={activeModule.simulation}
                     game={activeModule.game}
                     mode="quiz"
                     badge={activeModuleBadge}
                     isBadgeUnlocked={Boolean(
-                      activeModuleBadge && unlockedSet.has(activeModuleBadge.id)
+                      !isStatsLocked && activeModuleBadge && unlockedSet.has(activeModuleBadge.id)
                     )}
                     onUnlockBadge={onUnlockBadge}
                     isLastModule={activeModuleIndex === activeCurriculum.modules.length - 1}
+                    isStatsLocked={isStatsLocked}
+                    onRequestSignIn={onOpenAccountModal}
+                    completedQuizKeys={completedQuizKeys}
+                    onRecordQuizAttempt={onRecordQuizAttempt}
+                    onOpenQuizStats={onOpenQuizStats}
+                    quizDifficultySettings={quizDifficultySettings}
+                    effectiveDifficulty={effectiveDifficulty}
+                    recommendedDifficulty={recommendedDifficulty}
+                    recommendedReason={recommendedReason}
+                    onSelectDifficulty={onSelectDifficulty}
+                    onToggleAutoMatchDifficulty={onToggleAutoMatchDifficulty}
                   />
                 )}
               </div>
@@ -1123,12 +1276,23 @@ export const Part1ChapterHub: React.FC<Part1ChapterHubProps> = ({
               baseQuestions={activeCurriculum.questionnaire}
               quizBadge={activeQuizBadge}
               isQuizBadgeUnlocked={Boolean(
-                activeQuizBadge && unlockedSet.has(activeQuizBadge.id)
+                !isStatsLocked && activeQuizBadge && unlockedSet.has(activeQuizBadge.id)
               )}
               onUnlockBadge={onUnlockBadge}
               onCompleteQuiz={(score) => {
                 onAddPoints(Math.min(25, score * 2));
               }}
+              isStatsLocked={isStatsLocked}
+              onRequestSignIn={onOpenAccountModal}
+              completedQuizKeys={completedQuizKeys}
+              onRecordQuizAttempt={onRecordQuizAttempt}
+              onOpenQuizStats={onOpenQuizStats}
+              quizDifficultySettings={quizDifficultySettings}
+              effectiveDifficulty={effectiveDifficulty}
+              recommendedDifficulty={recommendedDifficulty}
+              recommendedReason={recommendedReason}
+              onSelectDifficulty={onSelectDifficulty}
+              onToggleAutoMatchDifficulty={onToggleAutoMatchDifficulty}
             />
           ) : (
             /* =================================================================
@@ -1269,17 +1433,6 @@ export const Part1ChapterHub: React.FC<Part1ChapterHubProps> = ({
           )}
         </div>
       </div>
-
-      {/* Student Account Registration & Progress Saving Modal (NO EMAIL REQUIRED) */}
-      <StudentAccountModal
-        isOpen={isAccountModalOpen}
-        onClose={() => setIsAccountModalOpen(false)}
-        activeAccount={activeStudentAccount}
-        onAccountChange={onAccountChange}
-        currentPoints={masteryPoints}
-        unlockedBadgeIds={unlockedBadgeIds}
-        chapterGamePoints={chapterGamePoints}
-      />
 
       {/* Complete 112 Games Arcade & Simulations Lab Gallery Modal */}
       <All112HubModal

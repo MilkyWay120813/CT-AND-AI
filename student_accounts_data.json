@@ -1,0 +1,461 @@
+[
+  {
+    "username": "DemoStudent",
+    "mascot": "🦉",
+    "pin": "1234",
+    "grade": "Class 8",
+    "createdAt": "2026-11-13T11:17:09.043Z",
+    "lastLoginAt": "2026-11-16T17:26:17.744Z",
+    "points": 0,
+    "unlockedBadgeIds": [],
+    "chapterGamePoints": {},
+    "quizHistory": [],
+    "completedQuizKeys": [],
+    "streakCount": 1,
+    "longestStreak": 1,
+    "lastStreakDate": "2026-11-16",
+    "streakHistoryDays": [
+      "2026-11-16"
+    ]
+  },
+  {
+    "username": "Scholar8127",
+    "mascot": "🦉",
+    "pin": "1234",
+    "grade": "Class 8",
+    "createdAt": "2026-11-13T15:11:48.310Z",
+    "lastLoginAt": "2026-11-13T15:11:48.310Z",
+    "points": 0,
+    "unlockedBadgeIds": [],
+    "chapterGamePoints": {},
+    "quizHistory": [],
+    "completedQuizKeys": [],
+    "streakCount": 0,
+    "longestStreak": 0,
+    "lastStreakDate": null,
+    "streakHistoryDays": []
+  },
+  {
+    "username": "Scholar79205",
+    "mascot": "🦉",
+    "pin": "1234",
+    "grade": "Class 8",
+    "createdAt": "2026-11-13T15:12:59.416Z",
+    "lastLoginAt": "2026-11-13T15:13:43.726Z",
+    "points": 0,
+    "unlockedBadgeIds": [],
+    "chapterGamePoints": {},
+    "quizHistory": [
+      {
+        "quizKey": "tricky-20q-ch6-proportional-reasoning,ch1-square-cube",
+        "quizKind": "tricky-textbook",
+        "title": "Tricky 20Q Puzzle (Ch 3, Ch 1)",
+        "chapterIds": [
+          "ch6-proportional-reasoning",
+          "ch1-square-cube"
+        ],
+        "score": 0,
+        "total": 20,
+        "percentage": 0,
+        "passed": false,
+        "id": "quiz-1794582823718-gjcwh",
+        "timestamp": "2026-11-13T15:13:43.719Z"
+      }
+    ],
+    "completedQuizKeys": [
+      "tricky-20q-ch6-proportional-reasoning,ch1-square-cube"
+    ],
+    "streakCount": 0,
+    "longestStreak": 0,
+    "lastStreakDate": null,
+    "streakHistoryDays": []
+  },
+  {
+    "username": "Scholar87659",
+    "mascot": "🦉",
+    "pin": "1234",
+    "grade": "Class 8",
+    "createdAt": "2026-11-13T15:14:47.855Z",
+    "lastLoginAt": "2026-11-13T15:14:47.855Z",
+    "points": 0,
+    "unlockedBadgeIds": [],
+    "chapterGamePoints": {},
+    "quizHistory": [],
+    "completedQuizKeys": [],
+    "streakCount": 0,
+    "longestStreak": 0,
+    "lastStreakDate": null,
+    "streakHistoryDays": []
+  },
+  {
+    "username": "Scholar74737",
+    "mascot": "🦉",
+    "pin": "1234",
+    "grade": "Class 8",
+    "createdAt": "2026-11-13T15:16:14.891Z",
+    "lastLoginAt": "2026-11-13T15:16:45.282Z",
+    "points": 0,
+    "unlockedBadgeIds": [],
+    "chapterGamePoints": {},
+    "quizHistory": [
+      {
+        "quizKey": "module:ch6-proportional-reasoning:Module 3.1",
+        "quizKind": "module-recap",
+        "title": "Module 3.1: Proportion Matcher",
+        "chapterIds": [
+          "ch6-proportional-reasoning"
+        ],
+        "score": 1,
+        "total": 5,
+        "percentage": 20,
+        "passed": false,
+        "id": "quiz-1794583005275-ot07t",
+        "timestamp": "2026-11-13T15:16:45.275Z"
+      }
+    ],
+    "completedQuizKeys": [
+      "module:ch6-proportional-reasoning:Module 3.1"
+    ],
+    "streakCount": 0,
+    "longestStreak": 0,
+    "lastStreakDate": null,
+    "streakHistoryDays": []
+  },
+  {
+    "username": "Scholar4105",
+    "mascot": "🦉",
+    "pin": "1234",
+    "grade": "Class 8",
+    "createdAt": "2026-11-13T15:18:24.307Z",
+    "lastLoginAt": "2026-11-13T15:19:14.872Z",
+    "points": 0,
+    "unlockedBadgeIds": [],
+    "chapterGamePoints": {},
+    "quizHistory": [
+      {
+        "quizKey": "module:ch6-proportional-reasoning:Module 3.1",
+        "quizKind": "module-recap",
+        "title": "Module 3.1: Proportion Matcher",
+        "chapterIds": [
+          "ch6-proportional-reasoning"
+        ],
+        "score": 1,
+        "total": 5,
+        "percentage": 20,
+        "passed": false,
+        "id": "quiz-1794583132864-207d6",
+        "timestamp": "2026-11-13T15:18:52.864Z"
+      },
+      {
+        "quizKey": "tricky-20q-ch6-proportional-reasoning,ch1-square-cube",
+        "quizKind": "tricky-textbook",
+        "title": "Tricky 20Q Puzzle (Ch 3, Ch 1)",
+        "chapterIds": [
+          "ch6-proportional-reasoning",
+          "ch1-square-cube"
+        ],
+        "score": 0,
+        "total": 20,
+        "percentage": 0,
+        "passed": false,
+        "id": "quiz-1794583154855-5st5v",
+        "timestamp": "2026-11-13T15:19:14.855Z"
+      }
+    ],
+    "completedQuizKeys": [
+      "module:ch6-proportional-reasoning:Module 3.1",
+      "tricky-20q-ch6-proportional-reasoning,ch1-square-cube"
+    ],
+    "streakCount": 0,
+    "longestStreak": 0,
+    "lastStreakDate": null,
+    "streakHistoryDays": []
+  },
+  {
+    "username": "Scholar17448",
+    "mascot": "🦉",
+    "pin": "1234",
+    "grade": "Class 8",
+    "createdAt": "2026-11-13T15:20:17.689Z",
+    "lastLoginAt": "2026-11-13T15:21:15.694Z",
+    "points": 0,
+    "unlockedBadgeIds": [],
+    "chapterGamePoints": {},
+    "quizHistory": [
+      {
+        "quizKey": "module:ch6-proportional-reasoning:Module 3.1",
+        "quizKind": "module-recap",
+        "title": "Module 3.1: Proportion Matcher",
+        "chapterIds": [
+          "ch6-proportional-reasoning"
+        ],
+        "score": 1,
+        "total": 5,
+        "percentage": 20,
+        "passed": false,
+        "id": "quiz-1794583263420-9m8fu",
+        "timestamp": "2026-11-13T15:21:03.420Z"
+      },
+      {
+        "quizKey": "tricky-20q-ch6-proportional-reasoning,ch1-square-cube",
+        "quizKind": "tricky-textbook",
+        "title": "Tricky 20Q Puzzle (Ch 3, Ch 1)",
+        "chapterIds": [
+          "ch6-proportional-reasoning",
+          "ch1-square-cube"
+        ],
+        "score": 1,
+        "total": 20,
+        "percentage": 5,
+        "passed": false,
+        "id": "quiz-1794583275689-edikr",
+        "timestamp": "2026-11-13T15:21:15.689Z"
+      }
+    ],
+    "completedQuizKeys": [
+      "module:ch6-proportional-reasoning:Module 3.1",
+      "tricky-20q-ch6-proportional-reasoning,ch1-square-cube"
+    ],
+    "streakCount": 0,
+    "longestStreak": 0,
+    "lastStreakDate": null,
+    "streakHistoryDays": []
+  },
+  {
+    "username": "Scholar60228",
+    "mascot": "🦉",
+    "pin": "1234",
+    "grade": "Class 8",
+    "createdAt": "2026-11-13T15:22:40.389Z",
+    "lastLoginAt": "2026-11-13T15:23:29.143Z",
+    "points": 0,
+    "unlockedBadgeIds": [],
+    "chapterGamePoints": {},
+    "quizHistory": [
+      {
+        "quizKey": "module:ch6-proportional-reasoning:Module 3.1",
+        "quizKind": "module-recap",
+        "title": "Module 3.1: Proportion Matcher",
+        "chapterIds": [
+          "ch6-proportional-reasoning"
+        ],
+        "score": 1,
+        "total": 5,
+        "percentage": 20,
+        "passed": false,
+        "id": "quiz-1794583391958-r9lxb",
+        "timestamp": "2026-11-13T15:23:11.959Z"
+      },
+      {
+        "quizKey": "tricky-20q-ch6-proportional-reasoning,ch1-square-cube",
+        "quizKind": "tricky-textbook",
+        "title": "Tricky 20Q Puzzle (Ch 3, Ch 1)",
+        "chapterIds": [
+          "ch6-proportional-reasoning",
+          "ch1-square-cube"
+        ],
+        "score": 1,
+        "total": 20,
+        "percentage": 5,
+        "passed": false,
+        "id": "quiz-1794583409139-72w21",
+        "timestamp": "2026-11-13T15:23:29.139Z"
+      }
+    ],
+    "completedQuizKeys": [
+      "module:ch6-proportional-reasoning:Module 3.1",
+      "tricky-20q-ch6-proportional-reasoning,ch1-square-cube"
+    ],
+    "streakCount": 0,
+    "longestStreak": 0,
+    "lastStreakDate": null,
+    "streakHistoryDays": []
+  },
+  {
+    "username": "Scholar54994",
+    "mascot": "🦉",
+    "pin": "1234",
+    "grade": "Class 8",
+    "createdAt": "2026-11-16T09:50:05.980Z",
+    "lastLoginAt": "2026-11-16T09:50:05.980Z",
+    "points": 0,
+    "unlockedBadgeIds": [],
+    "chapterGamePoints": {},
+    "quizHistory": [],
+    "completedQuizKeys": [],
+    "streakCount": 0,
+    "longestStreak": 0,
+    "lastStreakDate": null,
+    "streakHistoryDays": []
+  },
+  {
+    "username": "Scholar96225",
+    "mascot": "🦉",
+    "pin": "1234",
+    "grade": "Class 8",
+    "createdAt": "2026-11-16T09:51:20.603Z",
+    "lastLoginAt": "2026-11-16T09:51:33.361Z",
+    "points": 0,
+    "unlockedBadgeIds": [],
+    "chapterGamePoints": {},
+    "quizHistory": [
+      {
+        "quizKey": "module:ch6-proportional-reasoning:Module 3.1",
+        "quizKind": "module-recap",
+        "title": "Module 3.1: Proportion Matcher",
+        "chapterIds": [
+          "ch6-proportional-reasoning"
+        ],
+        "score": 1,
+        "total": 5,
+        "percentage": 20,
+        "passed": false,
+        "id": "quiz-1794822693353-r9m9m",
+        "timestamp": "2026-11-16T09:51:33.353Z"
+      }
+    ],
+    "completedQuizKeys": [
+      "module:ch6-proportional-reasoning:Module 3.1"
+    ],
+    "streakCount": 0,
+    "longestStreak": 0,
+    "lastStreakDate": null,
+    "streakHistoryDays": []
+  },
+  {
+    "username": "Scholar20495",
+    "mascot": "🦉",
+    "pin": "1234",
+    "grade": "Class 8",
+    "createdAt": "2026-11-16T09:53:00.544Z",
+    "lastLoginAt": "2026-11-16T09:53:13.622Z",
+    "points": 0,
+    "unlockedBadgeIds": [],
+    "chapterGamePoints": {},
+    "quizHistory": [
+      {
+        "quizKey": "module:ch6-proportional-reasoning:Module 3.1",
+        "quizKind": "module-recap",
+        "title": "Module 3.1: Proportion Matcher",
+        "chapterIds": [
+          "ch6-proportional-reasoning"
+        ],
+        "score": 1,
+        "total": 5,
+        "percentage": 20,
+        "passed": false,
+        "id": "quiz-1794822793602-wtnpq",
+        "timestamp": "2026-11-16T09:53:13.602Z"
+      }
+    ],
+    "completedQuizKeys": [
+      "module:ch6-proportional-reasoning:Module 3.1"
+    ],
+    "streakCount": 0,
+    "longestStreak": 0,
+    "lastStreakDate": null,
+    "streakHistoryDays": []
+  },
+  {
+    "username": "Scholar55726",
+    "mascot": "🦉",
+    "pin": "1234",
+    "grade": "Class 8",
+    "createdAt": "2026-11-16T09:54:53.066Z",
+    "lastLoginAt": "2026-11-16T09:55:33.105Z",
+    "points": 0,
+    "unlockedBadgeIds": [],
+    "chapterGamePoints": {},
+    "quizHistory": [
+      {
+        "quizKey": "module:ch6-proportional-reasoning:Module 3.1",
+        "quizKind": "module-recap",
+        "title": "Module 3.1: Proportion Matcher",
+        "chapterIds": [
+          "ch6-proportional-reasoning"
+        ],
+        "score": 1,
+        "total": 5,
+        "percentage": 20,
+        "passed": false,
+        "id": "quiz-1794822906818-0og5j",
+        "timestamp": "2026-11-16T09:55:06.818Z"
+      },
+      {
+        "quizKey": "tricky-20q-ch6-proportional-reasoning,ch2-power-play,ch4-fractions-disguise",
+        "quizKind": "tricky-textbook",
+        "title": "Tricky 20Q Puzzle (Ch 3, Ch 2, Ch 1)",
+        "chapterIds": [
+          "ch6-proportional-reasoning",
+          "ch2-power-play",
+          "ch4-fractions-disguise"
+        ],
+        "score": 6,
+        "total": 20,
+        "percentage": 30,
+        "passed": false,
+        "id": "quiz-1794822933102-g60es",
+        "timestamp": "2026-11-16T09:55:33.102Z"
+      }
+    ],
+    "completedQuizKeys": [
+      "module:ch6-proportional-reasoning:Module 3.1",
+      "tricky-20q-ch6-proportional-reasoning,ch2-power-play,ch4-fractions-disguise"
+    ],
+    "streakCount": 0,
+    "longestStreak": 0,
+    "lastStreakDate": null,
+    "streakHistoryDays": []
+  },
+  {
+    "username": "Scholar69922",
+    "mascot": "🦉",
+    "pin": "1234",
+    "grade": "Class 8",
+    "createdAt": "2026-11-16T09:56:43.198Z",
+    "lastLoginAt": "2026-11-16T09:57:16.732Z",
+    "points": 0,
+    "unlockedBadgeIds": [],
+    "chapterGamePoints": {},
+    "quizHistory": [
+      {
+        "quizKey": "module:ch6-proportional-reasoning:Module 3.1",
+        "quizKind": "module-recap",
+        "title": "Module 3.1: Proportion Matcher",
+        "chapterIds": [
+          "ch6-proportional-reasoning"
+        ],
+        "score": 1,
+        "total": 5,
+        "percentage": 20,
+        "passed": false,
+        "id": "quiz-1794823013991-d7lp0",
+        "timestamp": "2026-11-16T09:56:53.991Z"
+      },
+      {
+        "quizKey": "tricky-20q-ch6-proportional-reasoning,ch2-power-play,ch4-fractions-disguise",
+        "quizKind": "tricky-textbook",
+        "title": "Tricky 20Q Puzzle (Ch 3, Ch 2, Ch 1)",
+        "chapterIds": [
+          "ch6-proportional-reasoning",
+          "ch2-power-play",
+          "ch4-fractions-disguise"
+        ],
+        "score": 5,
+        "total": 20,
+        "percentage": 25,
+        "passed": false,
+        "id": "quiz-1794823036728-fw4ap",
+        "timestamp": "2026-11-16T09:57:16.728Z"
+      }
+    ],
+    "completedQuizKeys": [
+      "module:ch6-proportional-reasoning:Module 3.1",
+      "tricky-20q-ch6-proportional-reasoning,ch2-power-play,ch4-fractions-disguise"
+    ],
+    "streakCount": 0,
+    "longestStreak": 0,
+    "lastStreakDate": null,
+    "streakHistoryDays": []
+  }
+]

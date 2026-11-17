@@ -5,8 +5,11 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { createServer as createViteServer } from 'vite';
-import { GoogleGenAI, Type } from '@google/genai';
+import { GoogleGenAI, ThinkingLevel, Type } from '@google/genai';
 import * as math from 'mathjs';
+import { solveGeniusMath } from './src/utils/geniusMathSolver';
+import { searchBookKnowledge } from './src/utils/bookKnowledgeSearch';
+import { formatMathText } from './src/utils/formatMath';
 
 dotenv.config({ quiet: true });
 
@@ -277,9 +280,10 @@ Student Problem: ${problemText || 'Read the math problem from the attached homew
       parts.push({ text: promptText });
 
       const response = await getAiClient().models.generateContent({
-        model: 'gemini-3.8-flash',
+        model: 'gemini-4-hydrogen',
         contents: { parts },
         config: {
+          thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
           systemInstruction:
             'You are Parabola Studio, an enthusiastic, crystal-clear math tutor and visual graphing architect. You turn intimidating homework problems into simple, joyful step-by-step journeys backed by interactive coordinate graphs. Never use raw LaTeX backslashes in display text—always write clean, human-readable math notation (√, ², ³, ×, ÷, ∠, Δ, °, ⇒).',
           responseMimeType: 'application/json',
@@ -504,7 +508,7 @@ Requirements:
 3. Also provide 3 concise keyTakeaways and a workedExample (problem, 3 steps, answer) using clean Unicode math.`;
 
       const response = await getAiClient().models.generateContent({
-        model: 'gemini-3.8-flash',
+        model: 'gemini-4-hydrogen',
         contents: prompt,
         config: {
           systemInstruction:
@@ -707,283 +711,152 @@ Requirements:
     </svg>`;
   }
 
-  // Pure Mathematics Evaluation Engine for Genius Bar (100% Mathematics Only)
-  function solvePureMathematicsQuestion(rawQuestion: string): {
+  // Clean raw encyclopedia snippets into short, simple student-friendly language
+  function cleanSimpleEncyclopediaText(raw: string): string {
+    return raw
+      .replace(/\[[^\]]*\]/g, '')
+      .replace(/\s*\([^)]*(?:listen|pronounced|\/[^/]+\/|Latin:|Greek:|from Greek|from Latin|literally)[^)]*\)/gi, '')
+      .replace(/\s{2,}/g, ' ')
+      .trim();
+  }
+
+  // Real Encyclopedic Knowledge Lookup (prefers Simple English Wikipedia first for crisp, easy answers)
+  async function lookupEncyclopediaKnowledge(rawQuestion: string): Promise<{
     answer: string;
     steps: string[];
     formula: string;
     example: string;
-    diagramSvg?: string;
-  } | null {
-    const q = rawQuestion.trim();
-    const qLower = q.toLowerCase().replace(/[?!.]+$/, '').trim();
-
-    // 1. Cube of N: e.g. "cube of 213", "213 cubed", "cube 213", "213^3", "213³"
-    const cubeMatch =
-      qLower.match(/^cube\s+of\s+([+-]?\d+(?:\.\d+)?)$/) ||
-      qLower.match(/^([+-]?\d+(?:\.\d+)?)\s*cubed$/) ||
-      qLower.match(/^cube\s+([+-]?\d+(?:\.\d+)?)$/) ||
-      qLower.match(/^([+-]?\d+(?:\.\d+)?)\s*\^\s*3$/) ||
-      qLower.match(/^([+-]?\d+(?:\.\d+)?)\s*³$/);
-
-    if (cubeMatch) {
-      const n = parseFloat(cubeMatch[1]);
-      const nSq = n * n;
-      const nCube = nSq * n;
-      const nFormatted = Number.isInteger(n) ? String(n) : n.toString();
-      const cubeFormatted = Number.isInteger(nCube) ? nCube.toLocaleString('en-US') : nCube.toString();
-      const sqFormatted = Number.isInteger(nSq) ? nSq.toLocaleString('en-US') : nSq.toString();
-
-      return {
-        answer: `The cube of ${nFormatted} is ${cubeFormatted} (${nFormatted}³ = ${cubeFormatted}).`,
-        steps: [
-          `Definition: The cube of a number n is obtained by multiplying it by itself twice: n³ = n × n × n.`,
-          `Step 1: Calculate the square of ${nFormatted}: ${nFormatted} × ${nFormatted} = ${sqFormatted}.`,
-          `Step 2: Multiply by ${nFormatted} once more: ${sqFormatted} × ${nFormatted} = ${cubeFormatted}.`,
-          `Result: ${nFormatted}³ = ${cubeFormatted}.`,
-        ],
-        formula: `n³ = n × n × n  ⇒  ${nFormatted}³ = ${cubeFormatted}`,
-        example: `In geometry, a 3D cube with edge length ${nFormatted} has a volume of V = s³ = ${cubeFormatted} cubic units.`,
-        diagramSvg: `<svg viewBox="0 0 400 240" xmlns="http://www.w3.org/2000/svg">
-          <rect width="400" height="240" rx="14" fill="#0F172A"/>
-          <polygon points="170,120 250,120 250,200 170,200" fill="rgba(45,212,191,0.2)" stroke="#2DD4BF" stroke-width="2.5"/>
-          <polygon points="170,120 250,120 290,75 210,75" fill="rgba(45,212,191,0.35)" stroke="#2DD4BF" stroke-width="2.5"/>
-          <polygon points="250,120 290,75 290,155 250,200" fill="rgba(45,212,191,0.15)" stroke="#2DD4BF" stroke-width="2.5"/>
-          <text x="180" y="215" fill="#5EEAD4" font-size="13" font-weight="bold" font-family="monospace">edge = ${nFormatted}</text>
-          <text x="120" y="42" fill="#FDE047" font-size="14" font-weight="bold" font-family="monospace">Volume = s³ = ${cubeFormatted}</text>
-        </svg>`,
-      };
-    }
-
-    // 2. Square of N: e.g. "square of 213", "213 squared", "square 213", "213^2", "213²"
-    const sqMatch =
-      qLower.match(/^square\s+of\s+([+-]?\d+(?:\.\d+)?)$/) ||
-      qLower.match(/^([+-]?\d+(?:\.\d+)?)\s*squared$/) ||
-      qLower.match(/^square\s+([+-]?\d+(?:\.\d+)?)$/) ||
-      qLower.match(/^([+-]?\d+(?:\.\d+)?)\s*\^\s*2$/) ||
-      qLower.match(/^([+-]?\d+(?:\.\d+)?)\s*²$/);
-
-    if (sqMatch) {
-      const n = parseFloat(sqMatch[1]);
-      const nSq = n * n;
-      const nFormatted = Number.isInteger(n) ? String(n) : n.toString();
-      const sqFormatted = Number.isInteger(nSq) ? nSq.toLocaleString('en-US') : nSq.toString();
-      return {
-        answer: `The square of ${nFormatted} is ${sqFormatted} (${nFormatted}² = ${sqFormatted}).`,
-        steps: [
-          `Definition: The square of a number n is obtained by multiplying it by itself: n² = n × n.`,
-          `Multiply: ${nFormatted} × ${nFormatted} = ${sqFormatted}.`,
-          `Result: ${nFormatted}² = ${sqFormatted}.`,
-        ],
-        formula: `n² = n × n  ⇒  ${nFormatted}² = ${sqFormatted}`,
-        example: `In geometry, a 2D square with side length ${nFormatted} has an area of A = s² = ${sqFormatted} square units.`,
-        diagramSvg: `<svg viewBox="0 0 400 240" xmlns="http://www.w3.org/2000/svg">
-          <rect width="400" height="240" rx="14" fill="#0F172A"/>
-          <rect x="130" y="55" width="140" height="140" fill="rgba(45,212,191,0.2)" stroke="#2DD4BF" stroke-width="2.5"/>
-          <text x="175" y="215" fill="#5EEAD4" font-size="13" font-weight="bold" font-family="monospace">side = ${nFormatted}</text>
-          <text x="130" y="40" fill="#FDE047" font-size="14" font-weight="bold" font-family="monospace">Area = s² = ${sqFormatted}</text>
-        </svg>`,
-      };
-    }
-
-    // 3. Cube root of N: e.g. "cube root of 213", "cbrt 213", "cube root of 9663597"
-    const cbrtMatch =
-      qLower.match(/^(?:cube\s*root\s*(?:of)?|cbrt|∛)\s*([+-]?\d+(?:\.\d+)?)$/);
-    if (cbrtMatch) {
-      const n = parseFloat(cbrtMatch[1]);
-      const val = Math.cbrt(n);
-      const formatted = Number.isInteger(val) ? String(val) : Number(val.toFixed(6)).toString();
-      return {
-        answer: `The cube root of ${n} is ${formatted} (∛${n} ≈ ${formatted}).`,
-        steps: [
-          `Definition: The cube root of a number x is the value y such that y³ = x.`,
-          `Calculation: ∛${n} = ${formatted}.`,
-          `Verification: (${formatted})³ = ${(val * val * val).toFixed(4)}.`,
-        ],
-        formula: `∛x = y  ⇔  y³ = x`,
-        example: `For a cube with volume ${n}, the edge length is ∛${n} = ${formatted}.`,
-      };
-    }
-
-    // 4. Square root of N: e.g. "square root of 144", "sqrt 144", "√144"
-    const sqrtMatch =
-      qLower.match(/^(?:square\s*root\s*(?:of)?|sqrt|√)\s*(\d+(?:\.\d+)?)$/);
-    if (sqrtMatch) {
-      const n = parseFloat(sqrtMatch[1]);
-      const val = Math.sqrt(n);
-      const formatted = Number.isInteger(val) ? String(val) : Number(val.toFixed(6)).toString();
-      return {
-        answer: `The square root of ${n} is ${formatted} (√${n} = ${formatted}).`,
-        steps: [
-          `Definition: The principal square root of x is the non-negative number y such that y² = x.`,
-          `Calculation: √${n} = ${formatted}.`,
-          `Verification: ${formatted} × ${formatted} = ${(val * val).toFixed(4)}.`,
-        ],
-        formula: `√x = y  ⇔  y² = x`,
-        example: `For a square with area ${n}, the side length is √${n} = ${formatted}.`,
-      };
-    }
-
-    // 5. Factors / Prime Factorization of N: e.g. "factors of 213", "prime factors of 213"
-    const factorMatch = qLower.match(/^(?:prime\s+)?(?:factors|factorization|divisors)\s+of\s+(\d+)$/);
-    if (factorMatch) {
-      const n = parseInt(factorMatch[1], 10);
-      if (n > 0 && n <= 100000000) {
-        const divisors: number[] = [];
-        for (let i = 1; i * i <= n; i++) {
-          if (n % i === 0) {
-            divisors.push(i);
-            if (i * i !== n) divisors.push(n / i);
-          }
-        }
-        divisors.sort((a, b) => a - b);
-
-        let temp = n;
-        const primeFactors: number[] = [];
-        for (let d = 2; d * d <= temp; d++) {
-          while (temp % d === 0) {
-            primeFactors.push(d);
-            temp = Math.floor(temp / d);
-          }
-        }
-        if (temp > 1) primeFactors.push(temp);
-
-        const primeFreq: Record<number, number> = {};
-        primeFactors.forEach((p) => {
-          primeFreq[p] = (primeFreq[p] || 0) + 1;
-        });
-        const primeProductStr = Object.entries(primeFreq)
-          .map(([p, count]) => (count > 1 ? `${p}^${count}` : p))
-          .join(' × ') || String(n);
-
-        return {
-          answer: `The number ${n} has ${divisors.length} divisor${divisors.length === 1 ? '' : 's'}. Its prime factorization is: ${n} = ${primeProductStr}.`,
-          steps: [
-            `All divisors of ${n}: ${divisors.join(', ')}.`,
-            `Prime factors: ${Array.from(new Set(primeFactors)).join(', ') || String(n)}.`,
-            `Expressed as product of prime powers: ${n} = ${primeProductStr}.`,
-            divisors.length === 2 ? `${n} is a PRIME number.` : `${n} is a COMPOSITE number.`,
-          ],
-          formula: `Prime Factorization: ${n} = ${primeProductStr}`,
-          example: divisors.length > 2 ? `Notice that ${n} is divisible by ${divisors[1]} since ${divisors[1]} × ${n / divisors[1]} = ${n}.` : '',
-        };
-      }
-    }
-
-    // 6. Powers: e.g. "2 to the power of 10", "2^10", "2 raised to 10"
-    const powerMatch =
-      qLower.match(/^(\d+(?:\.\d+)?)\s*(?:to the power of|raised to(?:\s+the\s+power\s+of)?|\^)\s*(\d+(?:\.\d+)?)$/);
-    if (powerMatch) {
-      const base = parseFloat(powerMatch[1]);
-      const exp = parseFloat(powerMatch[2]);
-      const res = Math.pow(base, exp);
-      const resFormatted = Number.isInteger(res) ? res.toLocaleString('en-US') : Number(res.toFixed(6)).toString();
-      return {
-        answer: `${base}^${exp} = ${resFormatted}.`,
-        steps: [
-          `Base = ${base}, Exponent = ${exp}.`,
-          `Multiply ${base} by itself ${exp} times.`,
-          `Result: ${base}^${exp} = ${resFormatted}.`,
-        ],
-        formula: `aᵇ = a × a × ... × a (b times)`,
-        example: '',
-      };
-    }
-
-    // 7. LCM of A and B
-    const lcmMatch = qLower.match(/^(?:lcm|least common multiple)\s+(?:of\s+)?(\d+)\s*(?:and|,)\s*(\d+)$/);
-    if (lcmMatch) {
-      const a = parseInt(lcmMatch[1], 10);
-      const b = parseInt(lcmMatch[2], 10);
-      const gcd = (x: number, y: number): number => (!y ? x : gcd(y, x % y));
-      const g = gcd(a, b);
-      const lcm = (a * b) / g;
-      return {
-        answer: `The LCM of ${a} and ${b} is ${lcm}.`,
-        steps: [
-          `Find GCD(${a}, ${b}) = ${g}.`,
-          `Formula: LCM(a, b) = (a × b) ÷ GCD(a, b).`,
-          `Calculation: (${a} × ${b}) ÷ ${g} = ${a * b} ÷ ${g} = ${lcm}.`,
-        ],
-        formula: `LCM(a, b) = (a × b) ÷ GCD(a, b) = ${lcm}`,
-        example: '',
-      };
-    }
-
-    // 8. HCF / GCD of A and B
-    const gcdMatch = qLower.match(/^(?:gcd|hcf|greatest common divisor|highest common factor)\s+(?:of\s+)?(\d+)\s*(?:and|,)\s*(\d+)$/);
-    if (gcdMatch) {
-      const a = parseInt(gcdMatch[1], 10);
-      const b = parseInt(gcdMatch[2], 10);
-      const gcd = (x: number, y: number): number => (!y ? x : gcd(y, x % y));
-      const g = gcd(a, b);
-      return {
-        answer: `The HCF (GCD) of ${a} and ${b} is ${g}.`,
-        steps: [
-          `Find common factors of ${a} and ${b}.`,
-          `Using Euclidean algorithm: GCD(${a}, ${b}) = ${g}.`,
-          `Result: Greatest common divisor is ${g}.`,
-        ],
-        formula: `GCD(${a}, ${b}) = ${g}`,
-        example: '',
-      };
-    }
-
-    // 9. Percentage: e.g. "25% of 480"
-    const pctMatch = qLower.match(/^(\d+(?:\.\d+)?)\s*%\s*(?:of\s*)?(\d+(?:\.\d+)?)$/);
-    if (pctMatch) {
-      const p = parseFloat(pctMatch[1]);
-      const total = parseFloat(pctMatch[2]);
-      const res = Number(((p / 100) * total).toFixed(4));
-      return {
-        answer: `${p}% of ${total} is ${res}.`,
-        steps: [
-          `Convert percentage to decimal: ${p}% = ${p}/100 = ${p / 100}.`,
-          `Multiply by ${total}: (${p} ÷ 100) × ${total} = ${res}.`,
-        ],
-        formula: `(${p} ÷ 100) × ${total} = ${res}`,
-        example: '',
-      };
-    }
-
-    // 10. Direct arithmetic expressions
-    const cleanedExpr = q
-      .replace(/^(what is|whats|what's|calculate|solve|evaluate|find|compute|simplify)\s+/i, '')
-      .replace(/\?+$/, '')
-      .replace(/×/g, '*')
-      .replace(/÷/g, '/')
-      .replace(/²/g, '^2')
-      .replace(/³/g, '^3')
-      .replace(/√\(([^)]+)\)/g, 'sqrt($1)')
-      .replace(/√(\d+(\.\d+)?)/g, 'sqrt($1)')
+    diagramSvg: string;
+  } | null> {
+    const trimmed = rawQuestion.trim().replace(/[?!.]+$/, '').trim();
+    const isCausalQuestion = /^(?:why|how)\b/i.test(trimmed);
+    const strippedTopic = trimmed
+      .replace(
+        /^(?:please\s+|can\s+you\s+|could\s+you\s+)?(?:tell\s+me\s+(?:about\s+)?|explain\s+(?:what\s+(?:is|are)\s+)?|define\s+|describe\s+|what\s+(?:is|are|was|were)\s+(?:a\s+|an\s+|the\s+)?|who\s+(?:is|are|was|were|invented|discovered|wrote|founded)\s+|why\s+(?:is|are|do|does|did)\s+|how\s+(?:do|does|did|is|are)\s+)/i,
+        ''
+      )
       .trim();
+    const searchTopic = isCausalQuestion ? trimmed : strippedTopic || trimmed;
 
-    if (/^[0-9+\-*/^().\s%sqrtpi,e]+$/i.test(cleanedExpr) && /\d/.test(cleanedExpr)) {
-      try {
-        const val = math.evaluate(cleanedExpr);
-        if (typeof val === 'number' && Number.isFinite(val)) {
-          const formattedVal = Number.isInteger(val)
-            ? val.toLocaleString('en-US')
-            : Number(val.toFixed(6)).toString();
-          return {
-            answer: `${cleanedExpr} = ${formattedVal}`,
-            steps: [
-              `Mathematical expression: ${cleanedExpr}`,
-              `Evaluated result: ${formattedVal}`,
-            ],
-            formula: `${cleanedExpr} = ${formattedVal}`,
-            example: '',
-          };
+    if (!searchTopic || searchTopic.length < 2) return null;
+
+    const queryTokens = strippedTopic
+      .toLowerCase()
+      .split(/\s+/)
+      .filter((w) => w.length >= 3 && !['the', 'and', 'for', 'with', 'that', 'this', 'from'].includes(w));
+
+    const searchOnDomain = async (host: string, qStr: string, ctrl: AbortController) => {
+      const searchUrl =
+        `https://${host}/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(
+          qStr
+        )}&srlimit=4&format=json&origin=*`;
+      const sRes = await fetch(searchUrl, {
+        signal: ctrl.signal,
+        headers: { 'User-Agent': 'ParabolaStudio/1.0' },
+      });
+      if (!sRes.ok) return null;
+      const sData = (await sRes.json()) as {
+        query?: { search?: Array<{ title?: string }> };
+      };
+      const candidates = (sData.query?.search || [])
+        .map((item) => item.title)
+        .filter((t): t is string => Boolean(t && !/^(list of|outline of)/i.test(t)));
+
+      let fallbackMatch: {
+        answer: string;
+        steps: string[];
+        formula: string;
+        example: string;
+        diagramSvg: string;
+      } | null = null;
+
+      for (const title of candidates) {
+        const sumUrl = `https://${host}/api/rest_v1/page/summary/${encodeURIComponent(
+          title.replace(/ /g, '_')
+        )}`;
+        const sumRes = await fetch(sumUrl, {
+          signal: ctrl.signal,
+          headers: { 'User-Agent': 'ParabolaStudio/1.0' },
+        });
+        if (!sumRes.ok) continue;
+        const sumData = (await sumRes.json()) as {
+          type?: string;
+          title?: string;
+          description?: string;
+          extract?: string;
+        };
+        if (sumData.type === 'disambiguation' || !sumData.extract) continue;
+
+        const cleanedExtract = cleanSimpleEncyclopediaText(sumData.extract);
+        const descAndExtract = `${sumData.description || ''} ${cleanedExtract}`;
+        const lowerCheck = `${sumData.title || ''} ${descAndExtract}`.toLowerCase();
+        // Skip unrelated matches
+        if (queryTokens.length > 0 && !queryTokens.some((tok) => lowerCheck.includes(tok))) {
+          continue;
         }
-      } catch {
-        // Continue
-      }
-    }
+        const hasCausalMechanism =
+          /\b(scatter(?:ing|ed)?|rayleigh|wavelength|atmosphere|because|due to|caused by|phenomenon|process|mechanism)\b/i.test(
+            descAndExtract
+          );
+        const isSwatchOrShallowColor = /\b(color|colour|shade of|cool color|warm color|tint of|pigment|attestation)\b/i.test(
+          descAndExtract
+        );
+        if (isCausalQuestion && isSwatchOrShallowColor && !hasCausalMechanism) {
+          continue;
+        }
 
+        const sentences = cleanedExtract
+          .split(/(?<=[.!?])\s+/)
+          .map((s) => s.trim())
+          .filter((s) => s.length >= 12);
+        const primaryAnswer = sentences.slice(0, 2).join(' ') || cleanedExtract;
+        const extraPoints = sentences.slice(2, 4);
+
+        const built = {
+          answer: primaryAnswer,
+          steps: extraPoints,
+          formula: sumData.title
+            ? `${sumData.title}${sumData.description ? ` — ${sumData.description}` : ''}`
+            : '',
+          example: '',
+          diagramSvg: generateFallbackGeometrySvg(rawQuestion, primaryAnswer),
+        };
+
+        if (isCausalQuestion && !hasCausalMechanism) {
+          if (!fallbackMatch) fallbackMatch = built;
+          continue;
+        }
+        return built;
+      }
+      return fallbackMatch;
+    };
+
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 4500);
+    try {
+      // 1. Prefer Simple English Wikipedia for clear, easy-to-understand explanations
+      const simpleHit = await searchOnDomain(
+        'simple.wikipedia.org',
+        isCausalQuestion ? searchTopic : strippedTopic || searchTopic,
+        ctrl
+      );
+      if (simpleHit) {
+        return simpleHit;
+      }
+      // 2. Fallback to standard English Wikipedia (with causal query preserved and simplified sentences)
+      const enHit = await searchOnDomain('en.wikipedia.org', searchTopic, ctrl);
+      if (enHit) {
+        return enHit;
+      }
+    } catch {
+      // Fall through cleanly if network lookup fails
+    } finally {
+      clearTimeout(timer);
+    }
     return null;
   }
 
-  // Server-side Genius Bar Pure Mathematics Q&A & Camera Photo Scanner Endpoint (100% Mathematics Only)
+  // Server-side Genius Bar Universal Q&A & Camera Photo Scanner Endpoint (Answers ALL Questions)
   app.post('/api/genius-bar', async (req, res) => {
     const { question, imageBase64, imageMimeType } = req.body || {};
     const cleanQuestion = typeof question === 'string' ? question.trim() : '';
@@ -991,7 +864,8 @@ Requirements:
 
     if (!cleanQuestion && !hasImage) {
       res.json({
-        answer: 'Welcome to the Genius Bar! Ask any mathematics problem, calculation, or formula (e.g. "Cube of 213", "Square root of 15625") or scan a photo of your math problem.',
+        answer:
+          'Welcome to the Genius Bar! Ask any question — calculus, algebra, geometry, textbook terms, science, or general knowledge — or scan a photo of your problem.',
         steps: [],
         formula: '',
         example: '',
@@ -1000,11 +874,26 @@ Requirements:
       return;
     }
 
-    // Fast Path 1: Check deterministic pure mathematics engine for text questions
+    // Fast Path 1: Instant deterministic symbolic calculus, algebra, trig, number theory & geometry solver
     if (!hasImage && cleanQuestion) {
-      const pureMathResult = solvePureMathematicsQuestion(cleanQuestion);
-      if (pureMathResult) {
-        res.json(pureMathResult);
+      const mathResult = solveGeniusMath(cleanQuestion);
+      if (mathResult) {
+        res.json({
+          ...mathResult,
+          diagramSvg:
+            mathResult.diagramSvg || generateFallbackGeometrySvg(cleanQuestion, mathResult.answer),
+        });
+        return;
+      }
+
+      // Fast Path 2: Exact Ganita Prakash Class 8 textbook glossary & 112-module curriculum lookup
+      const bookResult = searchBookKnowledge(cleanQuestion);
+      if (bookResult) {
+        res.json({
+          ...bookResult,
+          diagramSvg:
+            bookResult.diagramSvg || generateFallbackGeometrySvg(cleanQuestion, bookResult.answer),
+        });
         return;
       }
     }
@@ -1018,137 +907,293 @@ Requirements:
       }
     }
 
-    // Tier 1: Gemini AI with STRICT PURE MATHEMATICS System Instruction
-    if (process.env.GEMINI_API_KEY) {
-      try {
-        const parts: Array<{ text?: string; inlineData?: { mimeType: string; data: string } }> = [];
-        if (hasImage) {
+    let geminiErrorMsg = '';
+    let geminiErrorStatus = 0;
+
+    // Tier 1: Fast Universal Gemini AI (gemini-4-hydrogen with ThinkingLevel.MINIMAL for rapid text Q&A)
+    const apiKey = process.env.GEMINI_API_KEY?.trim();
+    if (apiKey && apiKey !== 'missing-api-key') {
+      for (let attempt = 0; attempt < 2; attempt++) {
+        const controller = new AbortController();
+        const timeoutMs = attempt === 0 ? 15000 : 12000;
+        const timeoutHandle = setTimeout(() => controller.abort(), timeoutMs);
+        try {
+          const parts: Array<{ text?: string; inlineData?: { mimeType: string; data: string } }> = [];
+          if (hasImage) {
+            parts.push({
+              inlineData: {
+                mimeType: String(imageMimeType),
+                data: String(imageBase64),
+              },
+            });
+          }
           parts.push({
-            inlineData: {
-              mimeType: String(imageMimeType),
-              data: String(imageBase64),
+            text: hasImage
+              ? `Read the problem shown in this image and explain the complete answer clearly in 3-5 concise steps. ${
+                  cleanQuestion ? `Student note: ${cleanQuestion}` : ''
+                }`
+              : `Answer this question clearly and concisely (include 2-4 crisp bullet steps if helpful): ${cleanQuestion}`,
+          });
+
+          const geminiPromise = getAiClient().models.generateContent({
+            model: 'gemini-4-hydrogen',
+            contents: { parts },
+            config: {
+              abortSignal: controller.signal,
+              thinkingConfig: {
+                thinkingLevel: hasImage ? ThinkingLevel.LOW : ThinkingLevel.MINIMAL,
+              },
+              systemInstruction:
+                'You are the Genius Bar friendly Class 8 AI Tutor. Answer ANY student question factually and in VERY SIMPLE, clear, easy-to-understand everyday language (short direct sentences, intuitive examples, zero unnecessary college jargon). Never reject a valid question as off-topic. Never use raw LaTeX backslashes (no \\frac, \\sqrt, \\times); always use clean Unicode symbols (√, ², ³, ×, ÷, ½, ∠, °, π, ∫, Δ).',
+              responseMimeType: 'application/json',
+              responseSchema: {
+                type: Type.OBJECT,
+                properties: {
+                  answer: { type: Type.STRING },
+                  steps: {
+                    type: Type.ARRAY,
+                    items: { type: Type.STRING },
+                  },
+                  formula: { type: Type.STRING },
+                  example: { type: Type.STRING },
+                },
+                required: ['answer', 'steps', 'formula', 'example'],
+              },
             },
           });
+
+          const response = await geminiPromise;
+          clearTimeout(timeoutHandle);
+          const rawText = (response.text ?? '{}').trim();
+          const parsed = JSON.parse(rawText);
+          if (parsed.answer) {
+            const answerClean = formatMathText(String(parsed.answer));
+            const result = {
+              answer: answerClean,
+              steps: Array.isArray(parsed.steps) ? parsed.steps.map((s: unknown) => formatMathText(String(s))) : [],
+              formula: parsed.formula ? formatMathText(String(parsed.formula)) : '',
+              example: parsed.example ? formatMathText(String(parsed.example)) : '',
+              diagramSvg: generateFallbackGeometrySvg(cleanQuestion, answerClean),
+            };
+            if (cacheKey) geniusBarCache.set(cacheKey, result);
+            res.json(result);
+            return;
+          }
+        } catch (err: unknown) {
+          clearTimeout(timeoutHandle);
+          const errObj = err as { status?: number; message?: string; name?: string };
+          geminiErrorStatus = typeof errObj?.status === 'number' ? errObj.status : 0;
+          const isAbort =
+            errObj?.name === 'AbortError' || /abort|timeout/i.test(String(errObj?.message || ''));
+          geminiErrorMsg = isAbort
+            ? 'Gemini response timed out'
+            : errObj?.message || 'Gemini request failed';
+
+          const isRetryable =
+            attempt === 0 && (geminiErrorStatus === 429 || geminiErrorStatus >= 500);
+          if (isRetryable) {
+            await new Promise((r) => setTimeout(r, 350));
+            continue;
+          }
+          break;
         }
-        parts.push({
-          text: hasImage
-            ? `Read the mathematics problem or equation shown in this photo and solve it completely with step-by-step mathematical working. If the problem involves geometry, 2D/3D shapes, angles, graphs, or mensuration, generate a clear, labeled SVG diagram in diagramSvg. ${
-                cleanQuestion ? `Additional student note: ${cleanQuestion}` : ''
-              }`
-            : `Solve this mathematics question: ${cleanQuestion}`,
-        });
-
-        const geminiPromise = getAiClient().models.generateContent({
-          model: hasImage ? 'gemini-3.8-flash' : 'gemini-3.1-flash-lite',
-          contents: { parts },
-          config: {
-            systemInstruction:
-              'You are the Genius Bar Pure Mathematics Mentor. You answer EXCLUSIVELY MATHEMATICS QUESTIONS (arithmetic, algebra, geometry, trigonometry, mensuration, exponents, powers, square and cube roots, fractions, decimals, number theory, ratio and proportions, statistics, and mathematical word problems). You MUST REFUSE or REDIRECT any non-mathematical topics (absolutely NO music bands, pop culture, USA trivia, history, biology, or non-math general knowledge). If a number is asked about, always interpret it purely as a mathematical entity (e.g. "cube of 213" is 213³ = 9,663,597, never a music band). Never use raw LaTeX backslashes; always use clean Unicode math symbols (√, ², ³, ×, ÷, ½, ∠, °, π). DIAGRAM RULE: Whenever the problem involves geometry, 2D/3D shapes, angles, or coordinate graphs, generate a valid, self-contained `<svg viewBox="0 0 400 240" xmlns="http://www.w3.org/2000/svg">...</svg>` string using a dark blueprint background (`<rect width="400" height="240" rx="14" fill="#0F172A"/>`), teal/amber strokes (`#2DD4BF`, `#FDE047`), and white/teal `<text>` labels.',
-            responseMimeType: 'application/json',
-            responseSchema: {
-              type: Type.OBJECT,
-              properties: {
-                answer: { type: Type.STRING },
-                steps: {
-                  type: Type.ARRAY,
-                  items: { type: Type.STRING },
-                },
-                formula: { type: Type.STRING },
-                example: { type: Type.STRING },
-                diagramSvg: {
-                  type: Type.STRING,
-                  description:
-                    'Complete <svg viewBox="0 0 400 240" xmlns="http://www.w3.org/2000/svg">...</svg> diagram for geometry, coordinate graph, or diagrammatic math questions; empty string "" if no diagram is needed.',
-                },
-              },
-              required: ['answer', 'steps', 'formula', 'example', 'diagramSvg'],
-            },
-          },
-        });
-
-        const timeoutPromise = new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error('Gemini timeout')), 7500)
-        );
-
-        const response = await Promise.race([geminiPromise, timeoutPromise]);
-        const rawText = (response.text ?? '{}').trim();
-        const parsed = JSON.parse(rawText);
-        if (parsed.answer) {
-          const rawSvg =
-            typeof parsed.diagramSvg === 'string' && parsed.diagramSvg.includes('<svg')
-              ? parsed.diagramSvg.trim()
-              : generateFallbackGeometrySvg(cleanQuestion, String(parsed.answer));
-          const result = {
-            answer: String(parsed.answer),
-            steps: Array.isArray(parsed.steps) ? parsed.steps.map(String) : [],
-            formula: parsed.formula ? String(parsed.formula) : '',
-            example: parsed.example ? String(parsed.example) : '',
-            diagramSvg: rawSvg,
-          };
-          if (cacheKey) geniusBarCache.set(cacheKey, result);
-          res.json(result);
-          return;
-        }
-      } catch {
-        // Proceed to Tier 2 Pure Math AI Fallback
       }
     }
 
-    // Tier 2: Pure Mathematics AI Fallback (Strictly Mathematical, No Wikipedia or Pop Trivia)
-    try {
-      const aiResponse = await fetch('https://text.pollinations.ai/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'openai-fast',
-          messages: [
-            {
-              role: 'system',
-              content:
-                'You are the Genius Bar Pure Mathematics Mentor. Answer ONLY mathematics questions with clear mathematical steps and formulas. If a question is not about mathematics, politely explain that the Genius Bar is purely for mathematics and invite them to ask a math question.',
-            },
-            {
-              role: 'user',
-              content: cleanQuestion || 'Solve the mathematics problem.',
-            },
-          ],
-        }),
+    // Tier 2: Real Encyclopedic Knowledge Lookup for general/science/history/math-concept questions
+    if (!hasImage && cleanQuestion) {
+      const wikiResult = await lookupEncyclopediaKnowledge(cleanQuestion);
+      if (wikiResult) {
+        if (cacheKey) geniusBarCache.set(cacheKey, wikiResult);
+        res.json(wikiResult);
+        return;
+      }
+    }
+
+    // Tier 3: Honest, helpful error response (never falsely rejecting questions as "not math")
+    if (!apiKey || apiKey === 'missing-api-key') {
+      res.status(503).json({
+        error: hasImage
+          ? 'Scanning photos requires a GEMINI_API_KEY configured in Settings > Secrets. Typed math, calculus, equations, and encyclopedic topic questions work right away.'
+          : 'Open-ended conversational questions require a GEMINI_API_KEY in Settings > Secrets. All typed math, calculus (e.g. "derivative of 3x^2"), equations, and factual topic lookups remain available.',
+        needsApiKey: true,
       });
-      if (aiResponse.ok) {
-        const text = (await aiResponse.text()).trim();
-        if (text) {
-          const result = {
-            answer: text,
-            steps: [],
-            formula: '',
-            example: '',
-            diagramSvg: generateFallbackGeometrySvg(cleanQuestion, text),
-          };
-          if (cacheKey) geniusBarCache.set(cacheKey, result);
-          res.json(result);
-          return;
-        }
-      }
-    } catch {
-      // Ignore
+      return;
     }
 
-    // Tier 3: Pure Math Fallback Response (Never non-math trivia)
-    res.json({
-      answer: `The Genius Bar is dedicated 100% to Mathematics. For math problems, calculations, formulas, or geometry (e.g. "Cube of 213", "Square root of 15625", "Why is 3⁻² = 1/9?", "Area of trapezium"), please rephrase or scan your problem directly.`,
-      steps: [
-        'Non-mathematical topics (trivia, pop culture, geography) are excluded.',
-        'Ask any arithmetic, algebra, geometry, powers, or word problems.',
-      ],
-      formula: 'Pure Mathematics Only',
-      example: 'Example: "Cube of 213" ⇒ 213³ = 9,663,597',
-      diagramSvg: generateFallbackGeometrySvg(cleanQuestion),
+    if (geminiErrorStatus === 429) {
+      res.status(429).json({
+        error: 'The AI tutor quota/rate limit was temporarily exceeded. Please wait a moment and ask again, or verify your Gemini API key tier in Settings > Secrets.',
+      });
+      return;
+    }
+
+    if (geminiErrorStatus === 400 || geminiErrorStatus === 401 || geminiErrorStatus === 403) {
+      res.status(geminiErrorStatus).json({
+        error: 'The configured Gemini API key could not be authenticated. Please check GEMINI_API_KEY in Settings > Secrets.',
+        needsApiKey: true,
+      });
+      return;
+    }
+
+    res.status(502).json({
+      error: hasImage
+        ? 'Could not read the scanned photo cleanly. Please try a sharper, well-lit image or type the question below.'
+        : `Could not reach the AI service for this prompt (${geminiErrorMsg || 'upstream unavailable'}). Please try rephrasing or try again shortly.`,
     });
+  });
+
+  // ==========================================================================
+  // LENIENT LONG-ANSWER SOLUTION GRADING (TYPED OR SCANNED HANDWRITING)
+  // ==========================================================================
+  app.post('/api/grade-solution', async (req, res) => {
+    try {
+      const {
+        questionPrompt,
+        expectedAnswer,
+        expectedExplanation,
+        typedSolution,
+        imageBase64,
+        imageMimeType,
+      } = req.body || {};
+
+      const cleanTyped = typeof typedSolution === 'string' ? typedSolution.trim() : '';
+      const hasImg = Boolean(imageBase64 && imageMimeType);
+
+      if (!cleanTyped && !hasImg) {
+        res.status(400).json({ error: 'Please type your solution or upload/scan a photo of your work.' });
+        return;
+      }
+
+      // Deterministic lenient check for typed text if it clearly includes final answer + reasoning
+      const normalizeTok = (s: string) =>
+        s
+          .toLowerCase()
+          .replace(/,/g, '')
+          .replace(/\b(cm²|cm³|cm|sq cm|m²|m|kg|rs\.?|₹|°|degrees|%)\b/g, '')
+          .replace(/\s+/g, '')
+          .trim();
+
+      const expNorm = normalizeTok(String(expectedAnswer || ''));
+      const typedNorm = normalizeTok(cleanTyped);
+      const numMatches = expectedAnswer
+        ? String(expectedAnswer).match(/-?\d+(?:\.\d+)?/g) || []
+        : [];
+      const hasExpectedNum =
+        numMatches.length > 0 &&
+        numMatches.every((n) => cleanTyped.replace(/,/g, '').includes(n));
+
+      if (!hasImg && (typedNorm === expNorm || (cleanTyped.length >= 12 && hasExpectedNum))) {
+        res.json({
+          isCorrect: true,
+          creditScore: cleanTyped.length >= 20 ? 10 : 8,
+          detectedFinalAnswer: String(expectedAnswer || ''),
+          feedback:
+            'Well done! Your working includes the key step/value and reaches the correct conclusion.',
+        });
+        return;
+      }
+
+      if (process.env.GEMINI_API_KEY) {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 15000);
+        try {
+          const parts: Array<{ text?: string; inlineData?: { mimeType: string; data: string } }> = [];
+          if (hasImg) {
+            parts.push({
+              inlineData: {
+                mimeType: String(imageMimeType),
+                data: String(imageBase64),
+              },
+            });
+          }
+          parts.push({
+            text: `Grade a Class 8 student's Long Answer math solution LENIENTLY.
+Question: ${questionPrompt}
+Reference Answer: ${expectedAnswer}
+Reference Solution: ${expectedExplanation}
+${cleanTyped ? `Student Typed Solution:\n${cleanTyped}` : 'Read the handwritten/scanned solution from the attached photo carefully.'}
+
+LENIENT GRADING RUBRIC:
+- Award credit (isCorrect = true, creditScore >= 6 out of 10) if the student demonstrates sound mathematical method/formula OR arrives at an equivalent final value, EVEN IF there is a minor arithmetic slip, skipped trivial algebra line, missing units, or messy handwriting.
+- Only mark isCorrect = false (creditScore <= 5) if the work is mostly unrelated, blank, or applies a completely wrong concept.`,
+          });
+
+          const resp = await getAiClient().models.generateContent({
+            model: 'gemini-4-hydrogen',
+            contents: { parts },
+            config: {
+              abortSignal: controller.signal,
+              thinkingConfig: { thinkingLevel: ThinkingLevel.MINIMAL },
+              systemInstruction:
+                'You are an encouraging, slightly lenient Class 8 mathematics examiner. Focus on understanding and method. Output concise plain-text feedback with Unicode math symbols.',
+              responseMimeType: 'application/json',
+              responseSchema: {
+                type: Type.OBJECT,
+                properties: {
+                  isCorrect: { type: Type.BOOLEAN },
+                  creditScore: { type: Type.INTEGER },
+                  detectedFinalAnswer: { type: Type.STRING },
+                  feedback: { type: Type.STRING },
+                },
+                required: ['isCorrect', 'creditScore', 'detectedFinalAnswer', 'feedback'],
+              },
+            },
+          });
+          clearTimeout(timer);
+          const parsed = JSON.parse((resp.text ?? '{}').trim());
+          const score = Math.max(0, Math.min(10, Number(parsed.creditScore) || 0));
+          res.json({
+            isCorrect: Boolean(parsed.isCorrect) || score >= 6,
+            creditScore: score,
+            detectedFinalAnswer: String(parsed.detectedFinalAnswer || ''),
+            feedback: String(parsed.feedback || 'Solution reviewed.'),
+          });
+          return;
+        } catch {
+          clearTimeout(timer);
+        }
+      }
+
+      // Lenient offline fallback: check if any significant mathematical tokens or final value appear
+      const expWords = String(expectedExplanation || '')
+        .toLowerCase()
+        .match(/\b\d+\b/g) || [];
+      const overlapCount = expWords.filter((w) =>
+        cleanTyped.replace(/,/g, '').includes(w)
+      ).length;
+      const lenientPass = hasImg || hasExpectedNum || overlapCount >= 2 || cleanTyped.length >= 40;
+
+      res.json({
+        isCorrect: lenientPass,
+        creditScore: lenientPass ? 7 : 4,
+        detectedFinalAnswer: cleanTyped.slice(-40) || 'Scanned work',
+        feedback: lenientPass
+          ? 'Credit awarded under lenient step-check! Compare your working with the model solution below.'
+          : 'Try writing at least 2 clear mathematical steps and your final numerical result.',
+      });
+    } catch (err) {
+      console.error('Error in /api/grade-solution:', err);
+      res.status(500).json({ error: 'Could not grade solution right now.' });
+    }
   });
 
   // ==========================================================================
   // STUDENT ACCOUNT REGISTRATION & PROGRESS SAVING API (NO EMAIL REQUIRED)
   // ==========================================================================
+  interface QuizAttemptRecord {
+    id: string;
+    quizKey: string;
+    quizKind: string;
+    title: string;
+    chapterIds: string[];
+    score: number;
+    total: number;
+    percentage: number;
+    timestamp: string;
+    passed: boolean;
+  }
+
   interface StoredAccount {
     username: string;
     mascot: string;
@@ -1159,6 +1204,12 @@ Requirements:
     points: number;
     unlockedBadgeIds: string[];
     chapterGamePoints: Record<string, number>;
+    quizHistory?: QuizAttemptRecord[];
+    completedQuizKeys?: string[];
+    streakCount?: number;
+    longestStreak?: number;
+    lastStreakDate?: string | null;
+    streakHistoryDays?: string[];
   }
 
   const accountsFilePath = path.join(__dirname, 'student_accounts_data.json');
@@ -1171,7 +1222,14 @@ Requirements:
       if (Array.isArray(list)) {
         list.forEach((acc) => {
           if (acc.username) {
-            acc.points = Math.min(4000, Math.max(0, Number(acc.points) || 120));
+            const parsedPts = Number(acc.points);
+            acc.points = Number.isFinite(parsedPts) ? Math.min(4000, Math.max(0, parsedPts)) : 0;
+            acc.quizHistory = Array.isArray(acc.quizHistory) ? acc.quizHistory : [];
+            acc.completedQuizKeys = Array.isArray(acc.completedQuizKeys) ? acc.completedQuizKeys : [];
+            acc.streakCount = Math.max(0, Math.floor(Number(acc.streakCount) || 0));
+            acc.longestStreak = Math.max(acc.streakCount, Math.floor(Number(acc.longestStreak) || 0));
+            acc.lastStreakDate = typeof acc.lastStreakDate === 'string' ? acc.lastStreakDate : null;
+            acc.streakHistoryDays = Array.isArray(acc.streakHistoryDays) ? acc.streakHistoryDays : [];
             studentAccounts.set(acc.username.toLowerCase().trim(), acc);
           }
         });
@@ -1179,6 +1237,27 @@ Requirements:
     }
   } catch (err) {
     console.warn('[Accounts] Could not read accounts file:', err);
+  }
+
+  // Deterministic demo student account starting cleanly at 0 stats
+  if (!studentAccounts.has('demostudent')) {
+    studentAccounts.set('demostudent', {
+      username: 'DemoStudent',
+      mascot: '🦉',
+      pin: '1234',
+      grade: 'Class 8',
+      createdAt: new Date().toISOString(),
+      lastLoginAt: new Date().toISOString(),
+      points: 0,
+      unlockedBadgeIds: [],
+      chapterGamePoints: {},
+      quizHistory: [],
+      completedQuizKeys: [],
+      streakCount: 0,
+      longestStreak: 0,
+      lastStreakDate: null,
+      streakHistoryDays: [],
+    });
   }
 
   function persistAccountsToDisk() {
@@ -1198,9 +1277,15 @@ Requirements:
         mascot = '🦉',
         pin,
         grade = 'Class 8',
-        initialPoints = 120,
+        initialPoints = 0,
         initialBadgeIds = [],
         initialChapterPoints = {},
+        initialQuizHistory = [],
+        initialCompletedQuizKeys = [],
+        initialStreakCount = 0,
+        initialLongestStreak = 0,
+        initialLastStreakDate = null,
+        initialStreakHistoryDays = [],
       } = req.body || {};
 
       const cleanUser = String(username || '').trim();
@@ -1225,6 +1310,8 @@ Requirements:
         return;
       }
 
+      const parsedInitPts = Number(initialPoints);
+      const safeStreak = Math.max(0, Math.floor(Number(initialStreakCount) || 0));
       const newAccount: StoredAccount = {
         username: cleanUser,
         mascot: String(mascot || '🦉'),
@@ -1232,9 +1319,15 @@ Requirements:
         grade: String(grade || 'Class 8'),
         createdAt: new Date().toISOString(),
         lastLoginAt: new Date().toISOString(),
-        points: Math.min(4000, Math.max(0, Number(initialPoints) || 120)),
+        points: Number.isFinite(parsedInitPts) ? Math.min(4000, Math.max(0, parsedInitPts)) : 0,
         unlockedBadgeIds: Array.isArray(initialBadgeIds) ? initialBadgeIds : [],
         chapterGamePoints: typeof initialChapterPoints === 'object' && initialChapterPoints !== null ? initialChapterPoints : {},
+        quizHistory: Array.isArray(initialQuizHistory) ? initialQuizHistory : [],
+        completedQuizKeys: Array.isArray(initialCompletedQuizKeys) ? initialCompletedQuizKeys : [],
+        streakCount: safeStreak,
+        longestStreak: Math.max(safeStreak, Math.floor(Number(initialLongestStreak) || 0)),
+        lastStreakDate: typeof initialLastStreakDate === 'string' ? initialLastStreakDate : null,
+        streakHistoryDays: Array.isArray(initialStreakHistoryDays) ? initialStreakHistoryDays : [],
       };
 
       studentAccounts.set(lookupKey, newAccount);
@@ -1281,7 +1374,19 @@ Requirements:
   // 3. Save / Sync Progress
   app.post('/api/accounts/save-progress', (req, res) => {
     try {
-      const { username, pin, points, unlockedBadgeIds, chapterGamePoints } = req.body || {};
+      const {
+        username,
+        pin,
+        points,
+        unlockedBadgeIds,
+        chapterGamePoints,
+        quizHistory,
+        completedQuizKeys,
+        streakCount,
+        longestStreak,
+        lastStreakDate,
+        streakHistoryDays,
+      } = req.body || {};
       const cleanUser = String(username || '').trim().toLowerCase();
       const cleanPin = String(pin || '').trim();
 
@@ -1303,6 +1408,48 @@ Requirements:
           ...account.chapterGamePoints,
           ...chapterGamePoints,
         };
+      }
+      if (Array.isArray(quizHistory)) {
+        const existingHistory = Array.isArray(account.quizHistory) ? account.quizHistory : [];
+        const byId = new Map<string, QuizAttemptRecord>();
+        existingHistory.forEach((h) => {
+          if (h && h.id) byId.set(h.id, h);
+        });
+        quizHistory.forEach((h: QuizAttemptRecord) => {
+          if (h && h.id) byId.set(h.id, h);
+        });
+        account.quizHistory = Array.from(byId.values()).slice(-120);
+      }
+      if (Array.isArray(completedQuizKeys)) {
+        const keySet = new Set([
+          ...(Array.isArray(account.completedQuizKeys) ? account.completedQuizKeys : []),
+          ...completedQuizKeys,
+        ]);
+        account.completedQuizKeys = Array.from(keySet);
+      }
+      if (typeof streakCount === 'number' && Number.isFinite(streakCount)) {
+        const safeCount = Math.max(0, Math.floor(streakCount));
+        const incomingDate = typeof lastStreakDate === 'string' ? lastStreakDate : null;
+        const currentDate = account.lastStreakDate || '';
+        if (!currentDate || (incomingDate && incomingDate >= currentDate)) {
+          account.streakCount = Math.max(
+            incomingDate === currentDate ? account.streakCount || 0 : 0,
+            safeCount
+          );
+          if (incomingDate) account.lastStreakDate = incomingDate;
+        }
+        account.longestStreak = Math.max(
+          account.longestStreak || 0,
+          Math.floor(Number(longestStreak) || 0),
+          account.streakCount || 0
+        );
+      }
+      if (Array.isArray(streakHistoryDays)) {
+        const daySet = new Set([
+          ...(Array.isArray(account.streakHistoryDays) ? account.streakHistoryDays : []),
+          ...streakHistoryDays.filter((d: unknown) => typeof d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d)),
+        ]);
+        account.streakHistoryDays = Array.from(daySet).sort().slice(-90);
       }
       account.lastLoginAt = new Date().toISOString();
       persistAccountsToDisk();

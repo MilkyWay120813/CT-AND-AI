@@ -7,6 +7,8 @@ import { PART2_CHAPTERS_1_TO_2 } from './part2CurriculumCh1to2';
 import { PART2_CHAPTERS_3_TO_4 } from './part2CurriculumCh3to4';
 import { PART2_CHAPTER_4_GEOMETRIC_THEMES } from './part2CurriculumCh4Geometric';
 import { PART2_CHAPTER_5 } from './part2CurriculumCh5';
+import { applyCustom98SimulationsToChapter } from './custom98Simulations';
+import { applyCustom98GamesToChapter } from './custom98Games';
 
 const allPart1Questions: ChapterAssessmentQuestion[] = [
   ...PART1_CHAPTERS_1_TO_3.flatMap((c) => c.questionnaire),
@@ -29,7 +31,7 @@ export const PART1_CURRICULUM_CHAPTERS: Part1ChapterCurriculum[] = [
         }
       : ch
   ),
-];
+].map(applyCustom98SimulationsToChapter).map(applyCustom98GamesToChapter);
 
 const PART2_CHAPTER_6_ALGEBRA_PLAY: Part1ChapterCurriculum = {
   chapterId: 'ch13-algebra-play',
@@ -823,7 +825,7 @@ export const PART2_CURRICULUM_CHAPTERS: Part1ChapterCurriculum[] = [
   PART2_CHAPTER_6_ALGEBRA_PLAY, // Ch 6: Algebra Play (8 modules)
   PART2_CHAPTERS_3_TO_4[1], // Ch 7: Area
   PART2_CHAPTER_8_MASTER_QUIZ, // Ch 8: Part II Mastery Quiz (30 Questions, 0 modules)
-];
+].map(applyCustom98SimulationsToChapter).map(applyCustom98GamesToChapter);
 
 export function getPart1CurriculumById(
   id: ChapterId | 'ch8-master-quiz' | 'part2-ch8-master-quiz'
@@ -1040,20 +1042,22 @@ export function buildPart2CurriculumFromChapter(chapter: GanitaChapter): Part1Ch
     }
   }
 
-  return {
-    chapterId: chapter.id,
-    chapterIndex: chapter.chapterNumber,
-    chapterBadgeLabel: `Ganita Prakash ${chapter.partLabel} · Chapter ${chapter.chapterNumber}`,
-    title: chapter.title,
-    heroRibbonText: `Ganita Prakash Class 8 · ${chapter.partLabel} Challenge`,
-    heroSubtitle: chapter.summary,
-    pdfCode: `${chapter.partLabel} Ch ${chapter.chapterNumber}`,
-    pdfUrl: chapter.pdfUrl,
-    heroBgGradient: 'from-[#0F3828] via-[#1E3A5F] to-[#0F172A]',
-    accentColor: '#10B981',
-    challengeBannerTitle: `Are you ready for the ${chapter.title} challenge?`,
-    challengeBannerSubtitle: `Explore ${chapter.interactiveLabTitle}, play the Chapter Tournament, and test yourself with a freshly randomized 10-Question Quiz!`,
-    modules: [...segmentModules, wrapUpModule],
-    questionnaire: staticQuestions,
-  };
+  return applyCustom98GamesToChapter(
+    applyCustom98SimulationsToChapter({
+      chapterId: chapter.id,
+      chapterIndex: chapter.chapterNumber,
+      chapterBadgeLabel: `Ganita Prakash ${chapter.partLabel} · Chapter ${chapter.chapterNumber}`,
+      title: chapter.title,
+      heroRibbonText: `Ganita Prakash Class 8 · ${chapter.partLabel} Challenge`,
+      heroSubtitle: chapter.summary,
+      pdfCode: `${chapter.partLabel} Ch ${chapter.chapterNumber}`,
+      pdfUrl: chapter.pdfUrl,
+      heroBgGradient: 'from-[#0F3828] via-[#1E3A5F] to-[#0F172A]',
+      accentColor: '#10B981',
+      challengeBannerTitle: `Are you ready for the ${chapter.title} challenge?`,
+      challengeBannerSubtitle: `Explore ${chapter.interactiveLabTitle}, play the Chapter Tournament, and test yourself with a freshly randomized 10-Question Quiz!`,
+      modules: [...segmentModules, wrapUpModule],
+      questionnaire: staticQuestions,
+    })
+  );
 }
